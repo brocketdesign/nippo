@@ -1,19 +1,21 @@
-![Screenshot](https://res.cloudinary.com/turnup/image/upload/v1526512881/homepage-cards.png)
+日報 (Daily Report) リポジトリ
 
-# First Node Website Tutorial Starter Files
+概要
 
-These are the starter files to accompany the tutorial for building a simple Node.js website with Express and Pug.
+このGitHubリポジトリでは、毎日の業務活動を記録・管理するための日報システムを提供します。開発者の仕事の進捗、課題、達成目標などを一覧化し、チーム間での情報共有と進行管理を効率化します。
 
-You can [access the tutorial here](https://freshman.tech/learn-node).
+主な特徴
 
-[Live demo](https://freshman-node.herokuapp.com/)
+記録管理: 毎日のタスクとその進捗を簡単に記録・追跡できます。
+情報共有: チームメンバー間での情報共有が容易になります。
+柔軟なカスタマイズ: ユーザーのニーズに合わせて日報のフォーマットを自由にカスタマイズできます。
+使用技術
 
-## Instructions
-1. Clone repo
-2. Run `npm install`
+本リポジトリは、Node.jsとMongoDBを主に用いて開発されています。テンプレートエンジンとしてPugを使用し、JavaScriptでサーバーサイドとクライアントサイドのコードを記述しています。
 
-## Getting Help
+起動方法
 
-Need some help? Leave a comment on the tutorial — this repo is meant as a place to grab the starter files and isn't a support channel.
-
-
+リポジトリをクローンまたはダウンロードします。
+プロジェクトのルートディレクトリで、依存関係をインストールします： npm install
+サーバーを起動します： npm start
+より詳しい設定や起動方法は、リポジトリ内のREADME.mdファイルをご参照ください。
