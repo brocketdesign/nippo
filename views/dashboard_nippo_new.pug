@@ -1,0 +1,161 @@
+extends dashboard
+block content
+    #formPage.container.col-md-10.ml-sm-auto.col-lg-10.pt-3.px-4.pb-5
+        h3.d-block.title.font-weight-light.mb-2.pb-2.border-bottom #{title}
+        .row.mt-3
+            .col-12.col-lg
+                .row    
+                    .col-auto.d-flex
+                        a.btn.btn-outline-light.border.text-secondary.SelectUserID.py-2.rounded(data-base="/dashboard/ichiran?type=nippo" onclick="genLinkandGo(this)" data-sua-event="日報入力ページ" data-sua-detail="「社員日報」アイコンをクリック" style="cursor:pointer;") 
+                            span(data-feather="list") 社員日報
+                        input.input-date.globalselector.text-center.w-auto.py-2(type="text" name="currentDay" data-name="nippo")
+                    .col-auto
+                        if isAdmin
+                            .adminOnly
+                                select.input-responsible.globalselector.text-center.w-auto.mx-1(name="担当者" style="display:none" data-name="nippo" data-id=`${userID}` )
+                    .col-12.col-sm-auto.d-flex.py-1
+                        button.btn.btn-outline-secondary.changeDay.prev.mx-1(style="flex: 1;")
+                            span(data-feather="chevrons-left")
+                            span 前日へ
+                        button.btn.btn-outline-secondary.changeDay.next.mx-1(style="flex: 1;")
+                            span 翌日へ
+                            span(data-feather="chevrons-right")
+            .col-12.col-lg-auto.py-1
+                .text-right.w-auto
+                    button.sendForm.d-block.d-lg-inline-block.btn.btn-primary.rounded.shadow-sm(style="cursor:pointer;min-width:120px" data-value="0")
+                            span.pt-1 送信／更新する
+                            span.savingPointerHide.ml-2(data-feather='arrow-right' style="width: 15px;height: 15px;")
+                            .savingPointer.spinner-border.text-white.spinner-border-sm.ml-2(style="display:none" role="status" data-value="0")
+                                .sr-only ローディング...
+        .card.border-secondary.my-3(style="width:100%")
+            .card-header.py-1.bg-primary.text-white.font-weight-bold
+                .row
+                    .col-6.text-left
+                        a.SelectUserID.text-white(data-base="/dashboard/ichiran?type=nippo" onclick="genLinkandGo(this)" data-sua-event="日報入力ページ" data-sua-detail="「社員日報」をクリック" style="cursor:pointer;") 
+                            span.pt-1 社員日報
+                    .col-6.text-right
+                        .savingPointer.spinner-border.text-white.spinner-border-sm.mr-1(style="display:none" role="status" data-name="nippo" data-value="1")
+                            .sr-only ローディング...
+                        span.savingPointer.mx-1.fw-light(style="display:none" data-name="nippo") 保存しています...
+            .card-body
+                .alert.mb-3.col-12.text-center(style="background-color: rgba(255, 0, 0, 0.18);display:none")   
+                    span.text-red 1.5日を超えました。
+                form.nippo(data-name="nippo" data-value="1" autocomplete="off")
+                    .form-container
+                        input.input-userID.form-control.form-control-sm(type="hidden" value=`${userID}` name="userID")
+                        input.input-userName.form-control.form-control-sm(type="hidden" value=`${userIDname}`  name="userName")
+                        input.input-date.form-control.form-control-sm(type="hidden" placeholder="日付" name="日付" value=`${today}`)
+                        input.statut.form-control.form-control-sm(type="hidden" value="" name="statut")
+                        input.totalTime.form-control.form-control-sm(type="hidden" value="1" name="totalTime")
+                        input.totalLine.nippo.form-control.form-control-sm(type="hidden" value="1" name="totalLine")
+                        .form-row.label-group.d-none.d-sm-flex
+                            .col-6.col-sm-2.text-center
+                                label.control-label(for="工事名") 現場名
+                            .col-6.col-sm-2.text-center
+                                label.control-label(for="作業名") 作業名
+                            .col-6.col-sm-1.text-center
+                                label.control-label(for="日") 日数
+                            .col-12.col-sm-6
+                                label.control-label(for="作業内容") 作業内容
+                        .form-group(data-name="nippo" data-value="1")
+                            .form-row
+                                .col-4.col-sm-2.text-center
+                                    select.ipk.input-genba.text-center.w-100(data-userid=`${userID}` name="工事名-1" style="font-size: 11px;")
+                                .col-4.col-sm-2.text-center
+                                    select.input-type.text-center.w-100(name="作業名-1" style="font-size: 11px;")
+                                .col-4.col-sm-1.text-center
+                                    select.input-time.text-center.w-100(name="日-1" style="font-size: 11px;")
+                                .col-12.col-sm-6
+                                    textarea.input-subject.w-100.py-2.px-1.border.rounded(name="作業内容-1"  rows="1" placeholder="作業内容") 
+                                .col-12.col-sm-1.position-relative.d-sm-block.d-none
+                                    .settingOptions
+                                        label.control-label(for="編集") 
+                                        .removeGroup.position-absolute.align-bottom(style="cursor:pointer;bottom: 40%;" data-value="1" data-name="nippo")
+                                            span.ml-2.mr-2(data-feather='trash' style="width: 15px;height: 15px;") 削除
+                    .form-row.ml-1.ifNotConfirmed
+                        .col-6
+                            span.addGroop.ml-1(style="cursor:pointer" data-name="nippo" data-value="1")
+                                span.text-white.bg-secondary.rounded-circle(data-feather='plus-circle')
+                        .col-6.text-right.isConfirmed-col-12
+                            .border.border-secondary.d-inline-block.px-2
+                                span 計： 
+                                span#totalTime 0
+                                span 日
+        .row.mt-3.pt-3.border-top
+            .col-12.col-lg-auto.d-flex
+                a.btn.btn-outline-light.border.text-secondary.SelectGenbaID.pb-2.rounded(data-base="/dashboard/ichiran?type=genbanippo" onclick="genLinkandGo(this)" data-sua-event="日報入力ページ「現場日報」アイコンをクリック" style="cursor:pointer;") 
+                    span(data-feather="list") 現場日報
+                select.input-genba.globalselector.text-center.mw-150(data-userid=`${userID}` data-select="genba" data-name="genbanippo" )
+                //input.input-date.globalselector.text-center.w-auto.d-none(type="text" name="currentDay" data-name="genbanippo")
+                //.adminOnly
+                    select.input-responsible.globalselector.text-center.d-none(data-select="responsible" data-name="genbanippo" data-id=`${userID}`)
+                //span.notAdmin.user-name.badge.py-3.px-3(style="display:none") #{userIDlname} #{userIDfname}
+            .col-12.col-lg.px-3.py-2
+                span 入力済みの現場：
+                span.genbatoday
+                span.genbatodayloading.spinner-border.text-secondary.spinner-border-sm.p-1.mx-1(role="status" data-name="nippo" data-value="1")
+                    .sr-only ローディング...
+            .col-12.alert-genba(style="display:none")
+                .row 
+                    .col-12.text-center     
+                        span 現場を選択してください
+        .card.border-secondary.my-3(style="width:100%")
+            .card-header.py-1.bg-warning.font-weight-bold.text-white
+                .row
+                    .col-6.text-left
+                        a.text-white.SelectGenbaID(data-base="/dashboard/ichiran?type=genbanippo" onclick="genLinkandGo(this)" data-sua-event="日報入力ページ「現場日報」をクリック" style="cursor:pointer;") 
+                            span.pt-1 現場日報
+                    .col-6.text-right
+                        .savingPointer.spinner-border.text-white.spinner-border-sm.mr-1(style="display:none" role="status" data-name="genbanippo" data-value="1")
+                            .sr-only ローディング...
+                        span.savingPointer.mx-1.fw-light(style="display:none" data-name="genbanippo") 保存しています...
+            .card-body(data-name="genbanippo" data-value="1")
+                form.genbanippo(data-name="genbanippo" data-value="1" autocomplete="off")
+                    .form-container
+                        input.input-userID.form-control.form-control-sm(type="hidden" value=`${userID}` name="userID")
+                        input.input-userName.form-control.form-control-sm(type="hidden" value=`${userName}` name="userName")
+                        input.input-date.form-control.form-control-sm(type="hidden" placeholder="日付" name="日付" value=`${today}`)
+                        input.input-genbaID.form-control.form-control-sm(type="hidden" name="genbaID")
+                        input.input-genbaName.form-control.form-control-sm(type="hidden" name="genbaName")
+                        input.totalLine.genbanippo.form-control.form-control-sm(type="hidden" value="1" name="totalLine")
+                        .form-row.label-group.d-none.d-sm-flex
+                            .col-12.col-sm-2.text-center
+                                label.control-label(for="工種") 工種
+                            .col-12.col-sm-2.text-center
+                                label.control-label(for="業社名") 業社名
+                            .col-12.col-sm-1.text-center
+                                label.control-label(for="人員") 人員
+                            .col-12.col-sm-6.text-center
+                                label.control-label(for="作業内容") 作業内容
+                        .form-group(data-name="genbanippo" data-value="1")
+                            .form-row   
+                                .col-12.col-sm-2.text-center
+                                    select.input-koushu.constructFilter.text-center.w-100(name="工種-1" style="font-size: 11px;" onchange="linkSelect(this)")
+                                .col-12.col-sm-2.text-center
+                                    input.input-company.text-center.w-100.py-2.px-1.border.rounded(name="業社名-1" disabled)
+                                .col-12.col-sm-1.text-center
+                                    input.input-personal.decimal.text-center.w-100.py-2.px-1.border.rounded(type="text" name="人員-1" style="font-size: 16px;")
+                                .col-12.col-sm-6.text-center
+                                    textarea.input-subject.w-100.py-2.px-1.border.rounded(name="作業内容-1"  placeholder="作業内容" rows="1") 
+                                .col-12.col-sm-1.position-relative.d-sm-block.d-none
+                                    .settingOptions
+                                        label.control-label(for="編集") 
+                                        .removeGroup.d-inline-block.position-absolute(style="cursor:pointer;bottom: 40%;" data-name="genbanippo" data-value="1")
+                                            span.mx-2(data-feather='trash' style="width: 15px;height: 15px;") 削除
+                    .form-row.ml-1.ifNotConfirmed
+                            .col-6
+                                span.addGroop.ml-1(style="cursor:pointer" data-name="genbanippo" data-value="1")
+                                    span.text-white.bg-secondary.rounded-circle(data-feather='plus-circle')
+                            .col-6.float-right.text-right
+                                .border.border-dark.d-inline-block.px-2
+                                    span 合計人数： 
+                                    span.total(data-value="input-personal" data-name="genbanippo") 
+        .row.text-center
+            .col-6.col-sm.py-1
+                a.btn.btn-outline-secondary.btn-sm(target="_blank" href="/dashboard/settings/genba?genbaID=0" onclick="triggerSUA(this)" data-sua-event="日報入力ページ" data-sua-detail="「現場登録へ」をクリック") 
+                    span.mr-3(data-feather="plus-circle" style="width: 15;height: 25;")
+                    span.pt-1 現場登録へ
+            .col-6.col-sm.py-1
+                a.btn.btn-outline-secondary.btn-sm(target="_blank" href="/dashboard/settings/company?companyID=0" onclick="triggerSUA(this)" data-sua-event="日報入力ページ" data-sua-detail="「業社登録へ」をクリック") 
+                    span.mr-3(data-feather="plus-circle" style="width: 15;height: 25;")
+                    span.pt-1 業社登録へ

@@ -1,0 +1,95 @@
+extends dashboard
+block content
+    #nipposhukei.container.col-md-9.ml-sm-auto.col-lg-10.pt-3.px-4.pb-5
+        .row 
+            .col-6
+                h3.d-block.title 業社状況
+            .col-6.text-right.d-none
+                button.btn.btn-success.d-inline-block.rounded-0.export-company
+                    span.ml-2.mr-2(data-feather='download' style="width: 15px;height: 15px;")
+                    span CSVダウンロード
+        .row.my-3 
+            .col-6.d-flex
+                select.input-company.text-center.w-100.px-2.border.rounded
+                select.periodList.globalselector(onchange="displayCompanyShukei(this)")
+            .col-6.text-right 
+                button.btn.btn-outline-secondary.showall
+                    span(data-feather="eye")
+        .template.companyShukei.mb-3(style="width:100%;display:none")
+            .row 
+                .col
+                    span.font-weight-bold.companyName(style="font-size: 31px;")
+                .col.text-right
+                    span.mx-2.font-weight-bold(style="font-size: 21px;") 合計：
+                    span.font-weight-bold.companyTotal(style="font-size: 21px;")
+                    span.font-weight-bold(style="font-size: 21px;") 人
+        .template.genbaShukei.card.border-secondary.mb-3(style="width:100%;display:none")
+            .card-header.py-1
+                .row
+                    .col
+                        span.genbaName(style="font-size: 21px;") 
+                    .col.text-right
+                        span.genbaTotal(style="font-size: 21px;")
+                        span(style="font-size: 21px;") 人
+            .card-body.p-0
+                table.table.company.table-sm
+                    thead
+                        tr 
+                            th.px-3(scope="col") 日付
+                            th.px-3(scope="col") 工種
+                            th.px-3(scope="col") 業社名
+                            th.px-3(scope="col") 人員数
+                            th.px-3(scope="col") 作業内容
+                            th.px-3(scope="col") 作業者名
+                    tbody
+        .company-shukei-container
+        .separator.separator.my-4.border.border-bottom-secondary.shadow
+        .row 
+            .col-6
+                h3.d-block.title #{title}
+            .col-6.text-right
+                button.btn.btn-success.d-inline-block.rounded-0.export-shukei
+                    span.ml-2.mr-2(data-feather='download' style="width: 15px;height: 15px;")
+                    span CSVダウンロード
+        .card.border-secondary.mb-3(style="width:100%")
+            .card-header.py-1
+                .row 
+                    .col-6
+                        .updateDate #{today}
+            .card-body.px-2
+                table.table.shukei.table-sm  
+                    thead
+                        tr 
+                            th(scope="col") 現場名
+                            th(scope="col") 作業者名
+                            th(scope="col") 作業時間
+                    tbody
+        .separator.separator.my-4.border.border-bottom-secondary.shadow
+        .row 
+            .col-12
+                h3.d-block.title 勤務状況
+        .card.border-secondary.mb-3(style="width:100%")
+            .card-header.py-1 勤務状況
+            .card-body(style="overflow: hidden;")
+                #shukeiChart
+        .row 
+            .col-6
+                h3.d-block.title 勤務状況
+            .col-6.text-right
+                button.btn.btn-success.d-inline-block.rounded-0.export-genba
+                    span.ml-2.mr-2(data-feather='download' style="width: 15px;height: 15px;")
+                    span CSVダウンロード
+        .card.border-secondary.mb-3(style="width:100%")
+            .card-header.py-1
+                .row 
+                    .col-6
+                        .updateDate #{today}
+            .card-body.px-2
+                table.table.genba.table-sm  
+                    thead
+                        tr 
+                            th(scope="col") 作業者名
+                            th(scope="col") 現場名
+                            th(scope="col") 作業時間
+                    tbody
+                        

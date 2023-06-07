@@ -1,0 +1,112 @@
+extends dashboard
+block content
+    .ichiranPage.container.col-md-9.ml-sm-auto.col-lg-10.pt-3.px-4
+        if type != 'genbanippo'
+            - title = '日報一覧'
+        else
+            - title = '現場日報一覧'
+        h3.d-block.title.font-weight-light.mb-2.pb-2.border-bottom #{title}
+        if type != 'genbanippo'
+            .row.my-2
+                .col-7
+                    .row
+                        .col-auto
+                                select.period-list.globalselector
+                        if isAdmin
+                            .col-auto
+                                .adminOnly
+                                    select.input-responsible.globalselector.text-center.w-auto(name="担当者" style="display:none" data-name="nippo" data-id=`${userID}` data-SelectUserID=`${SelectUserID}` )  
+                .col-5.text-right
+                    span.d-none(style="font-size: 12px;") 表示形式
+                    .d-flex.justify-content-end
+                        .switchview 
+                            button.switcher.btn.btn-outline-secondary.rounded-0.mx-1(data-value="view-table" style="display:none")
+                                span(data-feather="columns")
+                            button.switcher.btn.rounded-0.btn-outline-secondary.on.mx-1(data-value="view-list")
+                                span(data-feather="list")
+                            span.mx-1.d-none.d-sm-inline(style="font-size: 12px;") 表示切り替え
+                        .ms-toggle
+                            button.btn.btn-outline-secondary.rounded-0.showall.mx-1(data-ms-base="ms-nippoichiran")
+                                span(data-feather="eye")
+                            span.mx-1.d-none.d-sm-inline(style="font-size: 12px;") 全て
+            .row 
+                .col-12.col-sm-4
+                    .card.border-secondary.my-3(style="width:100%;")
+                        .card-header.bg-primary.py-1.text-left.font-weight-bold.text-white
+                            span 日報集計
+                        .card-body.px-0.py-0
+                                #info.nippo
+                                .col-12.p-3.text-center.info.savingPointer.w-100
+                                    .spinner-border.text-secondary.spinner-border-sm.ml-2(role="status" data-value="0" style="width: 30px;height: 30px;")
+                                        .sr-only ローディング...
+                .col-12.col-sm-8
+                    #nippoichiran.py-3.current
+                        .display.view-list(style="display:none")
+                            ul.list-group.ichiran.row.bg-transparent.border-none
+                            .loading.text-center.d-none.w-100.bg-white.border.border-secondary
+                                .spinner-border.text-secondary.m-3(role="status" data-value="0")
+                                    .sr-only ローディング...
+                        .display.view-table(style="display:none")
+                            .table-responsive.border.border-secondary.rounded
+                                    table.ichiran.w-100.table-bordered(data-name="nippoichiran")
+                                        thead.bg-primary.text-white.text-center
+                                            tr 
+                                        tbody.edit-options
+                            .loading.text-center.d-none.w-100.bg-white.border.border-secondary.border-top-0
+                                .spinner-border.text-secondary.m-3(role="status" data-value="0")
+                                    .sr-only ローディング...
+                        p#noResult.d-none.text-center.m-3 該当する項目がありません。
+                        
+        else
+            .row.my-2
+                .col-6.d-flex
+                    select.input-genba.globalselector.text-center.mw-150(data-userid=`${userID}` data-select="genba" data-selectid=`${selectid}`)
+                    .text-left.pt-2.px-0.info.savingPointer
+                        .spinner-border.text-secondary.spinner-border-sm.ml-2(role="status" data-value="0")
+                            .sr-only ローディング...
+                .col-6.text-right
+                    span.d-none(style="font-size: 12px;") 表示形式
+                    .d-flex.justify-content-end
+                        .switchview 
+                            button.switcher.btn.btn-outline-secondary.rounded-0.mx-1(data-value="view-table" style="display:none")
+                                span(data-feather="columns")
+                            button.switcher.btn.rounded-0.btn-outline-secondary.on.mx-1(data-value="view-list")
+                                span(data-feather="list")
+                            span.mx-1.d-none.d-sm-inline(style="font-size: 12px;") 表示切り替え
+                        .ms-toggle
+                            button.btn.btn-outline-secondary.rounded-0.showall.mx-1(data-ms-base="ms-genbanippo")
+                                span(data-feather="eye")
+                            span.mx-1.d-none.d-sm-inline(style="font-size: 12px;") 全て
+            .alert(style="display:none")
+                .row 
+                    .col-12.text-center     
+                        span 現場を選択してください
+            .row 
+                .col-12.col-sm-4
+                    .card.info.border-secondary.my-3(style="width:100%;")
+                        .card-header.bg-warning.py-1.font-weight-bold
+                            span 現場状況
+                            span.shukei_todayJP 
+                        .card-body.px-0.py-0
+                                #info.genba
+                                .col-12.p-3.text-center.info.savingPointer.w-100
+                                    .spinner-border.text-secondary.spinner-border-sm.ml-2(role="status" data-value="0" style="width: 30px;height: 30px;")
+                                        .sr-only ローディング...
+                .col-12.col-sm-8
+                    #genbaichiran.py-3.current
+                        .display.view-list(style="display:none")
+                            ul.list-group.ichiran.row.bg-transparent.border-none
+                            .loading.text-center.d-none.w-100.bg-white.border.border-secondary
+                                .spinner-border.text-secondary.m-3(role="status" data-value="0")
+                                    .sr-only ローディング...
+                        .display.view-table(style="display:none")
+                            .table-responsive.border.border-secondary.rounded
+                                table.ichiran.w-100.table-bordered(data-name="genbaichiran")
+                                    thead.bg-warning.text-center
+                                        tr 
+                                    tbody
+                            .loading.text-center.d-none.w-100.bg-white.border.border-secondary.border-top-0
+                                .spinner-border.text-secondary.m-3(role="status" data-value="0")
+                                    .sr-only ローディング...
+                        p#noResult.d-none.text-center.m-3 該当する項目がありません。
+                        

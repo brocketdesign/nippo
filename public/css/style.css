@@ -1,0 +1,276 @@
+/* ==========================================================================
+   #STYLES
+   ========================================================================== */
+
+
+/**
+ *
+ * [1]: Inheriting box sizing slightly better best-practice
+ * https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
+ *
+ * [2]: WordPress System font-stack
+ */
+
+
+/* RESET
+   ========================================================================== */
+
+
+html {
+  box-sizing: border-box;
+}
+*, *::before, *::after {
+  box-sizing: inherit; /* [1] */
+  margin: 0;
+  padding: 0;
+}
+h1 {
+    padding:0.3em;
+}
+body {
+  background-color: #f2f2f2 !important;
+} 
+nav{
+  background-color: #fff !Important;
+  border-bottom:1px solid #ccc;
+}
+section {
+  margin-bottom: 50px;
+}
+form,
+table {
+  background-color: #fff !Important;
+}
+.text-sm{
+  font-size:10px;
+  margin: unset !important;
+}
+.text-md{
+  font-size:12px;
+  margin: unset !important;
+}
+.clickable,
+#listUsers li{
+  cursor:pointer;
+}
+.clickable:hover,
+#listUsers li:hover,
+#listUsers li.on{
+  background-color:#ccc;
+}
+.adminOnly,
+.settingOptions{
+  display:none;
+}
+.collapsed .on,
+.edit-options.off .locked {
+  display:inline !important;
+}.collapsed .off,
+.edit-options.off .editThisId,
+.edit-options.off .removeThisId {
+  display:none !important;
+}
+.editThisId:hover{
+  color:blue
+}
+.removeThisId:hover{
+  color:red
+}
+.mw-150{
+  min-width:150px
+}
+input:disabled{
+  border-color: #fff!important;
+  color: #212529;
+}
+.removeThisIdHide.disabled,
+.nice-select.disabled {
+  color: #212529 !important;
+  }
+  .isweekend-土{
+    color:blue;
+  }
+  .isweekend-日{
+    color:red;
+  }
+  /* DATE PICKER //カレンダー(入力済：黒太文字)（未入力：赤）(1.0以外：青)
+     ========================================================================== */
+     .day.highlight {
+      color: red;
+      }
+    .day.done{
+      font-weight: bold;
+    }
+/* NICE SELECT
+   ========================================================================== */
+.nice-select .list {
+  max-height: 200px;
+  overflow: scroll !important;
+  min-width:100%;
+  width: auto !important;
+  }
+  .nice-select.disabled{
+    border-color: #fff!important;
+  }
+  .nice-select.disabled:after{
+    display:none;
+  }
+  .ms-design{
+    cursor: pointer;
+  }
+  .ms-design:hover{
+    text-decoration: underline;
+  }
+/* LOGIN
+   ========================================================================== */
+   .c-alert{
+    background-color: #FFE6DE;    
+   }
+   .alert {
+    clear: both;
+    border: none;
+    background: transparent;
+    font-weight: bold;
+    color: #f74711;
+    line-height: 1.4;
+    letter-spacing: normal;
+    margin-bottom: 0px !important;
+    padding: 0;
+   }
+.form-signin {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+  }
+  .form-signin .checkbox {
+    font-weight: 400;
+  }
+  .form-signin .form-control {
+    position: relative;
+    box-sizing: border-box;
+    height: auto;
+    padding: 10px;
+    font-size: 16px;
+  }
+  .form-signin .form-control:focus {
+    z-index: 2;
+  }
+  .form-signin input[type="email"] {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+  .form-signin input[type="password"] {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+/*
+ * Sidebar
+ */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100; /* Behind the navbar */
+  padding: 0;
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.sidebar-sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 48px; /* Height of navbar */
+  height: calc(100vh - 48px);
+  padding-top: .5rem;
+  overflow-x: hidden;
+  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+}
+.l-sidebar-sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0px; /* Height of navbar */
+  max-height: calc(90vh - 50px);
+  padding-top: .5rem;
+  overflow-x: hidden;
+  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+}
+.sidebar .nav-link {
+  font-weight: 500;
+  color: #333;
+  font-size:0.85em
+}
+
+.sidebar .nav-link .feather {
+  margin-right: 4px;
+  color: #999;
+}
+
+.sidebar .nav-link.active {
+  color: #007bff;
+}
+
+.sidebar .nav-link:hover .feather,
+.sidebar .nav-link.active .feather {
+  color: inherit;
+}
+
+.sidebar-heading {
+  font-size: .75rem;
+  text-transform: uppercase;
+}
+
+/*
+ * Navbars
+ */
+.navbar-brand {
+  padding-top: .75rem;
+  padding-bottom: .75rem;
+  font-size: 1rem;
+  background-color: rgba(0, 207, 17, 0.25);
+  box-shadow: inset -1px 0 0 rgba(34, 109, 0, 0.25);
+}
+
+.navbar .form-control {
+  padding: .75rem 1rem;
+  border-width: 0;
+  border-radius: 0;
+}
+
+.form-control-dark {
+  color: #fff;
+  background-color: rgba(255, 255, 255, .1);
+  border-color: rgba(255, 255, 255, .1);
+}
+
+.form-control-dark:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .25);
+}
+.label-top {
+  font-size: 10px;
+  position: absolute;
+  line-height: 0px;
+  }
+  .user-top{
+    font-size: 12px;
+  }
+  .ico-sm{
+    width:15px;
+    height:15px;
+    margin-right:10px;
+  }
+
+  .ichiran th {
+    min-width: 120px;
+    }
+/*
+ * Utilities
+ */
+
+.border-top { border-top: 1px solid #e5e5e5; }
+.border-bottom { border-bottom: 1px solid #e5e5e5; }

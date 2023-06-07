@@ -1,0 +1,32 @@
+extends dashboard
+block content
+    #SettingsUsers.container.col-md-10.ml-sm-auto.col-lg-10.pt-3.px-1
+        h3.d-block.title #{title}
+        #formUsers.card.border-secondary.mb-3.w-100
+            .card-header.py-1
+                span 新しユーザーを登録するフォーム
+            .card-body
+                form(action="/users/register" method="POST")
+                    .form-group.row
+                        label.control-label.col-sm-2(for="lname") 名前（生）
+                        input.form-control.col-sm-10( type="text" placeholder="名前（生）" name="lname")
+                    .form-group.row
+                        label.control-label.col-sm-2(for="fname")  名前（名）
+                        input.form-control.col-sm-10( type="text" placeholder="名前（名）" name="fname")
+                    .form-group.row
+                        label.control-label.col-sm-2(for="email") メールアドレス
+                        input.form-control.col-sm-10( type="email" placeholder="例： miyamoto@musashi.jp" name="email")
+                    .form-group.row
+                        label.control-label.col-sm-2(for="password") パスワード
+                        input.form-control.col-sm-10( type="password" placeholder="" name="password")
+                    .form-group.row
+                        label.control-label.col-sm-2(for="level") レベル
+                        select.form-control.col-sm-10(name="level")
+                            option(value="1") 管理者
+                            option(value="2") レベル２
+                            option(value="3") レベル３
+                    .my-2.font-weight-bold.pb-2.border-bottom.border-secondary 現場状況
+                    #genbaCheckList.form-group.row.p-3
+                    .form-group.row
+                        .col-12.text-right
+                            button.btn.btn-success(type="submit") ユーザーを追加する

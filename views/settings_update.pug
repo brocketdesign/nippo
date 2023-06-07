@@ -1,0 +1,45 @@
+extends dashboard
+block content
+    #SettingsUpdate.container.col-md-10.ml-sm-auto.col-lg-10.pt-3.px-1
+        h3.d-block.title #{title}
+        each elementType in elementTypes
+            .card.mb-3.w-100(id=`${elementType.name}Selector`)
+                .card-body
+                    h3 #{elementType.nameJP}
+                    p.explain 修正、追加、並べ替えることができます
+                    if elementType.data
+                        form(action=`/api/editAll/${elementType.name}/` method="POST")
+                            ul.sortable.list-group.mb-3(id=`sortable-list-${elementType.name}` style="max-height:50vh;overflow:scroll")
+                                each data,index in elementType.data
+                                    li.list-group-item.removeThisIdHide(id=`${data._id}` data-id=`${data._id}` data-value='1' data-order=`${index}`)
+                                            .row
+                                                .col-11
+                                                    input.form-control(type="text" placeholder=`${data.el}` value=`${data.el}` name="el"  data-name=`${elementType.name}` data-field="el" data-id=`${data._id}` onkeyup="updateField(this)" onclick="updateField(this)")
+                                                .col-1.settingOptions(style="display:none")
+                                                    .removeThisId.d-inline-block.rounded-50.float-right(style="cursor:pointer;" data-id=`${data._id}` data-name=`${elementType.name}`  data-value='1')
+                                                        span.ml-2.mr-2(data-feather='trash' style="width: 15px;height: 30px;")
+                                                            .sr-only 削除
+                                            if data.sub
+                                                ul.sortable.list-group.mb-3(id=`sortable-list-sub-${elementType.name}` style="max-height:50vh;overflow:scroll")
+                                                    each koushu,index in data.sub
+                                                        li.list-group-item.removeThisIdHide(id=`${data._id}` data-id=`${data._id}` data-value=`${index}` data-order=`sub-${index}`)
+                                                                .row
+                                                                    .col-sm-11
+                                                                        input.form-control(type="text" placeholder=`${koushu}` value=`${koushu}` name="sub"  data-name=`${elementType.name}` data-field="sub" data-id=`${data._id}` onkeyup="updateField(this)" onclick="updateField(this)")
+                                                                    .col-sm-1.settingOptions(style="display:none")
+                                                                        .removeThisId.d-inline-block.rounded-50.float-right(style="cursor:pointer;" data-id=`${data._id}` data-name=`${elementType.name}`  data-value=`sub-${index}` )
+                                                                            span.ml-2.mr-2(data-feather='trash' style="width: 15px;height: 30px;")
+                                                                                .sr-only 削除
+                            .row.settingOptions(style="display:none")
+                                .col-12.mb-3
+                                    button.btn.btn-outline-success.d-block.w-100(type="submit") 更新する
+                    span.addItemToggle.ml-1.mt-3(style="cursor:pointer" data-id=`${elementType.name}Selector`)
+                        span.text-white.bg-success.rounded-circle(data-feather='plus-circle')
+                    .addItem(style="display:none")
+                        h3 項目を追加する
+                        form(action=`/api/addone/${elementType.name}/` method="POST")
+                            div.col-12
+                                .form-group.row
+                                    input.form-control.col-sm-12( type="text" placeholder="構造を追加する" name="el")
+                            .col-12
+                                button.btn.btn-primary(type="submit") #{elementType.nameJP}を追加する

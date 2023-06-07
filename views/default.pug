@@ -1,0 +1,29 @@
+doctype html
+html
+  head
+    title 堀健データベース
+    link(rel="shortcut icon" type="image/ico" href="/image/favicon.ico")
+    link(rel='stylesheet', href='/css/style.css')
+    link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous")
+        
+    script(src='/js/jquery-3.5.1.js')
+    script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous")
+    
+    script(src="https://unpkg.com/feather-icons/dist/feather.min.js")
+    script(src='/js/script.js')
+    
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+  body
+    main
+        nav.navbar.navbar-expand-lg.navbar-light.sticky-top
+            a.navbar-brand.bg-transparent.mr-3(href='/') 株式会社堀健
+            if error == undefined
+              button.navbar-toggler(type='button' data-toggle='collapse' data-target='#navbarSupportedContent' aria-controls='navbarSupportedContent' aria-expanded='false' aria-label='Toggle navigation')
+                  span.navbar-toggler-icon
+              div#navbarSupportedContent.collapse.navbar-collapse
+                  ul.navbar-nav.mr-auto
+                      //li.nav-item
+                        a.nav-link(href='/genba') 現場一覧
+                  .nav-item
+                    button.logout.btn.btn-danger ログアウト
+        block content

@@ -1,0 +1,45 @@
+extends dashboard
+
+block content
+        div.container.col-md-10.ml-sm-auto.col-lg-10.pt-3.px-1
+            h3.d-block.title #{title}
+            #editUsers.card.mb-3.w-100(data-value=`${data._id}`)
+                .card-body
+                    form(method="POST")
+                        .form-group.row
+                            .col-12.col-lg-6
+                                label.control-label.col-12.font-weight-bold(for="lname") 名前（姓）
+                                input.form-control.col-12( type="text" placeholder=`${data['lname']}` value=`${data['lname']}` name="lname" )
+                            .col-12.col-lg-6
+                                label.control-label.col-12.font-weight-bold(for="fname")  名前（名）
+                                input.form-control.col-12( type="text" placeholder=`${data['fname']}` value=`${data['fname']}` name="fname")
+                        .form-group.row
+                            .col-12.col-lg-6
+                                label.control-label.col-12.font-weight-bold(for="email") メールアドレス
+                                input.form-control.col-12( type="email" placeholder=`${data['email']}` value=`${data['email']}` name="email")
+                            .col-12.col-lg-6
+                                label.control-label.col-12.font-weight-bold(for="password") パスワード
+                                input.form-control.col-12( type="password" placeholder=`${data['password']}` value=`${data['password']}` name="password")
+                        .form-group.row.adminOnly(style="display:none")
+                            label.control-label.col-sm-2.font-weight-bold(for="level") レベル
+                            select.form-control.col-sm-10(placeholder=`${data['level']}` value=`${data['level']}` name="level")
+                                option(value="1") 管理者
+                                option(value="2") レベル２
+                                option(value="3") レベル３
+                        .row.border-bottom.border-secondary
+                            .col-6
+                                .my-2.font-weight-bold.pb-2 現場状況
+                            .col-6.p-2
+                                a.float-right.badge.badge-primary.p-2.rounded(href='/dashboard/settings/genba') 現場を追加する
+                        #genbaCheckList.form-group.row.p-3
+                            .form-check.col-3.d-none
+                                input(class="form-check-input" type="checkbox" name="genba" id="chckbox_none" value="" data-id="none" checked)
+                        .form-group.row
+                            .col-12.text-right.border-top.pt-3
+                                button.btn.btn-success(type="submit") プロフィールを更新
+                    .row.adminOnly(style="display:none")
+                        .col-12.text-left.border-top.pt-3
+                            form#usersDelete(method="POST")
+                                button.d-inline-block.btn.btn-outline-danger.rounded.px-2.py-1(style="cursor:pointer" type="submint")
+                                    span.mr-1(data-feather='trash' style="width: 15px;height: 15px;")
+                                    span 削除

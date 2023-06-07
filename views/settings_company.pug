@@ -1,0 +1,22 @@
+extends dashboard
+block content
+    #SettingsCompany.container.col-md-10.ml-sm-auto.col-lg-10.pt-3.px-1.position-relative
+        .row.my-3
+            .col-12.mb-2
+                h3.d-block.title #{title}
+            .col 
+                .input-group
+                    input.filter.form-control(data-value="company-table" type="text" placeholder="検索する...")
+                    span.input-group-append 
+                        .input-group-text 
+                            span(data-feather="search") 検索する
+            .col.text-right   
+                a.btn.btn-primary.rounded(href="/dashboard/settings/company?companyID=0") 新業社登録
+        #listCompany.mb-3.w-100
+            table#company.table.table-hover
+                thead
+                    tr
+                        th 業社名
+                        th 業社名(ふりがな)
+                        th 工種
+                tbody.company-table

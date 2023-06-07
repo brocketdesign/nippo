@@ -1,0 +1,85 @@
+extends dashboard
+block content
+    #SettingsUsers.container.col-md-10.ml-sm-auto.col-lg-10.pt-3.px-1
+        .row    
+            .col
+                h3.d-block.title #{title}
+            .col.text-right 
+                a.btn.btn-outline-primary.w-auto.mb-3(href="/dashboard/settings/users/new") 
+                    span 新現ユーザ登録
+                    span.ml-2(data-feather="plus-circle")
+        .row 
+            .col-12.col-sm-4
+                select.input-responsible.text-center.w-100.d-sm-none.mb-3(name="担当者" style="display:none" data-name="nippo" data-id=`${userID}` )
+                ul#listUsers.list-group.mb-3.w-100.d-none.d-sm-block
+                        each user in users
+                            li.list-group-item.user-select.mb-1(style="cursor:pointer" data-value=`${user._id}` data-link=`/dashboard/settings/users/edit/${user._id}`)
+                                .row    
+                                    .col-12.d-flex
+                                        .avatar(style="flex:0.2")
+                                            img.border.rounded-circle(src="/image/avatar.png" width="25" height="25")
+                                        .profil.ml-4.position-relative(style="flex:0.8")
+                                            span.text-dark.font-weight-bold(style="width: 75%;display: inline-block;") #{user.lname} #{user.fname}
+                                            if user.level == 1
+                                                span.badge.badge-primary 管理者
+                                            span.mt-1 #{user.email}
+            .col-12.col-sm-8
+                #user-nav-tab.nav.nav-tabs(role="tablist")
+                    a#nav-editUsers-tab.nav-link.active(data-toggle="tab" href="#nav-editUsers" role="tab" aria-controls="nav-editUsers" aria-selected="true")
+                        span.mr-1(data-feather="users")
+                        span ユーザー情報
+                    a#nav-userActivity-tab.nav-link(data-toggle="tab" href="#nav-userActivity" role="tab" aria-controls="nav-userActivity" aria-selected="false")
+                        span.mr-1(data-feather="activity")
+                        span ユーザーアクティビティー
+                #nav-tabContent.tab-content
+                    #nav-editUsers.tab-pane.fade.show.active(role="tabpanel" aria-labelledby="nav-editUsers")
+                        //h4.border-bottom.pb-2 ユーザー情報
+                        #editUsers.card.mb-3.w-100
+                            .text-center.w-100.loading(style="display:none")
+                                span.spinner-border.text-secondary.spinner-border-lg.p-1.m-3(role="status" data-name="nippo" data-value="1")
+                                    .sr-only ローディング...
+                            .card-body(style="display:none")
+                                form(method="POST")
+                                    .form-group.row
+                                        .col-12.col-lg-6
+                                            label.control-label.col-12.font-weight-bold(for="lname") 名前（姓）
+                                            input.form-control.col-12( type="text" name="lname" )
+                                        .col-12.col-lg-6
+                                            label.control-label.col-12.font-weight-bold(for="fname")  名前（名）
+                                            input.form-control.col-12( type="text" name="fname")
+                                    .form-group.row
+                                        .col-12.col-lg-6
+                                            label.control-label.col-12.font-weight-bold(for="email") メールアドレス
+                                            input.form-control.col-12( type="email" name="email")
+                                        .col-12.col-lg-6
+                                            label.control-label.col-12.font-weight-bold(for="password") パスワード
+                                            input.form-control.col-12( type="password" name="password")
+                                    .form-group.row.adminOnly(style="display:none")
+                                        label.control-label.col-sm-2.font-weight-bold(for="level") レベル
+                                        select.form-control.col-sm-10(name="level")
+                                            option(value="1") 管理者
+                                            option(value="2") レベル２
+                                            option(value="3") レベル３
+                                    .row.border-bottom.border-secondary
+                                        .col-6
+                                            .my-2.font-weight-bold.pb-2 現場状況
+                                        .col-6.p-2
+                                            a.float-right.badge.badge-primary.p-2.rounded(href='/dashboard/settings/genba') 現場を追加する
+                                    #genbaCheckList.form-group.row.p-3
+                                        .form-check.col-3.d-none
+                                            input(class="form-check-input" type="checkbox" name="genba" id="chckbox_none" value="" data-id="none" checked)
+                                    .row
+                                        //.col.text-left.border-top.pt-3.adminOnly(style="display:none")
+                                            form#usersDelete(method="POST")
+                                                button.d-inline-block.btn.btn-outline-danger.rounded.px-2.pt-1(style="cursor:pointer" type="submint")
+                                                    span(data-feather='trash' style="width: 15px;height: 15px;")
+                                        .col.text-right.border-top.pt-3
+                                            button.btn.btn-success(type="submit") プロフィールを更新
+                    #nav-userActivity.tab-pane.fade(role="tabpanel" aria-labelledby="nav-userActivity")
+                        //h4.border-bottom.pb-2 ユーザーアクティビティー
+                        #userActivity.mb-3.w-100
+                            .text-center.w-100.loading.bg-white(style="display:none")
+                                span.spinner-border.text-secondary.spinner-border-lg.p-1.m-3(role="status" data-name="nippo" data-value="1")
+                                    .sr-only ローディング...
+                            .display.view-list(style="display:none")
+                                ul.list-group.activity.row.bg-transparent.border-none

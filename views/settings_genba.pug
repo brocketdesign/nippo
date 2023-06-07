@@ -1,0 +1,23 @@
+extends dashboard
+block content
+    #SettingsGenba.container.col-md-10.ml-sm-auto.col-lg-10.pt-3.px-1
+        .row.my-3
+            .col-12.mb-2
+                h3.d-block.title #{title}
+            .col 
+                .input-group
+                    input.filter.form-control(data-value="genba-table" type="text" placeholder="検索する...")
+                    span.input-group-append 
+                        .input-group-text 
+                            span(data-feather="search") 検索する
+            .col.text-right   
+                a.btn.btn-primary.rounded(href="/dashboard/settings/genba?genbaID=0") 新現場登録
+        #listGenba.mb-3.w-100
+            table#genba.table.table-hover
+                thead
+                    tr
+                        th 工事名
+                        th 工事名(ふりがな)
+                        th 発注者
+                        th 担当者
+                tbody.genba-table

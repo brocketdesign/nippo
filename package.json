@@ -1,0 +1,31 @@
+{
+  "name": "horiken-database",
+  "version": "1.0.0",
+  "description": "Nippo Management System for Horiken",
+  "main": "server.js",
+  "scripts": {
+    "test": "npm test",
+    "start": "nodemon server.js"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "backup/*"
+    ]
+  },
+  "author": "Didier BARTY",
+  "license": "ISC",
+  "dependencies": {
+    "archiver": "^5.3.0",
+    "cookie-parser": "^1.4.5",
+    "cron": "^1.8.2",
+    "del": "^6.0.0",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "geoip-lite": "^1.4.3",
+    "json-2-csv": "^3.14.1",
+    "mongodb": "^4.0.1",
+    "node-cron": "^3.0.2",
+    "nodemon": "^2.0.12",
+    "pug": "^3.0.2"
+  }
+}

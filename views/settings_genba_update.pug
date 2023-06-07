@@ -1,0 +1,73 @@
+extends dashboard
+block content
+    #SettingsGenba.container.col-md-10.ml-sm-auto.col-lg-10.pt-3.px-1
+        .d-flex    
+            .col-sm-auto.col-12.pt-1
+                a(href="/dashboard/settings/genba").d-block 
+                    span(data-feather='chevron-left' style="height: 30px;")
+                    span.pt-1 現場一覧に戻る
+            .col-sm-auto.col-12
+                h3.d-block.title #{title}
+        #formGenba.card.mb-3.w-100
+            .card-body
+                .form-container
+                    div.col-12
+                        .form-group.row
+                            label.control-label.col-sm-2(for="工事名") 現場名
+                                span.badge.badge-danger.ml-2 必須
+                            input.form-control.col-sm-10( type="text" placeholder="(現場名)" name="工事名" required)
+                        .form-group.row
+                            label.control-label.col-sm-2(for="工事名kana") 
+                                span 現場名
+                                span.fw-light(style="font-size:12px") (ふりがな)
+                            input.form-control.col-sm-10( type="text" placeholder="" name="工事名kana" )
+                        .form-group.row
+                            label.control-label.col-sm-2(for="発注者") 発注者
+                            input.form-control.col-sm-10( type="text" placeholder="(発注者)" name="発注者")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="場所") 場所
+                            input.form-control.col-sm-10( type="text" placeholder="(場所)" name="場所")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="契約金額") 契約金額
+                            input.form-control.col-sm-10( type="text" placeholder="(契約金額)" name="契約金額")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="担当者") 担当者
+                            select#formResponsible.form-control.col-sm-10.px-2.py-0(name="担当者")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="工期(自)") 工期(自)
+                            input.input-date.form-control.col-sm-10( type="text" placeholder="(工期(自))" name="工期(自)")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="工期(至)") 工期(至)
+                            input.input-date.form-control.col-sm-10( type="text" placeholder="(工期(至))" name="工期(至)")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="建築面積") 建築面積
+                            input.form-control.col-sm-10( type="text" placeholder="(建築面積)" name="建築面積")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="延べ床面積") 延べ床面積
+                            input.form-control.col-sm-10( type="text" placeholder="(延べ床面積)" name="延べ床面積")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="設計事務所") 設計事務所
+                            input.form-control.col-sm-10( type="text" placeholder="(設計事務所)" name="設計事務所")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="構造") 構造
+                            select.form-control.col-sm-10.input-genbastructure.px-2.py-0(name="構造")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="工法") 工法
+                            select.form-control.col-sm-10.input-worklaw.px-2.py-0(name="工法")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="建物種類") 建物種類
+                            select.form-control.col-sm-10.input-buildingtype.px-2.py-0(name="建物種類")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="撤去有無") 撤去有無
+                            select.form-control.col-sm-10.input-withdrawal.px-2.py-0(name="撤去有無")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="その他ｷｰﾜｰﾄﾞ") その他ｷｰﾜｰﾄﾞ
+                            input.form-control.col-sm-10( type="text" placeholder="(その他ｷｰﾜｰﾄﾞ)" name="その他ｷｰﾜｰﾄﾞ")
+                    .row
+                        .col.text-left.border-top.pt-3.adminOnly(style="display:none")
+                            if !isNew
+                                form#genbaDelete(method="POST")
+                                    button.d-inline-block.btn.btn-outline-danger.rounded.px-2.pt-1(style="cursor:pointer" type="submint")
+                                        span(data-feather='trash' style="width: 15px;height: 15px;")
+                        .col.text-right.border-top.pt-3
+                            button#submit_genba.btn.btn-primary(onclick="submitData(this)" data-value="formGenba" data-redirect="/dashboard/settings/genba") #{title}

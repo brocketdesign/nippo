@@ -1,0 +1,40 @@
+extends dashboard
+block content
+    #SettingsGlobal.container.col-md-10.ml-sm-auto.col-lg-10.pt-3.px-1(style="overflow: hidden;")
+        h3.d-block.title #{title}
+        .card.border-secondary.mb-3.w-100
+            .card-header.py-1
+                .row 
+                    .col-12
+                        span #{title}
+            .card-body
+                .row    
+                    .col-12.col-sm-6
+                        form#shimebi(method="POST" data-name="globalsetting" data-value="1")
+                                .form-container
+                                    .form-row
+                                        label.control-label.mr-1.pt-2(for="period") 締め日
+                                        select.input-shimebi.text-center(name="period" style="font-size: 11px;")
+                                            option(value="10") 10日
+                                            option(value="20") 20日
+                                            option(value="30") 30日
+                    .col-12.col-sm-6.d-flex
+                        span.mr-1.pt-2 期間一覧
+                        select.period-list   
+                    .col-12.col-sm-6
+                        form(method="POST" data-name="globalsetting" data-value="1")
+                                .form-container
+                                    .form-row
+                                        label.control-label.mr-1.pt-2(for="nippoDefaultLine") 日報初期画面
+                                        select.text-center(name="nippoDefaultLine" style="font-size: 11px;")
+                                            - var i = 1;
+                                            while i<=10
+                                                option(value=`${i}`) #{i}枠
+                                                - i++
+                                    .form-row
+                                        label.control-label.mr-1.pt-2(for="genbanippoDefaultLine") 現場日報初期画面
+                                        select.text-center(name="genbanippoDefaultLine" style="font-size: 11px;")
+                                            - var i = 1;
+                                            while i<=10
+                                                option(value=`${i}`) #{i}枠
+                                                - i++
