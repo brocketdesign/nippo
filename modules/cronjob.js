@@ -3,6 +3,7 @@ const nipposhukei = require('../modules/nipposhukei');
 
 // Schedule the cron job to run every day at midnight in Japan time
 async function cronjob(db){
+  try{
     //Latest shukei Date
 
     const mostRecentObject = await db.collection('shukei')
@@ -18,7 +19,8 @@ async function cronjob(db){
       }, {
         timezone: 'Asia/Tokyo' // Set the timezone to Japan
       });
-    
+
+  }catch{}
 }
 
 module.exports=cronjob
