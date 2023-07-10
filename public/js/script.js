@@ -1198,48 +1198,50 @@ async function genbaIchiranInit(today,start,end){
                 }
 
                 $.get('/api/shukei',function(data){
-                    let ctodayJP = data[0].todayJP
-                    data = data[0][genbaName]
-                    $('.info.savingPointer').hide()
-                    $('.nice-select.input-genba.globalselector').removeClass('disabled')
-                    $('select.input-genba.globalselector').prop('disabled',false)
-                    let dTotal = 0;let dDetail = {}
-                    if($.isNumeric(data.作業時間)==true){
-                        dTotal=data.作業時間
-                    }
-                    if(typeof data.detail === 'object'){
-                        dDetail=data.detail
-                    }
-                    info['現場監督'] = {total:parseFloat(dTotal),detail:dDetail}
-                    info.工種合計 += parseFloat(dTotal)
-                    info.工種合計= info.工種合計.toFixed(2)
-                    console.log({
-                        event:'shukei',
-                        genbaName:genbaName,
-                        info:info,
-                        today:today,
-                    })
-                    $('.shukei_todayJP').html(' '+ctodayJP)
-                    $('#info.genba').append('<ul class="list-group"><li class="list-group-item ms-design showall" data-ms-base="ms-genbanippo" >工種合計 : '+info['工種合計']+'</li></ul>')
-                    Object.keys(info).forEach(k => {
-                        if(typeof info[k] === 'object' && info[k] !== null){
-
-                            let content = ''
-                            content += '<div class="card"><div class="card-header collapsed" id="'+k+'" data-toggle="collapse" data-target="#collapse-'+k+'" aria-expanded="true" aria-controls="collapse-'+k+'" style="cursor:pointer">'
-                            content += '<h5 class="mb-0 float-left ms-design" data-ms-key="'+k+'" data-ms-base="ms-genbanippo" onclick="makeSearch(this)">'
-                            content += k+' : '+info[k].total
-                            content += '</h5>'
-                            content += '<div data-feather="minus" class="float-right off" style="display:inline"></div><div data-feather="plus" class="float-right on" style="display:none"></div>'
-                            content += '</div>'
-                            content += '<div id="collapse-'+k+'" class="collapse" aria-labelledby="'+k+'" data-parent="#info">'
-                            content += '<div class="card-body"><ul class="list-group">'
-                            Object.keys(info[k].detail).forEach(kk=>{
-                                content += '<li class="list-group-item ms-design" data-ms-key="'+kk+'" data-ms-base="ms-genbanippo" onclick="makeSearch(this)">'+kk+' : '+info[k].detail[kk]+'</li>'
-                            })
-                            content += '</ul></div></div></div>'
-                            $('#info.genba').append(content)
+                    if(data[0].todayJP){
+                        let ctodayJP = data[0].todayJP
+                        data = data[0][genbaName]
+                        $('.info.savingPointer').hide()
+                        $('.nice-select.input-genba.globalselector').removeClass('disabled')
+                        $('select.input-genba.globalselector').prop('disabled',false)
+                        let dTotal = 0;let dDetail = {}
+                        if($.isNumeric(data.作業時間)==true){
+                            dTotal=data.作業時間
                         }
-                    });
+                        if(typeof data.detail === 'object'){
+                            dDetail=data.detail
+                        }
+                        info['現場監督'] = {total:parseFloat(dTotal),detail:dDetail}
+                        info.工種合計 += parseFloat(dTotal)
+                        info.工種合計= info.工種合計.toFixed(2)
+                        console.log({
+                            event:'shukei',
+                            genbaName:genbaName,
+                            info:info,
+                            today:today,
+                        })
+                        $('.shukei_todayJP').html(' '+ctodayJP)
+                        $('#info.genba').append('<ul class="list-group"><li class="list-group-item ms-design showall" data-ms-base="ms-genbanippo" >工種合計 : '+info['工種合計']+'</li></ul>')
+                        Object.keys(info).forEach(k => {
+                            if(typeof info[k] === 'object' && info[k] !== null){
+    
+                                let content = ''
+                                content += '<div class="card"><div class="card-header collapsed" id="'+k+'" data-toggle="collapse" data-target="#collapse-'+k+'" aria-expanded="true" aria-controls="collapse-'+k+'" style="cursor:pointer">'
+                                content += '<h5 class="mb-0 float-left ms-design" data-ms-key="'+k+'" data-ms-base="ms-genbanippo" onclick="makeSearch(this)">'
+                                content += k+' : '+info[k].total
+                                content += '</h5>'
+                                content += '<div data-feather="minus" class="float-right off" style="display:inline"></div><div data-feather="plus" class="float-right on" style="display:none"></div>'
+                                content += '</div>'
+                                content += '<div id="collapse-'+k+'" class="collapse" aria-labelledby="'+k+'" data-parent="#info">'
+                                content += '<div class="card-body"><ul class="list-group">'
+                                Object.keys(info[k].detail).forEach(kk=>{
+                                    content += '<li class="list-group-item ms-design" data-ms-key="'+kk+'" data-ms-base="ms-genbanippo" onclick="makeSearch(this)">'+kk+' : '+info[k].detail[kk]+'</li>'
+                                })
+                                content += '</ul></div></div></div>'
+                                $('#info.genba').append(content)
+                            }
+                        });
+                    }
                 })
 
             }else{
