@@ -192,6 +192,31 @@ $(document).on('click','.changeDay',function(){
     datecontrol()
     SUA({event:'日報入力ページ',detail:'「日付ボタン」をクリックして'+$(this).attr('data-value')+'の日報へ'})
 })
+
+$(document).on('click','#nav-nippo-tab',function(){
+    let userID = $('#userID').attr('data-value')
+    inputInit(function(){
+        $.get( "/api/globalsetting",function(data){
+            shimebi = parseInt(data[0].period)
+            displayPeriodList(shimebi)
+                if( !! document.querySelector('#nippoichiran.current')){
+                    let selectid = userID
+                    if(getUrlParameter('selectid')!=undefined){
+                        selectid=getUrlParameter('selectid')
+                    }
+                    console.log({
+                        event:'nippoIchiranInit -> selectid',
+                        selectid:selectid
+                    })
+                    nippoIchiranInit(selectid,today)
+                }
+                if( !! document.querySelector('#genbaichiran.current')){
+                    //genbaIchiranInit(today)
+                }
+        })
+    });
+    SUA({event:$('.title').text()})
+})
 //NIPPO FORM
 function nippoFormInit(callback){
     //INITIALIZE FORM FIELDS
