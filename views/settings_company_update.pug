@@ -1,4 +1,4 @@
-extends dashboard
+extends new_dashboard
 block content
     #SettingsCompany.container.col-md-10.ml-sm-auto.col-lg-10.pt-3.px-1
         .d-flex    
@@ -41,6 +41,9 @@ block content
                         .form-group.row
                             label.control-label.col-sm-2(for="メールアドレス") メールアドレス
                             input.form-control.col-sm-10( type="email" placeholder="メールアドレス" name="メールアドレス")
+                        .form-group.row
+                            label.control-label.col-sm-2(for="現場名") 現場名
+                            .col-sm-10.company-genba
                         .form-group.row
                             label.control-label.col-sm-2(for="メモ") メモ
                             textarea.input-date.form-control.col-sm-10( placeholder="メモ" name="メモ")

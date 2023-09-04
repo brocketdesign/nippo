@@ -41,7 +41,6 @@ async function userData(req){
     result = Object.assign(result[0],result[1])
     result.date=date
     result.today=today
-    
     return result
 }
 module.exports=userData

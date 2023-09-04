@@ -1,0 +1,52 @@
+extends new_dashboard
+block content
+    #new_dashoboard_content.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
+        h3.d-block.title #{title}
+        .row 
+            .col-12.col-md-7
+                .card.border-secondary.mb-3(style="width:100%")
+                    .card-body.px-0.py-0
+                        h5.px-2.py-1 業務日報カレンダー
+                        div.px-2.d-xl-flex.d-block
+                            span.d-flex.mr-1
+                                span.py-2.mr-1.work-days 出動 : 7.5日 
+                                span.d-xl-flex.d-block
+                                    select.period-list.globalselector.float-xl-none.float-right
+                            button.btn.btn-outline-secondary.changePeriod.prev.mr-2.px-3.my-1.my-xl-0.ml-xl-2.ml-0
+                                span(data-feather="chevrons-left")
+                                span 前月へ
+                            button.btn.btn-outline-secondary.changePeriod.next.ml-2.px-3.my-1.my-xl-0.float-xl-none.float-right(disabled)
+                                span 翌月へ
+                                span(data-feather="chevrons-right")
+                        .calendar#calendar_nippo
+            .col-12.col-md-5
+                .card.border-secondary.mb-3#new_dashboard_charts_group1(style="width:100%")
+                    .card-body.px-0.py-0
+                        span.d-flex
+                            h5.px-2.py-1#genbaichart0(style="width: -webkit-fill-available;") ハンズトレーディング
+                            -
+                                const chartStartDate = realStartDate.getFullYear() + '/' + (realStartDate.getMonth() + 1) + '/' + realStartDate.getDate();
+                                const chartEndDate = new Date().getFullYear() + '/' + (new Date().getMonth() + 1) + '/' + new Date().getDate();
+                            span.d-flex.py-2.justify-content-end.mr-1(style="width: -webkit-fill-available;")
+                                input.chart-date.start.text-center(type="text" chart-no="0" name="startDate" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;background-color:lightgray;border: gray solid 1px;border-radius:2px;")
+                                span.px-2(style="padding-top:2px;padding-bottom:2px;") ~
+                                input.chart-date.end.text-center(type="text" name="endDate" chart-no="0" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;background-color:lightgray;border: gray solid 1px;border-radius:2px;")
+                        canvas#chart_group_item_0
+                .card.border-secondary.mb-3#new_dashboard_charts_group2(style="width:100%")
+                    .card-body.px-0.py-0
+                        span.d-flex
+                            h5.px-2.py-1#genbaichart1(style="width: -webkit-fill-available;") （仮称）ワタワン計画
+                            span.d-flex.py-2.justify-content-end.mr-1(style="width: -webkit-fill-available;")
+                                input.chart-date.start.text-center(type="text" chart-no="1" name="startDate" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;background-color:lightgray;border: gray solid 1px;border-radius:2px;")
+                                span.px-2(style="padding-top:2px;padding-bottom:2px;") ~
+                                input.chart-date.end.text-center(type="text" name="endDate" chart-no="1" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;background-color:lightgray;border: gray solid 1px;border-radius:2px;")
+                        canvas#chart_group_item_1
+                .card.border-secondary.mb-3#new_dashboard_charts_group3(style="width:100%")
+                    .card-body.px-0.py-0
+                        span.d-flex
+                            h5.px-2.py-1.mt-2#genbaichart2(style="width: -webkit-fill-available;font-size:1.1rem;") つどい保育園3階改修工事
+                            span.d-flex.py-2.justify-content-end.mr-1(style="width: -webkit-fill-available;")
+                                input.chart-date.start.text-center(type="text" chart-no="2" name="startDate" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;background-color:lightgray;border: gray solid 1px;border-radius:2px;")
+                                span.px-2(style="padding-top:2px;padding-bottom:2px;") ~
+                                input.chart-date.end.text-center(type="text" name="endDate" chart-no="2" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;background-color:lightgray;border: gray solid 1px;border-radius:2px;")
+                        canvas#chart_group_item_2
