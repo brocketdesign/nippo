@@ -13,7 +13,7 @@ router.get('/',urlencodedParser, async(req, res) => {
   const db = req.app.locals.db;
   let dbData = await initData(req)
   if((dbData.isLogin == true )){
-    res.redirect('/new_dashboard')
+    res.redirect('/dashboard')
   }else{
     res.render('login', {title:'堀健データベース',version:currVersion,error: false});
   }

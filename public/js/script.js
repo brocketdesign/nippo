@@ -125,10 +125,13 @@ $(document).ready(async function () {
         })
         const startVal = prevDate.getFullYear() + '/' + (prevDate.getMonth() + 1) + '/' + prevDate.getDate();
         const endVal = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
-        $('.chart-date.start').val(startVal)
-        $('.chart-date.end').val(endVal)
-        $('.chart-date.start').attr('data-date', prevDate)
-        $('.chart-date.end').attr('data-date', today)
+        let prevDateCt = (prevDate.getMonth() + 1) + '/' + prevDate.getDate() + '/' + prevDate.getFullYear();
+        $('.chart-date.start').val(startVal).change();
+        $('.chart-date.end').val(endVal).change();
+        $('.chart-date.start').attr('data-date', prevDateCt);
+        $('.chart-date.end').attr('data-date', today);
+        $('.chart-date.start').datepicker('update');
+        $('.chart-date.end').datepicker('update');
     }
 
     //NEW DASHBOARD ADMIN PAGE
@@ -157,7 +160,9 @@ $(document).ready(async function () {
         }).on('changeDate', async function (e) {
             const chartNo = Number($(this).attr("chart-no"));
             let dd = new Date(e.date);
-            $('.chart-date.end[chart-no="'+chartNo+'"').datepicker('setStartDate', dd);
+            if($('.chart-date.end[chart-no="'+chartNo+'"').datepicker('getStartDate') < dd) {
+                $('.chart-date.end[chart-no="'+chartNo+'"').datepicker('setStartDate', dd);
+            }
             let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
             $('.chart-date.start[chart-no="'+chartNo+'"').attr('data-date', ct);
             const changeDataSet1 = [];
@@ -178,7 +183,9 @@ $(document).ready(async function () {
         }).on('changeDate', async function (e) {
             let dd = new Date(e.date);
             const chartNo = Number($(this).attr("chart-no"));
-            $('.chart-date.start[chart-no="'+chartNo+'"').datepicker('setEndDate', dd);
+            if($('.chart-date.start[chart-no="'+chartNo+'"').datepicker('getEndDate') > dd) {
+                $('.chart-date.start[chart-no="'+chartNo+'"').datepicker('setEndDate', dd);
+            }
             let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
             $('.chart-date.end[chart-no="'+chartNo+'"').attr('data-date', ct);
             const changeDataSet2 = [];
@@ -192,11 +199,13 @@ $(document).ready(async function () {
         })
         const startVal = prevDate.getFullYear() + '/' + (prevDate.getMonth() + 1) + '/' + prevDate.getDate();
         const endVal = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
-        $('.chart-date.start').val(startVal);
-        $('.chart-date.end').val(endVal);
-        $('.chart-date.start').attr('data-date', prevDate);
+        let prevDateCt = (prevDate.getMonth() + 1) + '/' + prevDate.getDate() + '/' + prevDate.getFullYear();
+        $('.chart-date.start').val(startVal).change();
+        $('.chart-date.end').val(endVal).change();
+        $('.chart-date.start').attr('data-date', prevDateCt);
         $('.chart-date.end').attr('data-date', today);
-
+        $('.chart-date.start').datepicker('update');
+        $('.chart-date.end').datepicker('update');
     }
 
     //NEW HOLIDAY SETTING PAGE
@@ -489,7 +498,7 @@ $(document).on('click', '.changeDay', function () {
 function nippoFormInit(callback) {
     //INITIALIZE FORM FIELDS
     let userID = $('#userID').attr('data-value')
-    if (getUrlParameter('y') != undefined) {
+    if (getUrlParameter('y') != undefined && getUrlParameter('y')) {
         const year = getUrlParameter('y')
         const month = getUrlParameter('m')
         const date = getUrlParameter('d')
@@ -3321,7 +3330,7 @@ function initGlobalSelector() {
             })
         })
         //FIRST INITIALISE DATE
-        if (getUrlParameter('y') != undefined) {
+        if (getUrlParameter('y') != undefined && getUrlParameter('y')) {
             const year = getUrlParameter('y')
             const month = getUrlParameter('m')
             const date = getUrlParameter('d')
@@ -3705,7 +3714,7 @@ function newDashboardCalendarInit(userID, today, start, end) {
                     month === realEndDate.getMonth() && d <= realEndDate.getDate()
                 )
             ) {
-                day.setAttribute("href", `/dashboard?y=${year}&m=${month + 1}&d=${d}`);
+                day.setAttribute("href", `/dashboard/input_nippo?y=${year}&m=${month + 1}&d=${d}`);
 
                 if (!currentWorkData.length) {
                     mainContent = ["日報未入力"];
