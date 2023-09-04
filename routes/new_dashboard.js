@@ -12,7 +12,11 @@ require('dotenv').config({ path: './.env' });
 router.get('/',urlencodedParser, async(req, res) => {
   const db = req.app.locals.db;let dbData = await initData(req);
   if(dbData.isLogin){
-    res.render('new_dashboard_nippo',Object.assign({title:'ダッシュボード'},dbData));
+      if(dbData.isAdmin){
+        res.render('new_dashboard_admin',Object.assign({title:'ダッシュボード'},dbData));
+      } else {
+        res.render('new_dashboard_nippo',Object.assign({title:'ダッシュボード'},dbData));
+      }
     // console.log(dbData)
     nipposhukei(db);
   }else{
@@ -20,15 +24,6 @@ router.get('/',urlencodedParser, async(req, res) => {
   }
 });
 
-// ADMIN ONLY
-router.get('/admin/',urlencodedParser, async(req, res) => {
-  const db = req.app.locals.db;let dbData = await initData(req)
-  if(dbData.isLogin && dbData.isAdmin){
-    res.render('new_dashboard_admin',Object.assign({title:'ダッシュボード'},dbData));
-  }else{
-    res.redirect('../');
-  }
-});
 
 //USER
 router.get('/settings/holiday/',urlencodedParser, async(req, res) => {
