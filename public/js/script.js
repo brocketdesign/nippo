@@ -142,13 +142,14 @@ $(document).ready(async function () {
         let labels = null;
         let dataSets = [];
         const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + start + '&end=' + end);
+        const usersData = await $.get('/api/userStatistic?today=' + today + '&start=' + start + '&end=' + today);
         
         for (let i = 0; i < genbaList.length; i++) {
             const res = await processingDataForNewDashboardAdmin(genbaList[i], Before10, today);
             dataSets.push(res.dataset);
             if(!labels) labels = res.labels;
         }
-        await drawCalendarTableForNewAdminDashboard(labels, dataSets, Before10, today)
+        await drawCalendarTableForNewAdminDashboard(usersData, start, today)
         await drawChartForNewAdminDashboard(labels, dataSets)
 
         $('.chart-date.start').datepicker({
@@ -498,7 +499,12 @@ $(document).on('click', '.changeDay', function () {
 function nippoFormInit(callback) {
     //INITIALIZE FORM FIELDS
     let userID = $('#userID').attr('data-value')
-    if (getUrlParameter('y') != undefined && getUrlParameter('y')) {
+    if (getUrlParameter('u') != undefined && getUrlParameter('u')) {
+        const year = getUrlParameter('y')
+        const month = getUrlParameter('m')
+        const date = getUrlParameter('d')
+        initFormField(getUrlParameter('u'), `${month}/${date}/${year}`, 'nippo')
+    } else if (getUrlParameter('y') != undefined && getUrlParameter('y')) {
         const year = getUrlParameter('y')
         const month = getUrlParameter('m')
         const date = getUrlParameter('d')
@@ -3257,8 +3263,11 @@ function inputInit(callback) {
 function initGlobalSelector() {
     if (!!document.querySelector('.input-responsible')) {
         let userID = $('#userID').attr('data-value')
-        if (getUrlParameter('selectid') != undefined) {
+        if (getUrlParameter('selectid') != undefined && getUrlParameter('selectid')) {
             userID = getUrlParameter('selectid')
+        }
+        if (getUrlParameter('u') != undefined && getUrlParameter('u')) {
+            userID = getUrlParameter('u')
         }
         $('select.input-responsible').html('')
         $.get("/api/users", function (data) {
@@ -4158,7 +4167,7 @@ async function processingDataForNewDashboardAdmin(genba, start, end) {
         };
     }
 }
-function drawCalendarTableForNewAdminDashboard(labels, data, start, end) {
+function drawCalendarTableForNewAdminDashboard(data, start, end) {
     const startDate = new Date(start);
     const endDate = new Date(end);
     let tableContent = "<thead><tr>"
@@ -4166,29 +4175,50 @@ function drawCalendarTableForNewAdminDashboard(labels, data, start, end) {
         if (i === 0) {
             tableContent += "<th></th>"
         } else {
-            tableContent += "<th>" + data[i - 1].label + "</th>"
+            tableContent += "<th>" + data[i - 1].user.lname + " " + data[i - 1].user.fname + "</th>"
         }
     }
     tableContent += "</tr></thead><tbody>";
-    for (let i = 0; i < labels.length; i++) {
-        tableContent += "<tr><td>";
 
-        if (startDate.getFullYear() === endDate.getFullYear()) {
-            const thisDate = new Date(`${startDate.getFullYear()}/${labels[i]}`);
-            tableContent += `${thisDate.getMonth()}月 ${thisDate.getDate()}日 (${weekDays[thisDate.getDay()][0]})</td>`;
-        } else {
-            const thisDate = new Date(labels[i]);
-            tableContent += `${thisDate.getFullYear()}年 ${thisDate.getMonth()}月 ${thisDate.getDate()}日 (${weekDays[thisDate.getDay()][0]})</td>`;
-        }
-        for (let j = 0; j < data.length; j++) {
-            tableContent += "<td>";
-            if (data[j].data[i]) tableContent += data[j].data[i];
-            tableContent += "</td>";
-        }
-        tableContent += "</tr>";
-    }
+    tableContent += createMonthTableContent(data, startDate, new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).getDate());
+    tableContent += createMonthTableContent(data, new Date(startDate.getFullYear(), startDate.getMonth() + 1, 1), endDate.getDate());
+
     tableContent += "</tbody>";
     $(".calendar-table").html(tableContent);
+    function createMonthTableContent(data, startDate, lastDay) {
+        let tableContent = "";
+        for (let i = startDate.getDate(); i <= lastDay; i++) {
+            tableContent += "<tr><td>";
+            const thisDate = new Date(`${startDate.getFullYear()}/${startDate.getMonth() + 1}/${i}`);
+            tableContent += `${thisDate.getMonth() + 1 }月 ${thisDate.getDate()}日 (${weekDays[thisDate.getDay()][0]})</td>`;
+            for (let j = 0; j < data.length; j++) {
+                const day = document.createElement("a");
+                day.setAttribute("href", `/dashboard/input_nippo?u=${data[j].user._id}&y=${startDate.getFullYear()}&m=${startDate.getMonth() + 1}&d=${i}`);
+                const currentWorkData = data[j].nippo.filter(item =>
+                    new Date(item.today).getFullYear() === startDate.getFullYear() &&
+                    new Date(item.today).getMonth() === startDate.getMonth() &&
+                    new Date(item.today).getDate() === i
+                )
+                if (!currentWorkData.length) {
+                    day.innerHTML = "<span>&nbsp;</span>";
+                } else {
+                    if (currentWorkData[0].totalTime) {
+                        let totalTime = 0
+                        if ($.isNumeric(currentWorkData[0].totalTime) === true) {
+                            totalTime = Number(currentWorkData[0].totalTime);
+                            if(totalTime) day.textContent = `${totalTime}`;
+                            else day.innerHTML="<span>&nbsp;</span>";
+                        } else {
+                            day.innerHTML="<span>&nbsp;</span>";
+                        }
+                    }
+                }
+                tableContent += "<td>" + day.outerHTML + "</td>";
+            }
+            tableContent += "</tr>";
+        }
+        return tableContent;
+    }
 }
 
 function drawChartForNewAdminDashboard(labels, cData) {

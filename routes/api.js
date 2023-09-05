@@ -71,6 +71,48 @@ router.get('/genbaStatistic', urlencodedParser, async (req, res) => {
   }
 });
 
+// GET USERS' NIPPO DATA
+router.get('/userStatistic', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req);
+  if (dbData.isLogin) {
+    let today = req.query.today;
+    let start_period = req.query.start;
+    let dbName = "users";
+    let end_period = req.query.end;
+    let userCollection = db.collection(dbName);
+    let result = [];
+    let users = await userCollection.find().sort({ '_id': 1 }).toArray();
+    if (users.length) {
+      for (let i = 0; i < users.length; i++) {
+        let userID = users[i]._id;
+        let nippoCollection = db.collection(userID + '_nippo')
+        let userNippoData = await nippoCollection.find().sort({ 'today': -1 }).toArray();
+        if(userNippoData) {
+          let data = [];
+          userNippoData.forEach((element, index) => {
+            if (element.日付) {
+              if ((start_period != 'false') && (end_period != 'false')) {
+                if ((new Date(element.日付) >= new Date(start_period)) && (new Date(element.日付) <= new Date(end_period))) {
+                  data.push(element)
+                }
+              }
+            }
+          });
+          result.push({user: users[i], nippo:data })
+        } else {
+          result.push({user: users[i], nippo:[]})
+        }
+        if (i + 1 >= users.length) {
+          res.send(result);
+        }
+      }
+    } else {
+      res.send([]);
+    }
+  } else {
+    res.sendStatus(403);
+  }
+});
 
 router.get('/updd', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db;
