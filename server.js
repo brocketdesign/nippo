@@ -6,7 +6,7 @@ const MongoClient = require('mongodb').MongoClient;
 var index = require('./routes/index');
 var api = require('./routes/api.js');
 var dashboard = require('./routes/dashboard');
-var new_dashboard = require('./routes/new_dashboard');
+// var new_dashboard = require('./routes/new_dashboard');
 var users = require('./routes/users.js');
 const cronjob = require('./modules/cronjob')
 app.use(express.static('public'));  
@@ -16,7 +16,7 @@ app.set('view engine', 'pug');
 app.use('/', index);
 app.use('/api', api);
 app.use('/dashboard', dashboard);
-app.use('/new_dashboard', new_dashboard);
+// app.use('/new_dashboard', new_dashboard);
 app.use('/users', users);
 
 app.use((req, res,next) => {

@@ -4016,6 +4016,15 @@ function newDashboardChartInit(chartNo, genba, start, end) {
                 }
             };
             if (document.getElementById('chart_group_item_' + chartNo)) {
+                const startVal = prevDate.getFullYear() + '/' + (prevDate.getMonth() + 1) + '/' + prevDate.getDate();
+                const endVal = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
+                $('.chart-date.start[chart-no="'+chartNo+'"]').val(startVal).change();
+                $('.chart-date.end[chart-no="'+chartNo+'"]').val(endVal).change();
+                $('.chart-date.start[chart-no="'+chartNo+'"]').attr('data-date', start);
+                $('.chart-date.end[chart-no="'+chartNo+'"]').attr('data-date', end);
+                $('.chart-date.start[chart-no="'+chartNo+'"]').datepicker('update');
+                $('.chart-date.end[chart-no="'+chartNo+'"]').datepicker('update');
+                $("#genbaichart" + chartNo).text(genba.工事名);
                 const ctx = document.getElementById('chart_group_item_' + chartNo);
                 if (Chart.getChart('chart_group_item_' + chartNo)) {
                     const existingChart = Chart.getChart('chart_group_item_' + chartNo);
@@ -4187,6 +4196,15 @@ function newDashboardChartInit(chartNo, genba, start, end) {
                 }
             };
             if (document.getElementById('chart_group_item_' + chartNo)) {
+                const startVal = prevDate.getFullYear() + '/' + (prevDate.getMonth() + 1) + '/' + prevDate.getDate();
+                const endVal = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
+                $('.chart-date.start[chart-no="'+chartNo+'"]').val(startVal).change();
+                $('.chart-date.end[chart-no="'+chartNo+'"]').val(endVal).change();
+                $('.chart-date.start[chart-no="'+chartNo+'"]').attr('data-date', start);
+                $('.chart-date.end[chart-no="'+chartNo+'"]').attr('data-date', end);
+                $('.chart-date.start[chart-no="'+chartNo+'"]').datepicker('update');
+                $('.chart-date.end[chart-no="'+chartNo+'"]').datepicker('update');
+                $("#genbaichart" + chartNo).text(genba.工事名);
                 const ctx = document.getElementById('chart_group_item_' + chartNo);
                 if (Chart.getChart('chart_group_item_' + chartNo)) {
                     const existingChart = Chart.getChart('chart_group_item_' + chartNo);
@@ -4276,6 +4294,7 @@ function newDashboardChartInit(chartNo, genba, start, end) {
                 }, 100);
             }
         }
+        
     });
 
 }
