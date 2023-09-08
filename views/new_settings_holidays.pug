@@ -7,21 +7,11 @@ block content
                 .card.border-secondary.mb-3(style="width:100%")
                     .card-body.px-0.py-0
                         p.px-2.py-1.mt-2.d-flex(style="justify-content: flex-end;")
-                            span.px-2 更新者 : 更新者
-                            span.px-2 更新日時 : 2022/02/23 9:23:43
+                            span.px-2 更新者 : #{lname + " " + fname}
+                            //- span.px-2 更新日時 : 2022/02/23 9:23:43
                         .col-12.mt-1
                             form#shimebi(method="POST" data-name="globalsetting" data-value="1")
                                 .form-container
-                                    .form-row.border.col-12.col-lg-10.px-0.col-xl-6
-                                            label.py-2.d-flex.px-4.col-lg-6.col-12(for="period" style="margin-bottom: 0;color: white;justify-content: space-between;background: #06d9b4;") 
-                                                span.pt-1.text-truncate カレンダー設定コード
-                                                span.badge.badge-danger.p-2 必須
-                                            input.pl-2.my-2(name="period" style="font-size: 15px;margin-left: 4%;")
-                                    .form-row.border.col-12.col-lg-10.px-0.col-xl-6
-                                            label.py-2.d-flex.px-4.col-lg-6.col-12(for="period" style="margin-bottom: 0;color: white;justify-content: space-between;background: #06d9b4;") 
-                                                span.pt-1.text-truncate カレンダー設定名称
-                                                span.badge.badge-danger.p-2 必須
-                                            input.pl-2(name="period" style="font-size: 15px;width: calc(42% - 3px);margin: 0.5rem 4%;")
                                     .form-row.border.mt-1.col-12.px-0
                                             label.py-2.col-xl-3.col-lg-5.col-12.d-flex.px-4(for="period" style="margin-bottom: 0;color: white;justify-content: flex-start;background: #06d9b4;") 
                                                 span.pt-1 法定休日
@@ -85,23 +75,12 @@ block content
                                                 div.d-flex.pr-5
                                                     input(type="checkbox" style="width: 18px;" name="sub7" value="year_holiday")
                                                     label.form-check-label.ml-1(for="1" style="font-size: 18px;") 年末年始休暇(12/29～1/3)を祝日扱いにする
-                                    .form-row.border.col-12.px-0
-                                            label.col-xl-3.col-lg-5.col-12.py-2.d-flex.px-4(for="period" style="margin-bottom: 0;color: white;justify-content: space-between;background: #06d9b4;") 
-                                                span.pt-1 XXXX
-                                                span.badge.badge-light(style="border-radius: 50%;padding: 0.5rem 0.7rem;color: #06d9b4;") ?
-                                            span.d-flex.my-2(name="period" style="font-size: 11px;margin-left: 2%;align-items: center;")
-                                                label.mr-1(for="month_start" style="font-size: 18px;margin-bottom: 0;") 月の開始日:
-                                                select.custom-select-1(name="month_start" style="padding: 0;")
-                                                    option(value="1") 1日
-                                                    option(value="2") 2日
-                                                    option(value="3" selected) 3日
                         hr
                         .col-12.mt-1.d-flex(style="align-items: center;flex-wrap: wrap;gap: 15px;")
                             select.custom-select-1(name="month_start" style="padding: 0;")
-                                option(value="1") 2021年X
-                                option(value="2") 2022年X
-                                option(value="3" selected) 2023年X
-                            a(for="month_start" style="font-size: 18px;margin-bottom: 0;") 年XXXXXXXXXXXX
+                                option(value="2021") 2021年X
+                                option(value="2023") 2022年X
+                                option(value="2024" selected) 2023年X
                         .col-12.mt-1(id="calendar_for_holiday" style="height:400px;overflow-y:auto;")
                         hr
                         .col-12.my-2.d-flex.d-md-block(style="flex-wrap:wrap;gap: 15px;justify-content:space-between;")
@@ -113,3 +92,27 @@ block content
                                 span.pt-1 XXXX
                             button.sendForm.btn.btn-danger.rounded.shadow-sm.s-el.col-5.col-md-2.col-sm-2(style="float:right;")
                                 span.pt-1 更新
+        #editMonth.modal.fade(tabindex="-1" role="dialog")
+            .modal-dialog.modal-dialog-centered(role="document")
+                .modal-content
+                    .modal-header
+                        h5.modal-title 設定編集
+                        button.close(data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    .modal-body
+                        .row.d-md-flex.d-block(style="justify-content:space-between;")
+                            .col-md-7.col-12#modalMonthContent
+                                
+                            .col-md-5.col-12#modalMonthHolidays
+                                div.d-flex
+                                    span.px-1 2023/04/04
+                                    select.custom-select-1(name="month_start" style="padding: 0;")
+                                        option(value="1") 所定休日
+                                        option(value="2") 法定休日
+                                        option(value="3" selected) 出勤日
+                                    button.px-1.close.chart-close-btn
+                                        span(aria-hidden="true") &times;
+
+                    .modal-footer
+                        button.btn.btn-primary#confirmModalBtn 設定
+                        button.btn.btn-outline-secondary(data-dismiss="modal") 閉じる

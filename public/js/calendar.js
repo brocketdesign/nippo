@@ -4,7 +4,7 @@ class Calendar {
 		this.elem = elem;
 		this.year = year;
 		this.month = month;
-		this.date = new Date(year, month - 1);
+		this.date = new Date(year, month - 1, 21);
 		this._insertCalendar();
 	}
 	_addRow(table) {
@@ -71,8 +71,9 @@ class Calendar {
 					if (this.date.getDay() != table.rows[2].cells[cell].dataset.weekDay)
 						continue;
 					if (
-						this.date.getMonth() > this.month - 1 ||
-						(this.date.getMonth() == 0 && this.month == 12)
+						this.date.getMonth() > this.month ||
+						(this.date.getMonth() == 0 && this.month == 12 && this.date.getDate() > 20) ||
+						this.date.getDate() > 20 && this.date.getMonth() == this.month
 					) {
 						while (table.rows[table.rows.length - 1].cells[0].innerHTML === "")
 							table.tBodies[0].lastElementChild.remove();
@@ -88,7 +89,6 @@ class Calendar {
 	}
 	_insertCalendar() {
 		let calendar = this._constructCalendar();
-		// let calendarDate = new Date();
 		for (let week = 0; week < calendar.rows.length; week++) {
 			for (let day = 0; day < calendar.rows[week].cells.length; day++) {
 				let currentDay = calendar.rows[week].cells[day];

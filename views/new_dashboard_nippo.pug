@@ -2,6 +2,7 @@ extends new_dashboard
 block content
     #new_dashoboard_content.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
         h3.d-block.title #{title}
+        button.btn.btn-outline-secondary#genba-select-modal-toggle(style="position: absolute;right:1rem;top:1rem;") 編集
         .row 
             .col-12.col-md-7
                 .card.border-secondary.mb-3(style="width:100%")
@@ -19,20 +20,19 @@ block content
                                 span 翌月へ
                                 span(data-feather="chevrons-right")
                         .calendar#calendar_nippo
-            .col-12.col-md-5
-                .card.border-secondary.mb-3#new_dashboard_charts_group1(style="width:100%")
+            .col-12.col-md-5#chart-card-group
+                .card.border-secondary.mb-3#new_dashboard_charts_group0(style="width:100%")
                     .card-body.px-0.py-0
                         span.d-flex
                             h5.px-2.py-1#genbaichart0(style="width: -webkit-fill-available;") ハンズトレーディング
-                            -
-                                const chartStartDate = realStartDate.getFullYear() + '/' + (realStartDate.getMonth() + 1) + '/' + realStartDate.getDate();
-                                const chartEndDate = new Date().getFullYear() + '/' + (new Date().getMonth() + 1) + '/' + new Date().getDate();
                             span.d-flex.py-2.justify-content-end.mr-1(style="width: -webkit-fill-available;")
                                 input.chart-date.start.text-center(type="text" chart-no="0" name="startDate" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
                                 span.px-2(style="padding-top:2px;padding-bottom:2px;") ~
                                 input.chart-date.end.text-center(type="text" name="endDate" chart-no="0" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
+                                button.close.chart-close-btn(chart-no="0")
+                                    span(aria-hidden="true") &times;
                         canvas#chart_group_item_0
-                .card.border-secondary.mb-3#new_dashboard_charts_group2(style="width:100%")
+                .card.border-secondary.mb-3#new_dashboard_charts_group1(style="width:100%")
                     .card-body.px-0.py-0
                         span.d-flex
                             h5.px-2.py-1#genbaichart1(style="width: -webkit-fill-available;") （仮称）ワタワン計画
@@ -40,8 +40,10 @@ block content
                                 input.chart-date.start.text-center(type="text" chart-no="1" name="startDate" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
                                 span.px-2(style="padding-top:2px;padding-bottom:2px;") ~
                                 input.chart-date.end.text-center(type="text" name="endDate" chart-no="1" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
+                                button.close.chart-close-btn(chart-no="1")
+                                    span(aria-hidden="true") &times;
                         canvas#chart_group_item_1
-                .card.border-secondary.mb-3#new_dashboard_charts_group3(style="width:100%")
+                .card.border-secondary.mb-3#new_dashboard_charts_group2(style="width:100%")
                     .card-body.px-0.py-0
                         span.d-flex
                             h5.px-2.py-1.mt-2#genbaichart2(style="width: -webkit-fill-available;font-size:1.1rem;") つどい保育園3階改修工事
@@ -49,4 +51,32 @@ block content
                                 input.chart-date.start.text-center(type="text" chart-no="2" name="startDate" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
                                 span.px-2(style="padding-top:2px;padding-bottom:2px;") ~
                                 input.chart-date.end.text-center(type="text" name="endDate" chart-no="2" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
+                                button.close.chart-close-btn(chart-no="2")
+                                    span(aria-hidden="true") &times;
                         canvas#chart_group_item_2
+        #genbaSelectModal.modal.fade.bd-example-modal-lg(tabindex="-1" role="dialog")
+            .modal-dialog.modal-dialog-centered(role="document" style="max-width: 70%;")
+                .modal-content
+                    .modal-header
+                        h5.modal-title 表示する現場のグラフを選択
+                        button.close(data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    .modal-body
+                        .row.d-md-flex.d-block(style="justify-content:space-between;")
+                            .col-md-4.col-12
+                                .sort-genba-list.d-flex.flex-column.sortable-genba-list
+                            .col-md-2.col-12.d-flex
+                                img(src="/image/arrow.png" alt="arrow" style="width: 100%;height:70%;width:100%; object-fit:fill;align-self: center;")
+                            .col-md-5.col-12.selected-genba-list
+                                div.d-flex.py-3
+                                    span.selected-genba-number 1.
+                                    span.sortable-genba-list.selected-item.border.p-3.mx-3.w-100(data-item="0")
+                                div.d-flex.py-3
+                                    span.selected-genba-number 2.
+                                    span.sortable-genba-list.selected-item.border.p-3.mx-3.w-100(data-item="1")
+                                div.d-flex.py-3
+                                    span.selected-genba-number 3.
+                                    span.sortable-genba-list.selected-item.border.p-3.mx-3.w-100(data-item="2") 
+                    .modal-footer
+                        button.btn.btn-primary#confirmModalBtn 確認
+                        button.btn.btn-outline-secondary(data-dismiss="modal") 取り消し

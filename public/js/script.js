@@ -69,23 +69,58 @@ $(document).ready(async function () {
         });
 
         let genbaIDs = [];
-
+        let allGenbaList = [];
         $.get("/api/genba", function (data) {
             $.get('/api/users?elID=' + userID, function (result) {
-                if (result.genba) {
+                if (data && result.genba) {
+                    allGenbaList = data;
                     if (!Array.isArray(result.genba)) {
                         result.genba = result.genba.split(' ')
                     }
                     let realGenba = [];
-                    result.genba.forEach(function (genba) {
-                        if (genba) realGenba.push(genba);
-                    })
-                    for (let i = 0; i < 3; i++) {
-                        if (data.filter(item => item.工事名 === realGenba[i]).length) {
-                            genbaIDs.push(data.filter(item => item.工事名 === realGenba[i])[0])
-                            newDashboardChartInit(i, data.filter(item => item.工事名 === realGenba[i])[0], Before10, today);
+                    if (localStorage.getItem("genba0") || localStorage.getItem("genba1") || localStorage.getItem("genba2")) {
+                        let genbaModalList = '';
+                        for (let i = 0; i < 3; i++) {
+                            if (localStorage.getItem("genba" + i)) {
+                                if (data.filter(item => item.工事名 === localStorage.getItem("genba" + i)).length) {
+                                    genbaIDs.push(data.filter(item => item.工事名 === localStorage.getItem("genba" + i))[0])
+                                    newDashboardChartInit(i, data.filter(item => item.工事名 === localStorage.getItem("genba" + i))[0], Before10, today);
+                                    $(".selected-item[data-item='" + i + "'").html('<a class="genba-list-item">' + localStorage.getItem("genba" + i) + '</a>')
+                                    realGenba.push(localStorage.getItem("genba" + i));
+                                }
+                            } else {
+                                $("#new_dashboard_charts_group" + i).remove();
+                            }
+                        }
+
+                        result.genba.forEach(function (genba) {
+                            if (genba && realGenba.filter(item => item == genba).length === 0) {
+                                genbaModalList += '<a class="genba-list-item">' + genba + '</a>';
+                            }
+                        });
+                        $(".sort-genba-list").html(genbaModalList);
+                    } else {
+                        let genbaModalList = '';
+                        let iiii = 0;
+                        result.genba.forEach(function (genba) {
+                            if (genba) {
+                                realGenba.push(genba);
+                                if (iiii > 2) {
+                                    genbaModalList += '<a class="genba-list-item">' + genba + '</a>';
+                                }
+                                iiii++;
+                            }
+                        });
+                        $(".sort-genba-list").html(genbaModalList);
+                        for (let i = 0; i < 3; i++) {
+                            if (realGenba[i] && data.filter(item => item.工事名 === realGenba[i]).length) {
+                                genbaIDs.push(data.filter(item => item.工事名 === realGenba[i])[0])
+                                $(".selected-item[data-item='" + i + "'").html('<a class="genba-list-item">' + realGenba[i] + '</a>')
+                                newDashboardChartInit(i, data.filter(item => item.工事名 === realGenba[i])[0], Before10, today);
+                            }
                         }
                     }
+
                 }
             });
         });
@@ -132,6 +167,73 @@ $(document).ready(async function () {
         $('.chart-date.end').attr('data-date', today);
         $('.chart-date.start').datepicker('update');
         $('.chart-date.end').datepicker('update');
+        $(".sortable-genba-list").sortable({
+            connectWith: '.sortable-genba-list',
+            receive: function (event, ui) {
+                var $list1 = $(".sort-genba-list");
+                var $list2 = $(this);
+                var droppedItem = ui.item.text();
+                if ($list2.children().length > 1 && $list2.hasClass("selected-item")) {
+                    // Remove the existing item from the second list
+                    var $existingItem = $list2.children().filter(function () {
+                        return $(this).text() !== droppedItem;
+                    })[0];
+                    $existingItem.remove();
+                    // Append the dropped item to the second list
+                    $list2.append(ui.item);
+
+                    // Return the existing item to the first list
+                    $list1.append($existingItem);
+                } else {
+                    // Append the dropped item to the second list
+                    $list2.append(ui.item);
+                }
+            }
+        });
+        $(document).on('click', '#genba-select-modal-toggle', function () {
+            if (localStorage.getItem("genba0") || localStorage.getItem("genba1") || localStorage.getItem("genba2")) {
+                for (let i = 0; i < 3; i++) {
+                    if (localStorage.getItem("genba" + i)) {
+                        $(".selected-item[data-item='" + i + "'").html('<a class="genba-list-item">' + localStorage.getItem("genba" + i) + '</a>');
+                    } else {
+                        $(".selected-item[data-item='" + i + "'").html('');
+                    }
+                }
+            }
+            setTimeout(() => {
+                $('#genbaSelectModal').modal('show');
+            }, 400)
+        });
+        $(document).on('click', '.chart-close-btn', function () {
+            if (localStorage.getItem("genba" + $(this).attr("chart-no"))) {
+                console.log('localStorage.getItem("genba" + $(this).attr("chart-no")', localStorage.getItem("genba" + $(this).attr("chart-no")))
+                localStorage.removeItem("genba" + $(this).attr("chart-no"));
+            }
+            $("#new_dashboard_charts_group" + $(this).attr("chart-no")).remove();
+        });
+        $(document).on('click', '#confirmModalBtn', function () {
+            $(".selected-genba-list").find(".selected-item").each(function (index) {
+                if ($(this).children().length > 0) {
+                    localStorage.setItem("genba" + index, $(this).children().first().text());
+                } else {
+                    localStorage.removeItem("genba" + index)
+                }
+            });
+            if (allGenbaList) {
+                genbaIDs = [];
+                for (let ii = 0; ii < 3; ii++) {
+                    if (localStorage.getItem("genba" + ii)) {
+                        if (allGenbaList.filter(item => item.工事名 === localStorage.getItem("genba" + ii)).length) {
+                            genbaIDs.push(allGenbaList.filter(item => item.工事名 === localStorage.getItem("genba" + ii))[0])
+                            newDashboardChartInit(ii, allGenbaList.filter(item => item.工事名 === localStorage.getItem("genba" + ii))[0], Before10, today);
+                        }
+                    } else {
+                        $("#new_dashboard_charts_group" + ii).remove();
+                    }
+                }
+            }
+            $('#genbaSelectModal').modal('hide');
+        });
     }
 
     //NEW DASHBOARD ADMIN PAGE
@@ -143,11 +245,11 @@ $(document).ready(async function () {
         let dataSets = [];
         const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + start + '&end=' + end);
         const usersData = await $.get('/api/userStatistic?today=' + today + '&start=' + start + '&end=' + today);
-        
+
         for (let i = 0; i < genbaList.length; i++) {
             const res = await processingDataForNewDashboardAdmin(genbaList[i], Before10, today);
             dataSets.push(res.dataset);
-            if(!labels) labels = res.labels;
+            if (!labels) labels = res.labels;
         }
         await drawCalendarTableForNewAdminDashboard(usersData, start, today)
         await drawChartForNewAdminDashboard(labels, dataSets)
@@ -161,11 +263,11 @@ $(document).ready(async function () {
         }).on('changeDate', async function (e) {
             const chartNo = Number($(this).attr("chart-no"));
             let dd = new Date(e.date);
-            if($('.chart-date.end[chart-no="'+chartNo+'"').datepicker('getStartDate') < dd) {
-                $('.chart-date.end[chart-no="'+chartNo+'"').datepicker('setStartDate', dd);
+            if ($('.chart-date.end[chart-no="' + chartNo + '"').datepicker('getStartDate') < dd) {
+                $('.chart-date.end[chart-no="' + chartNo + '"').datepicker('setStartDate', dd);
             }
             let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
-            $('.chart-date.start[chart-no="'+chartNo+'"').attr('data-date', ct);
+            $('.chart-date.start[chart-no="' + chartNo + '"').attr('data-date', ct);
             const changeDataSet1 = [];
             const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + ct + '&end=' + $('.chart-date.end').attr('data-date'));
             for (let i = 0; i < genbaList.length; i++) {
@@ -184,11 +286,11 @@ $(document).ready(async function () {
         }).on('changeDate', async function (e) {
             let dd = new Date(e.date);
             const chartNo = Number($(this).attr("chart-no"));
-            if($('.chart-date.start[chart-no="'+chartNo+'"').datepicker('getEndDate') > dd) {
-                $('.chart-date.start[chart-no="'+chartNo+'"').datepicker('setEndDate', dd);
+            if ($('.chart-date.start[chart-no="' + chartNo + '"').datepicker('getEndDate') > dd) {
+                $('.chart-date.start[chart-no="' + chartNo + '"').datepicker('setEndDate', dd);
             }
             let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
-            $('.chart-date.end[chart-no="'+chartNo+'"').attr('data-date', ct);
+            $('.chart-date.end[chart-no="' + chartNo + '"').attr('data-date', ct);
             const changeDataSet2 = [];
             const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + $('.chart-date.start').attr('data-date') + '&end=' + ct);
             for (let i = 0; i < genbaList.length; i++) {
@@ -212,19 +314,19 @@ $(document).ready(async function () {
     //NEW HOLIDAY SETTING PAGE
     if (!!document.querySelector('#new_dashoboard_setting_holidays')) {
 
-        let body = document.getElementById("calendar_for_holiday");
-
         let yearCalendar2018 = document.createElement("div");
         yearCalendar2018.id = "2018";
         yearCalendar2018.classList.add("yearCalendar");
         // body.insertBefore(yearCalendar2018, body.lastElementChild);
         $("#calendar_for_holiday").append(yearCalendar2018)
 
-        // let h1 = document.createElement("h1");
-        // h1.innerHTML = "Calendar " + calendarDate.getFullYear();
-        // body.lastElementChild.before(h1);
-
         let months2018 = [
+            {
+                name: "march",
+                index: 3,
+                node: createDiv(),
+                calendar: createMonthCalendar
+            },
             {
                 name: "april",
                 index: 4,
@@ -293,24 +395,31 @@ $(document).ready(async function () {
                 node: createDiv(),
                 calendar: createMonthCalendar
             },
-            {
-                name: "march",
-                index: 3,
-                node: createDiv(),
-                calendar: createMonthCalendar
-            },
         ];
-        for (let month = 0; month < 9; month++) {
+        for (let month = 0; month < 10; month++) {
             yearCalendar2018.append(months2018[month].calendar());
         }
-        let yearCalendar2019 = yearCalendar2018.cloneNode();
-        yearCalendar2019.id = "2019";
+        // let yearCalendar2019 = yearCalendar2018.cloneNode();
+        // yearCalendar2019.id = "2019";
         // body.lastElementChild.before(yearCalendar2019);
-        $("#calendar_for_holiday").append(yearCalendar2019)
+        // $("#calendar_for_holiday").append(yearCalendar2019)
         calendarDate.setFullYear(calendarDate.getFullYear() + 1);
-        for (let month = 0; month < 3; month++) {
-            yearCalendar2019.append(months2019[month].calendar());
+        for (let month = 0; month < 2; month++) {
+            yearCalendar2018.append(months2019[month].calendar());
         }
+        $(document).on('click', '.edit-holiday-btn', function () {
+            let modalMonth =             {
+                name: "modalMonth",
+                index: Number($(this).attr("data-month")),
+                node: createDiv(),
+                calendar: createMonthCalendar
+            };
+            calendarDate.setFullYear(Number($(this).attr("data-year")));
+            let monthContent = modalMonth.calendar();
+            $(monthContent).find(".edit-holiday-btn").remove();
+            $("#modalMonthContent").html(monthContent);
+            $('#editMonth').modal('show');
+        });
     }
 
     //LOGIN PAGE
@@ -2078,10 +2187,10 @@ function SettingsCompnayInit() {
                             let newVal = company[name]
                             $('textarea[name="' + name + '"]').val(newVal).change()
                         })
-                        if(result.genba) {
+                        if (result.genba) {
                             let genbaContent = "";
                             for (let i = 0; i < result.genba.length; i++) {
-                                genbaContent += '<a class="mr-5 text-nowrap" href="/dashboard/settings/genba?genbaID='+result.genba[i]._id+'">'+result.genba[i].工事名+'</a>';
+                                genbaContent += '<a class="mr-5 text-nowrap" href="/dashboard/settings/genba?genbaID=' + result.genba[i]._id + '">' + result.genba[i].工事名 + '</a>';
                             }
                             $(".company-genba").html(genbaContent);
                         }
@@ -3906,12 +4015,93 @@ function newDashboardChartInit(chartNo, genba, start, end) {
                     }
                 }
             };
-            const ctx = document.getElementById('chart_group_item_' + chartNo);
-            if (Chart.getChart('chart_group_item_' + chartNo)) {
-                const existingChart = Chart.getChart('chart_group_item_' + chartNo);
-                existingChart.destroy();
+            if (document.getElementById('chart_group_item_' + chartNo)) {
+                const ctx = document.getElementById('chart_group_item_' + chartNo);
+                if (Chart.getChart('chart_group_item_' + chartNo)) {
+                    const existingChart = Chart.getChart('chart_group_item_' + chartNo);
+                    existingChart.destroy();
+                }
+                new Chart(ctx, chartBarConfig);
+            } else {
+                $("#chart-card-group").append(`<div class="card border-secondary mb-3" id="new_dashboard_charts_group${chartNo}" style="width: 100%;">
+                    <div class="card-body px-0 py-0">
+                        <span class="d-flex">
+                            <h5 class="px-2 py-1" id="genbaichart${chartNo}" style="width: -webkit-fill-available;">青谷工業</h5>
+                            <span class="d-flex py-2 justify-content-end mr-1" style="width: -webkit-fill-available;">
+                                <input
+                                    class="chart-date start text-center"
+                                    type="text"
+                                    chart-no="${chartNo}"
+                                    name="startDate"
+                                    data-name="nippo"
+                                    style="height: fit-content; width: 82px; padding-top: 2px; padding-bottom: 2px; border: gray solid 1px; border-radius: 2px; background-color: #00bbff5e;"
+                                />
+                                <span class="px-2" style="padding-top: 2px; padding-bottom: 2px;">~</span>
+                                <input
+                                    class="chart-date end text-center"
+                                    type="text"
+                                    name="endDate"
+                                    chart-no="${chartNo}"
+                                    data-name="nippo"
+                                    style="height: fit-content; width: 82px; padding-top: 2px; padding-bottom: 2px; border: gray solid 1px; border-radius: 2px; background-color: #00bbff5e;"
+                                />
+                                <button class="close chart-close-btn" chart-no="${chartNo}"><span aria-hidden="true">×</span></button>
+                            </span>
+                        </span>
+                        <canvas id="chart_group_item_${chartNo}"></canvas>
+                    </div>
+                </div>
+                `);
+
+                setTimeout(() => {
+                    $('.chart-date.start').datepicker({
+                        language: "ja",
+                        format: 'yyyy/m/d',
+                        autoclose: true,
+                        endDate: new Date(),
+                        todayHighlight: true,
+                    }).on('changeDate', function (e) {
+                        const chartNo = Number($(this).attr("chart-no"));
+                        let dd = new Date(e.date)
+                        $('.chart-date.end[chart-no="' + chartNo + '"').datepicker('setStartDate', dd);
+                        let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
+                        $('.chart-date.start[chart-no="' + chartNo + '"').attr('data-date', ct)
+                        newDashboardChartInit(chartNo, genbaIDs[chartNo], ct, $('.chart-date.end').attr('data-date'));
+            
+                    })
+                    $('.chart-date.end').datepicker({
+                        language: "ja",
+                        format: 'yyyy/m/d',
+                        autoclose: true,
+                        todayHighlight: true,
+                        endDate: new Date(),
+                    }).on('changeDate', function (e) {
+                        let dd = new Date(e.date)
+                        const chartNo = Number($(this).attr("chart-no"));
+                        $('.chart-date.start[chart-no="' + chartNo + '"').datepicker('setEndDate', dd);
+                        let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
+                        $('.chart-date.end[chart-no="' + chartNo + '"').attr('data-date', ct);
+                        newDashboardChartInit(chartNo, genbaIDs[chartNo], $('.chart-date.start').attr('data-date'), ct);
+                    })
+                    const startVal = prevDate.getFullYear() + '/' + (prevDate.getMonth() + 1) + '/' + prevDate.getDate();
+                    const endVal = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
+                    $('.chart-date.start[chart-no="'+chartNo+'"]').val(startVal).change();
+                    $('.chart-date.end[chart-no="'+chartNo+'"]').val(endVal).change();
+                    $('.chart-date.start[chart-no="'+chartNo+'"]').attr('data-date', start);
+                    $('.chart-date.end[chart-no="'+chartNo+'"]').attr('data-date', end);
+                    $('.chart-date.start[chart-no="'+chartNo+'"]').datepicker('update');
+                    $('.chart-date.end[chart-no="'+chartNo+'"]').datepicker('update');
+                    $("#genbaichart" + chartNo).text(genba.工事名);
+
+                    const ctx = document.getElementById('chart_group_item_' + chartNo);
+                    if (Chart.getChart('chart_group_item_' + chartNo)) {
+                        const existingChart = Chart.getChart('chart_group_item_' + chartNo);
+                        existingChart.destroy();
+                    }
+                    new Chart(ctx, chartBarConfig);
+                }, 100);
             }
-            new Chart(ctx, chartBarConfig);
+
         } else {
 
             if (stateDate.getFullYear() === endDate.getFullYear()) {
@@ -3996,12 +4186,95 @@ function newDashboardChartInit(chartNo, genba, start, end) {
                     }
                 }
             };
-            const ctx = document.getElementById('chart_group_item_' + chartNo);
-            if (Chart.getChart('chart_group_item_' + chartNo)) {
-                const existingChart = Chart.getChart('chart_group_item_' + chartNo);
-                existingChart.destroy();
+            if (document.getElementById('chart_group_item_' + chartNo)) {
+                const ctx = document.getElementById('chart_group_item_' + chartNo);
+                if (Chart.getChart('chart_group_item_' + chartNo)) {
+                    const existingChart = Chart.getChart('chart_group_item_' + chartNo);
+                    existingChart.destroy();
+                }
+                new Chart(ctx, chartBarConfig);
+            } else {
+                $("#chart-card-group").append(`
+                    <div class="card border-secondary mb-3" id="new_dashboard_charts_group${chartNo}" style="width: 100%;">
+                        <div class="card-body px-0 py-0">
+                            <span class="d-flex">
+                                <h5 class="px-2 py-1" id="genbaichart${chartNo}" style="width: -webkit-fill-available;">青谷工業</h5>
+                                <span class="d-flex py-2 justify-content-end mr-1" style="width: -webkit-fill-available;">
+                                    <input
+                                        class="chart-date start text-center"
+                                        type="text"
+                                        chart-no="${chartNo}"
+                                        name="startDate"
+                                        data-name="nippo"
+                                        style="height: fit-content; width: 82px; padding-top: 2px; padding-bottom: 2px; border: gray solid 1px; border-radius: 2px; background-color: #00bbff5e;"
+                                    />
+                                    <span class="px-2" style="padding-top: 2px; padding-bottom: 2px;">~</span>
+                                    <input
+                                        class="chart-date end text-center"
+                                        type="text"
+                                        name="endDate"
+                                        chart-no="${chartNo}"
+                                        data-name="nippo"
+                                        style="height: fit-content; width: 82px; padding-top: 2px; padding-bottom: 2px; border: gray solid 1px; border-radius: 2px; background-color: #00bbff5e;"
+                                    />
+                                    <button class="close chart-close-btn" chart-no="${chartNo}"><span aria-hidden="true">×</span></button>
+                                </span>
+                            </span>
+                            <canvas id="chart_group_item_${chartNo}"></canvas>
+                        </div>
+                    </div>
+                `);
+                setTimeout(() => {
+                    $('.chart-date.start').datepicker({
+                        language: "ja",
+                        format: 'yyyy/m/d',
+                        autoclose: true,
+                        endDate: new Date(),
+                        todayHighlight: true,
+                    }).on('changeDate', function (e) {
+                        const chartNo = Number($(this).attr("chart-no"));
+                        let dd = new Date(e.date)
+                        $('.chart-date.end[chart-no="' + chartNo + '"').datepicker('setStartDate', dd);
+                        let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
+                        $('.chart-date.start[chart-no="' + chartNo + '"').attr('data-date', ct)
+                        newDashboardChartInit(chartNo, genbaIDs[chartNo], ct, $('.chart-date.end').attr('data-date'));
+            
+                    })
+                    $('.chart-date.end').datepicker({
+                        language: "ja",
+                        format: 'yyyy/m/d',
+                        autoclose: true,
+                        todayHighlight: true,
+                        endDate: new Date(),
+                        // beforeShowDay: function (date) {
+                        //     return nippoCalendar(date, nippoichiran)
+                        // }
+            
+                    }).on('changeDate', function (e) {
+                        let dd = new Date(e.date)
+                        const chartNo = Number($(this).attr("chart-no"));
+                        $('.chart-date.start[chart-no="' + chartNo + '"').datepicker('setEndDate', dd);
+                        let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
+                        $('.chart-date.end[chart-no="' + chartNo + '"').attr('data-date', ct);
+                        newDashboardChartInit(chartNo, genbaIDs[chartNo], $('.chart-date.start').attr('data-date'), ct);
+                    })
+                    const startVal = prevDate.getFullYear() + '/' + (prevDate.getMonth() + 1) + '/' + prevDate.getDate();
+                    const endVal = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
+                    $('.chart-date.start[chart-no="'+chartNo+'"]').val(startVal).change();
+                    $('.chart-date.end[chart-no="'+chartNo+'"]').val(endVal).change();
+                    $('.chart-date.start[chart-no="'+chartNo+'"]').attr('data-date', start);
+                    $('.chart-date.end[chart-no="'+chartNo+'"]').attr('data-date', end);
+                    $('.chart-date.start[chart-no="'+chartNo+'"]').datepicker('update');
+                    $('.chart-date.end[chart-no="'+chartNo+'"]').datepicker('update');
+                    $("#genbaichart" + chartNo).text(genba.工事名);
+                    const ctx = document.getElementById('chart_group_item_' + chartNo);
+                    if (Chart.getChart('chart_group_item_' + chartNo)) {
+                        const existingChart = Chart.getChart('chart_group_item_' + chartNo);
+                        existingChart.destroy();
+                    }
+                    new Chart(ctx, chartBarConfig);
+                }, 100);
             }
-            new Chart(ctx, chartBarConfig);
         }
     });
 
@@ -4190,7 +4463,7 @@ function drawCalendarTableForNewAdminDashboard(data, start, end) {
         for (let i = startDate.getDate(); i <= lastDay; i++) {
             tableContent += "<tr><td>";
             const thisDate = new Date(`${startDate.getFullYear()}/${startDate.getMonth() + 1}/${i}`);
-            tableContent += `${thisDate.getMonth() + 1 }月 ${thisDate.getDate()}日 (${weekDays[thisDate.getDay()][0]})</td>`;
+            tableContent += `${thisDate.getMonth() + 1}月 ${thisDate.getDate()}日 (${weekDays[thisDate.getDay()][0]})</td>`;
             for (let j = 0; j < data.length; j++) {
                 const day = document.createElement("a");
                 day.setAttribute("href", `/dashboard/input_nippo?u=${data[j].user._id}&y=${startDate.getFullYear()}&m=${startDate.getMonth() + 1}&d=${i}`);
@@ -4206,10 +4479,10 @@ function drawCalendarTableForNewAdminDashboard(data, start, end) {
                         let totalTime = 0
                         if ($.isNumeric(currentWorkData[0].totalTime) === true) {
                             totalTime = Number(currentWorkData[0].totalTime);
-                            if(totalTime) day.textContent = `${totalTime}`;
-                            else day.innerHTML="<span>&nbsp;</span>";
+                            if (totalTime) day.textContent = `${totalTime}`;
+                            else day.innerHTML = "<span>&nbsp;</span>";
                         } else {
-                            day.innerHTML="<span>&nbsp;</span>";
+                            day.innerHTML = "<span>&nbsp;</span>";
                         }
                     }
                 }

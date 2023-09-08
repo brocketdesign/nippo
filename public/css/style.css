@@ -718,3 +718,79 @@ input:disabled {
   color: #000;
 }
 /* End Admin Table Content Style */
+/* User Dashboard Genba Selection Modal List Item Style */
+.genba-list-item {
+  padding: 5px 10px;
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+  cursor: pointer;
+}
+.genba-list-item:hover {
+  color:inherit;
+  cursor: move;
+  text-decoration: none;
+}
+.selected-genba-number {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+.selected-item {
+  height: 40px;
+  padding-left: 20px;
+  align-items: center;
+  display: flex;
+ }
+.selected-genba-list {
+  display: grid;
+  align-items: center;
+}
+.sort-genba-list {
+  overflow-y: auto;
+  height: 20rem;
+}
+.chart-close-btn {
+  display: flex;
+}
+.chart-close-btn span {
+  display: flex;
+  align-items: center;
+}
+/* End User Dashboard Genba Selection Modal List Item Style */
+/* Edit Holidays of Month on Modal */
+#modalMonthHolidays > div {
+  justify-content: center;
+  padding: 3rem 1rem;
+}
+#modalMonthContent {
+  display: flex;
+  justify-content: center;
+}
+#modalMonthContent td {
+  cursor: pointer;
+}
+#editMonth .modal-dialog {
+  max-width: 90%;
+}
+@media (min-width: 576px) {
+  #editMonth .modal-dialog {
+    max-width: 85%;
+  }
+}
+@media (min-width: 768px) {
+  #editMonth .modal-dialog {
+    max-width: 70%;
+  }
+}
+@media (min-width: 992px) {
+  #editMonth .modal-dialog {
+    max-width: 50%;
+  }
+}
+@media (min-width: 1200px) {
+  #editMonth .modal-dialog {
+    max-width: 45%;
+  }
+}
+/* End Edit Holidays of Month on Modal */
