@@ -24,7 +24,7 @@ const Before10 = (prevDate.getMonth() + 1) + '/' + prevDate.getDate() + '/' + pr
 
 $(document).ready(async function () {
     feather.replace()
-    initGlobalSelector()
+    initGlobalSelector();
     //NEW DASHBOARD PAGE
     if (!!document.querySelector('#new_dashoboard_content')) {
         let userID = $('#userID').attr('data-value')
@@ -508,6 +508,44 @@ $(document).ready(async function () {
 $(document).ajaxStop(function () {
     afterAllisDone()
 });
+function addSearchToSelect() {
+    // Classes to target
+    const targetClasses = ['.nice-select.input-type', '.nice-select.input-genba'];
+
+    // Detect when the target classes are clicked
+    $(document).on('click', targetClasses.join(', '), function() {
+        const $niceSelect = $(this);
+        if (!$niceSelect.find('.nice-search-input').length) { // Only add the input if it's not already present
+            const searchInput = $('<input>', {
+                type: 'text',
+                class: 'nice-search-input form-control',
+                style: 'border: none;',
+                placeholder: '検索...'
+            });
+            $niceSelect.prepend(searchInput);
+            searchInput.focus();
+        }
+    });
+
+    // Remove the input when it loses focus
+    $(document).on('blur', '.nice-search-input', function() {
+        $(this).remove();
+    });
+
+    // Handle the search functionality
+    $(document).on('keyup', '.nice-search-input', function() {
+        const searchValue = $(this).val().toLowerCase().normalize("NFD");
+        $(this).siblings().each(function() {
+            const itemText = $(this).text().toLowerCase().normalize("NFD");
+            if (itemText.indexOf(searchValue) !== -1) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+
+}
 function afterAllisDone() {
     formInitCompany()
     feather.replace();
