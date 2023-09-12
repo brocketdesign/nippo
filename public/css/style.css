@@ -274,3 +274,19 @@ input:disabled{
 
 .border-top { border-top: 1px solid #e5e5e5; }
 .border-bottom { border-bottom: 1px solid #e5e5e5; }
+.input-koushu {
+  margin: 5px;
+}
+.input-company {
+  margin: 5px;
+  margin-top: 2px;
+}
+.input-personal {
+  margin: 5px;
+}
+.input-subject {
+  margin: 5px;
+}
+#arrow-up{
+  display: none;
+}

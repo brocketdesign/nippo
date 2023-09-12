@@ -50,6 +50,7 @@ $(document).ready(function(){
         });
         SUA({event:$('.title').text()})
     }
+    
     //NIPPO SHUKEI
     if( !! document.querySelector('#nipposhukei')){
         nipposhukeiInit()
@@ -197,7 +198,7 @@ $(document).on('click','#nav-nippo-tab',function(){
     let userID = $('#userID').attr('data-value')
     inputInit(function(){
         $.get( "/api/globalsetting",function(data){
-            shimebi = parseInt(data[0].period)
+            shimebi = parseInt(data[0].period);
             displayPeriodList(shimebi)
                 if( !! document.querySelector('#nippoichiran.current')){
                     let selectid = userID
@@ -554,7 +555,7 @@ $(document).on('change','.input-responsible.globalselector',function(){
     }
 }
 //DISPLAY NIPPO UNTIL YESTERDAY
-function nippoIchiranInit(userID,today,start,end){
+async function nippoIchiranInit(userID,today,start,end){
     start = start || false ; end = end || false
     if((!start )&& (!end)){
         start = $('#start-period').attr('data-value')
@@ -580,19 +581,25 @@ function nippoIchiranInit(userID,today,start,end){
             $('#nippoichiran .loading').removeClass('d-none')
             $('.info.savingPointer').removeClass('d-none')
         }
-        $.get('/api/nippoichiran?userID='+userID+'&today='+today+'&start='+start+'&end='+end,function(result){
+        $.get('/api/nippoichiran?userID='+userID+'&today='+today+'&start='+start+'&end='+end, async function(result){
 
             $('#nippoichiran .ichiran thead tr').html('')
             $('#nippoichiran').show()
             //SET HEADINGS
-            $('#nippoichiran .ichiran thead tr').prepend('<th scope="col" class="pl-2 py-2">日付</th><th scope="col" class="pl-2 py-2">現場名</th><th scope="col" class="pl-2 py-2">作業名</th><th scope="col" class="pl-2 py-2">日数</th><th scope="col" class="pl-2 py-2">作業内容</th><th scope="col" class="pl-2 py-2 d-none"></th>')
+            $('#nippoichiran .ichiran thead tr').prepend('<th scope="col" class="pl-2 py-2" onclick="sortTableByDate(tableIchiran, 0)">日付<i id="arrow-up" style="width: 20px; height: 20px; margin-left: 5px" data-feather="arrow-up"></i><i id="arrow-down" style="width: 20px; height: 20px; margin-left: 5px" data-feather="arrow-down"></i></th><th scope="col" class="pl-2 py-2">現場名</th><th scope="col" class="pl-2 py-2">作業名</th><th scope="col" class="pl-2 py-2">日数</th><th scope="col" class="pl-2 py-2">作業内容</th><th scope="col" class="pl-2 py-2 d-none"></th>')
             if(result){
+                let genbaList = await $.get("/api/genba");
                 let info = {event:'nippo-shukei',totalDays:0}
                 result.forEach(data => {
                     let res_content = ''
                     if (data._id){
                         for(let n = 1;n<= data.totalLine ;n++){
-                                let col1 = data['工事名-'+n] || '-'
+                                let genba = genbaList.filter(genba => genba._id === data['工事名-'+n]);
+                                let genbaName = '';
+                                if (genba[0]) {
+                                    genbaName = genba[0].工事名
+                                }
+                                let col1 = genbaName || '-'
                                 let col2 = data['作業名-'+n] || '-'
                                 let col4 = data['日-'+n]|| '-'
                                 let col5 = data['作業内容-'+n]|| '-'
@@ -620,7 +627,8 @@ function nippoIchiranInit(userID,today,start,end){
                                     }
                                     content += '<tr data-id="'+data._id+'" data-value="'+n+'" class="ms-nippoichiran removeThisIdHide">'
                                     list_content_item += '<div class="list_container ms-nippoichiran row px-3 py-2 border rounded-0 m-0 bg-white" data-id="'+data._id+'" data-value="'+n+'">'
-                                    content += '<td><span class="pl-2 py-3 isweekend-'+data['todayJP'].substring(data['todayJP'].indexOf('(')).replace('(','').replace(')','')+'" style="width:auto;display:inline-block" data-name="todayJP">'+data['todayJP']+'</span></td>'
+                                    list_content_item += '<div class="list_container ms-genbanippo row px-3 py-2 border rounded-0 m-0 bg-white" data-id="'+data._id+'" data-value="'+n+'">'
+                                    content += '<td><span class="pl-2 py-3 isweekend-'+data['todayJP'].substring(data['todayJP'].indexOf('(')).replace('(','').replace(')','')+'" style="width:auto;display:inline-block" data-name="todayJP" data-value="'+westernDate(data['date'])+'">'+westernDate(data['date'])+'</span></td>'
                                     list_content_item += '<div class="col" data-type="input-genba" data-field="工事名-'+n+'" data-name="'+userID+'_nippo" data-id="'+data._id+'" data-userid="'+userID+'" >'+col1+'</div>'
                                     content += '<td><span class="pl-2 py-3 " style="width:auto;display:inline-block" data-type="input-genba" data-field="工事名-'+n+'" data-name="'+userID+'_nippo" data-id="'+data._id+'" data-userid="'+userID+'">'+col1+'</span></td>'
                                     //content += '<td><select style="display:none" data-type="input-genba" data-field="工事名-'+n+'" data-name="'+userID+'_nippo" data-id="'+data._id+'" data-userid="'+userID+'" class="editor input-genba px-2 bg-white border border-secondary rounded" placeholder="'+col1+'" value="'+col1+'" name="工事名-'+n+'" onchange="updateField(this)"></select></td>'
@@ -643,7 +651,6 @@ function nippoIchiranInit(userID,today,start,end){
                         $('#nippoichiran .ichiran tbody').append(res_content)
                     }
                 });
-                //console.log(info)
                 $('#info.nippo').append('<ul class="list-group"><li class="list-group-item ms-design showall" data-ms-base="ms-nippoichiran">合計 : '+info['totalDays']+'</li></ul>')
                 Object.keys(info).forEach(k => {
                     if(typeof info[k] === 'object' && info[k] !== null){
@@ -736,6 +743,7 @@ function initFormField(userID,day,editForm){
     }
 }
 function doForm(formID,element,day,editForm){
+    console.log('formID, element, day, editForm', formID, element, day, editForm)
     $.each(formID.find('.input-temp'),function(){
         $(this).remove()
     })
@@ -1135,12 +1143,12 @@ async function genbaIchiranInit(today,start,end){
         }
 
 
-        $.get('/api/genbaichiran?genbaID='+genbaID+'&today='+today+'&start='+start+'&end='+end,function(result){
+        $.get('/api/genbaichiran?genbaID='+genbaID+'&today='+today+'&start='+start+'&end='+end, async function(result){
             if(result){
                 $('#genbaichiran .ichiran thead tr').html('')
                 $('#genbaichiran').show()
                 //SET HEADINGS TABLE
-                $('#genbaichiran .ichiran thead tr').prepend('<th scope="col" class="pl-2 py-2">日付</th><th scope="col" class="pl-2 py-2">工種</th><th scope="col" class="pl-2 py-2">業社名</th><th scope="col" class="pl-2 py-2">人員</th><th scope="col" class="pl-2 py-2">作業内容</th><th scope="col" class="pl-2 py-2">入力者名</th><th scope="col" class="d-none pl-2 py-2"></th>')
+                $('#genbaichiran .ichiran thead tr').prepend('<th scope="col" class="pl-2 py-2">日付 </th><th scope="col" class="pl-2 py-2">工種</th><th scope="col" class="pl-2 py-2">業社名</th><th scope="col" class="pl-2 py-2">人員</th><th scope="col" class="pl-2 py-2">作業内容</th><th scope="col" class="pl-2 py-2">入力者名</th><th scope="col" class="d-none pl-2 py-2"></th>')
                 //SHUKEI INFO
                 $('.card.info').show()
                 $('.info.savingPointer').show()
@@ -1149,12 +1157,14 @@ async function genbaIchiranInit(today,start,end){
                 $('#info.genba').html('')
 
                 let info = {event:'genba-shukei',工種合計:0}
+                let companyList = await $.get( "/api/company")
                 result.forEach(data => {
                     let res_content = ''
                     for(let n = 1;n<= data.totalLine ;n++){
                         if (data){
                             let col1 = data['工種-'+n] || '-'
-                            let col2 = data['業社名-'+n] || '-'
+                            let company = companyList.filter(company => company._id === data['業社ID-'+n]);
+                            let col2 = company[0].el || '-'
                             let col3 = data['人員-'+n] || '-'
                             let col4 = data['作業内容-'+n]|| '-'
                             if(!$.isNumeric(col3)){
@@ -1186,7 +1196,7 @@ async function genbaIchiranInit(today,start,end){
                                 }
                                 content += '<tr data-id="'+data._id+'" data-value="'+n+'" class="ms-genbanippo removeThisIdHide">'
                                 list_content_item += '<div class="list_container ms-genbanippo row px-3 py-2 border rounded-0 m-0 bg-white" data-id="'+data._id+'" data-value="'+n+'">'
-                                content += '<td><span class="pl-2 py-3 isweekend-'+data['todayJP'].substring(data['todayJP'].indexOf('(')).replace('(','').replace(')','')+'" style="width:auto;display:inline-block" data-name="todayJP" data-value="'+data['todayJP']+'">'+data['todayJP']+'</span></td>'
+                                content += '<td><span class="pl-2 py-3 isweekend-'+data['todayJP'].substring(data['todayJP'].indexOf('(')).replace('(','').replace(')','')+'" style="width:auto;display:inline-block" data-name="todayJP" data-value="'+westernDate(data['date'])+'">'+westernDate(data['date'])+'</span></td>'
                                 //content += '<td><select style="display:none" data-type="input-koushu" data-field="工種-'+n+'" data-name="'+genbaID+'_genbanippo" data-id="'+data._id+'" data-userid="'+data.userID+'" class="editor input-koushu px-2 bg-white border border-secondary rounded" placeholder="'+col1+'" value="'+col1+'" name="工種-'+n+'" onchange="updateField(this)"></select></td>'
                                 list_content_item += '<div class="col" data-type="input-koushu" data-field="工種-'+n+'" data-name="'+genbaID+'_genbanippo" data-id="'+data._id+'" data-userid="'+data.userID+'" >'+col1+'</div>'
                                 content += '<td><span class="pl-2 py-3 " style="width:auto;display:inline-block" data-type="input-koushu" data-field="工種-'+n+'" data-name="'+genbaID+'_genbanippo" data-id="'+data._id+'" data-userid="'+data.userID+'">'+col1+'</span></td>'
@@ -1223,50 +1233,48 @@ async function genbaIchiranInit(today,start,end){
                 }
 
                 $.get('/api/shukei',function(data){
-                    if(data[0].todayJP){
-                        let ctodayJP = data[0].todayJP
-                        data = data[0][genbaName]
-                        $('.info.savingPointer').hide()
-                        $('.nice-select.input-genba.globalselector').removeClass('disabled')
-                        $('select.input-genba.globalselector').prop('disabled',false)
-                        let dTotal = 0;let dDetail = {}
-                        if($.isNumeric(data.作業時間)==true){
-                            dTotal=data.作業時間
-                        }
-                        if(typeof data.detail === 'object'){
-                            dDetail=data.detail
-                        }
-                        info['現場監督'] = {total:parseFloat(dTotal),detail:dDetail}
-                        info.工種合計 += parseFloat(dTotal)
-                        info.工種合計= info.工種合計.toFixed(2)
-                        console.log({
-                            event:'shukei',
-                            genbaName:genbaName,
-                            info:info,
-                            today:today,
-                        })
-                        $('.shukei_todayJP').html(' '+ctodayJP)
-                        $('#info.genba').append('<ul class="list-group"><li class="list-group-item ms-design showall" data-ms-base="ms-genbanippo" >工種合計 : '+info['工種合計']+'</li></ul>')
-                        Object.keys(info).forEach(k => {
-                            if(typeof info[k] === 'object' && info[k] !== null){
-    
-                                let content = ''
-                                content += '<div class="card"><div class="card-header collapsed" id="'+k+'" data-toggle="collapse" data-target="#collapse-'+k+'" aria-expanded="true" aria-controls="collapse-'+k+'" style="cursor:pointer">'
-                                content += '<h5 class="mb-0 float-left ms-design" data-ms-key="'+k+'" data-ms-base="ms-genbanippo" onclick="makeSearch(this)">'
-                                content += k+' : '+info[k].total
-                                content += '</h5>'
-                                content += '<div data-feather="minus" class="float-right off" style="display:inline"></div><div data-feather="plus" class="float-right on" style="display:none"></div>'
-                                content += '</div>'
-                                content += '<div id="collapse-'+k+'" class="collapse" aria-labelledby="'+k+'" data-parent="#info">'
-                                content += '<div class="card-body"><ul class="list-group">'
-                                Object.keys(info[k].detail).forEach(kk=>{
-                                    content += '<li class="list-group-item ms-design" data-ms-key="'+kk+'" data-ms-base="ms-genbanippo" onclick="makeSearch(this)">'+kk+' : '+info[k].detail[kk]+'</li>'
-                                })
-                                content += '</ul></div></div></div>'
-                                $('#info.genba').append(content)
-                            }
-                        });
+                    let ctodayJP = data[0].todayJP
+                    data = data[0][genbaName]
+                    $('.info.savingPointer').hide()
+                    $('.nice-select.input-genba.globalselector').removeClass('disabled')
+                    $('select.input-genba.globalselector').prop('disabled',false)
+                    let dTotal = 0;let dDetail = {}
+                    if($.isNumeric(data.作業時間)==true){
+                        dTotal=data.作業時間
                     }
+                    if(typeof data.detail === 'object'){
+                        dDetail=data.detail
+                    }
+                    info['現場監督'] = {total:parseFloat(dTotal),detail:dDetail}
+                    info.工種合計 += parseFloat(dTotal)
+                    info.工種合計= info.工種合計.toFixed(2)
+                    console.log({
+                        event:'shukei',
+                        genbaName:genbaName,
+                        info:info,
+                        today:today,
+                    })
+                    $('.shukei_todayJP').html(' '+ctodayJP)
+                    $('#info.genba').append('<ul class="list-group"><li class="list-group-item ms-design showall" data-ms-base="ms-genbanippo" >工種合計 : '+info['工種合計']+'</li></ul>')
+                    Object.keys(info).forEach(k => {
+                        if(typeof info[k] === 'object' && info[k] !== null){
+
+                            let content = ''
+                            content += '<div class="card"><div class="card-header collapsed" id="'+k+'" data-toggle="collapse" data-target="#collapse-'+k+'" aria-expanded="true" aria-controls="collapse-'+k+'" style="cursor:pointer">'
+                            content += '<h5 class="mb-0 float-left ms-design" data-ms-key="'+k+'" data-ms-base="ms-genbanippo" onclick="makeSearch(this)">'
+                            content += k+' : '+info[k].total
+                            content += '</h5>'
+                            content += '<div data-feather="minus" class="float-right off" style="display:inline"></div><div data-feather="plus" class="float-right on" style="display:none"></div>'
+                            content += '</div>'
+                            content += '<div id="collapse-'+k+'" class="collapse" aria-labelledby="'+k+'" data-parent="#info">'
+                            content += '<div class="card-body"><ul class="list-group">'
+                            Object.keys(info[k].detail).forEach(kk=>{
+                                content += '<li class="list-group-item ms-design" data-ms-key="'+kk+'" data-ms-base="ms-genbanippo" onclick="makeSearch(this)">'+kk+' : '+info[k].detail[kk]+'</li>'
+                            })
+                            content += '</ul></div></div></div>'
+                            $('#info.genba').append(content)
+                        }
+                    });
                 })
 
             }else{
@@ -1589,7 +1597,7 @@ function SettingsGenbaInit(){
         event:'SettingsGenbaInit'
     })
     $.fn.autoKana('input[name="工事名"]', 'input[name="工事名kana"]');
-
+    let userID =  $('#userID').attr('data-value');
     if( !! document.querySelector(".table#genba") ){
         SUA({event:'現場一覧ページ'})
         let genbaSelect = $('.table#genba')
@@ -1603,15 +1611,6 @@ function SettingsGenbaInit(){
                     let col3 = element.担当者 || ""
                     let col4 = element.工事名kana || ""
                     genbaSelect.find('tbody').append('<tr class="clickable" data-link="/dashboard/settings/genba?genbaID='+element._id+'"><td>'+col1+'</td><td>'+col4+'</td><td>'+col2+'</td><td class="responsible">'+col3+'</td></tr>')
-                    /*
-                    $.get("/users/info/"+col3,function(res){
-                        if(res.lname){
-                            col3 = res.lname+' '+res.fname
-                        }else{
-                            col3 = ''
-                        }
-                    })
-                    */
                 }
             };
             updateUserInfo()
@@ -1623,7 +1622,7 @@ function SettingsGenbaInit(){
         })
     }
     if(!!document.querySelector('#formResponsible')){
-        let userID = $('#userID').attr('data-value')
+        // let userID = $('#userID').attr('data-value')
         let genbaID = getUrlParameter('genbaID')
         /*
         console.log({
@@ -1633,6 +1632,17 @@ function SettingsGenbaInit(){
         })
         */
         $.get( "/api/users", function( data ) {
+            let index = data.findIndex(function(element) {
+                return element._id === userID;
+            });
+            let specificElement = data.find(function(item) {
+                return item._id === userID;
+            });
+            if (index !== -1) {
+                data.splice(index, 1);
+                data.splice(0, 0, specificElement);
+            }
+
             data.forEach(element => {
                 let content = '<option value="'+element._id+'">'+element.lname+' '+element.fname+'</option>'
                 if((element._id==userID)&&(genbaID == 0 )){
@@ -1737,6 +1747,21 @@ function SettingsCompnayInit(){
             data=sortit(data,'業社名kana')
             for(let index=0;index<data.length;index++){
                 let element=data[index]
+                $.get( "/api/company", function( data ) {
+                    data=sortit(data,'業社名kana')
+                    for(let index=0;index<data.length;index++){
+                        let element=data[index]
+                        if(element.el ){
+                            let col1 = element.el || ""
+                            let col2 = element.sub || ""
+                            let col3 = element['業社名kana'] || ""
+                            if(Array.isArray(col2)){
+                                col2 = col2.filter(String)
+                            }
+                            cSelector.find('tbody').append('<tr class="clickable" data-link="/dashboard/settings/company?companyID='+element._id+'"><td>'+col1+'</td><td>'+col3+'</td><td>'+col2+'</td></tr>')
+                        }
+                    };
+                });
                 if(element.el ){
                     let col1 = element.el || ""
                     let col2 = element.sub || ""
@@ -2928,7 +2953,7 @@ function inputInit(callback){
                     for(let index=0;index<data.length;index++){
                         let element=data[index]
                         if(element.工事名){
-                            genbaSelect.append('<option value="'+element.工事名+'" data-id="'+element._id+'">'+element.工事名+' </option>')
+                            genbaSelect.append('<option value="'+element._id+'" data-id="'+element._id+'">'+element.工事名+' </option>')
                         }
                     };
                     if(!genbaSelect.hasClass('globalselector')){
@@ -3044,7 +3069,7 @@ function linkSelect(el){
     if(value!=null){
         $.get('/api/company',function(results){
             let result=[]
-            let content = '<select class="input-temp text-center w-100" data-input="input-company" data-name="業社名-'+num+'" style="display:none;font-size: 11px;" value="'+compnayValue+'" onchange="inputTemp(this)">'
+            let content = '<select class="input-temp text-center w-100" id="modalSelect" data-input="input-company" data-name="業社名-'+num+'" style="display:none;font-size: 11px;" value="'+compnayValue+'" onchange="inputTemp(this)">'
             results.forEach(element => {
                 if(element.sub!=undefined){
                     if((!Array.isArray(element.sub))){
@@ -3057,12 +3082,14 @@ function linkSelect(el){
                     }
                 }
             });
+            content += '<option value="modal">'+'業者名を追加する'+'</option>'
             content += '</select>'
             if(!inputCompany.attr('value')){
                 inputCompany.val(result[0])
             }
             inputCompany.hide()
             inputCompany.after(content)
+            console.log('inputCompany', inputCompany)
             $('.input-temp[data-name="業社名-'+num+'"]').niceSelect('update')
             /*
             console.log({
@@ -3087,6 +3114,13 @@ function linkSelect(el){
     }
 }
 function inputTemp(el){
+    var selectElement = document.getElementById("modalSelect");
+    var selectedOption = selectElement.options[selectElement.selectedIndex].value;
+    
+    if (selectedOption === "modal") {
+      // Open the modal
+      $('#myModal').modal('show');
+    }
     let value = $(el).val()
     let name = $(el).attr('data-name')
     let inputSelect = $(el).attr('data-input')
@@ -3275,4 +3309,69 @@ function setNippoView(){
   if($.cookie('nippoview')!=undefined){
     $('#nippoview').find('#'+$.cookie('nippoview')).click()
   }
+}
+
+function westernDate(item){
+    const date = new Date(item);
+    const options = {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        weekday: 'short',
+    };
+
+    return formattedDate = date.toLocaleDateString('ja-JP', options);
+    // var dateComponents = date.split(/[年月日()]/).filter(Boolean);
+
+    // // Create a new Date object with the splitted components
+    // var dateObject = new Date(dateComponents[0], dateComponents[1] - 1, dateComponents[2]);
+
+    // // Format the date as desired
+    // return formattedDate = `${dateObject.getFullYear()}/${(dateObject.getMonth() + 1).toString().padStart(2, '0')}/${dateObject.getDate().toString().padStart(2, '0')}(${getDayOfWeek(dateObject)})`;
+
+    // // Function to get the day of the week from a Date object
+    // function getDayOfWeek(date) {
+    //     var days = ['日', '月', '火', '水', '木', '金', '土'];
+    //     return days[date.getDay()];
+    // }
+}
+let flag = true;
+function sortTableByDate(tableId, columnIndex) {
+    const table = document.getElementById('tableIchiran');
+    const rows = Array.from(table.getElementsByTagName('tr'));
+  
+    function compareDates(a, b) {
+      let aa = a.cells[columnIndex].innerText;
+      let bb = b.cells[columnIndex].innerText;
+        var dateA = new Date(aa.replace(/月/, '/').replace(/日/, ''));
+        var dateB = new Date(bb.replace(/月/, '/').replace(/日/, ''));
+
+            // Custom sort function to compare dates
+                // compare the dates
+                if (dateA < dateB) {
+                    return 1;
+                }
+                if (dateA > dateB) {
+                    return -1;
+                }
+                return 0;
+    }
+  
+    let sortedRows = [];
+    let arrowUp = document.getElementById('arrow-up');
+    let arrowDown = document.getElementById('arrow-down');
+    // Sort the rows
+    if (flag) {
+         sortedRows = rows.slice(1).sort(compareDates); // excluding the header row
+         arrowUp.style.display = 'inline';
+         arrowDown.style.display = 'none'
+        flag = false;
+    } else {
+         sortedRows = rows.slice(1).sort(compareDates).reverse(); // excluding the header row
+         arrowUp.style.display = 'none';
+         arrowDown.style.display = 'inline'
+        flag = true;
+    }
+    // Re-append the sorted rows back into the table
+    sortedRows.forEach(row => table.appendChild(row));
 }
