@@ -16,6 +16,22 @@ const weekDays = [
     ["金", "Friday"],
     ["土", "Saturday"],
 ];
+let customHolidays = {}
+const nationalHolidays = {
+    3 : [20, 21, ],
+    4 : [29, ],
+    5 : [3, 4, 5, ],
+    6 : [],
+    7 : [17, ],
+    8 : [11, ],
+    9 : [18, 23, ],
+    10 : [9, ],
+    11: [3, 23, ],
+    12 : [21, ],
+    1 : [1, 8, ],
+    2 : [11, 12, 23, ],
+}
+
 const todayJP = date.toLocaleDateString('ja-JP', options)
 
 let prevDate = new Date(date);
@@ -30,7 +46,29 @@ $(document).ready(async function () {
         let userID = $('#userID').attr('data-value')
         let start = $('#start-period').attr('data-value')
         let end = $('#end-period').attr('data-value')
-
+        const fetchCalendar = await $.get("/api/calendar");
+        if (fetchCalendar) {
+            for ( let item of fetchCalendar) {
+                customHolidays["year" + item.year]= item;
+                if(!customHolidays["year" + item.year].legalHolidays) {
+                    customHolidays["year" + item.year].legalHolidays= {...patternYearHolidays.legalHolidays};
+                } else if(!customHolidays["year" + item.year].legalHolidays.days) {
+                    customHolidays["year" + item.year].legalHolidays.days = {};
+                } else if(!customHolidays["year" + item.year].legalHolidays.week) {
+                    customHolidays["year" + item.year].legalHolidays.week = [];
+                }
+                if(!customHolidays["year" + item.year].scheduledHolidays) {
+                    customHolidays["year" + item.year].scheduledHolidays= {...patternYearHolidays.scheduledHolidays};
+                } else if(!customHolidays["year" + item.year].scheduledHolidays.days) {
+                    customHolidays["year" + item.year].scheduledHolidays.days = {};
+                } else if(!customHolidays["year" + item.year].scheduledHolidays.week) {
+                    customHolidays["year" + item.year].scheduledHolidays.week = [];
+                }
+                if (!customHolidays["year" + item.year].workDays) {
+                    customHolidays["year" + item.year].workDays = {};
+                }
+            }
+        }
         newDashboardCalendarInit(userID, today, start, end);
 
         $(document).on('change', '.period-list.globalselector', function () {
@@ -84,7 +122,7 @@ $(document).ready(async function () {
                             if (localStorage.getItem("genba" + i)) {
                                 if (data.filter(item => item.工事名 === localStorage.getItem("genba" + i)).length) {
                                     genbaIDs.push(data.filter(item => item.工事名 === localStorage.getItem("genba" + i))[0])
-                                    newDashboardChartInit(i, data.filter(item => item.工事名 === localStorage.getItem("genba" + i))[0], Before10, today);
+                                    newDashboardChartInit(genbaIDs, i, data.filter(item => item.工事名 === localStorage.getItem("genba" + i))[0], Before10, today);
                                     $(".selected-item[data-item='" + i + "'").html('<a class="genba-list-item">' + localStorage.getItem("genba" + i) + '</a>')
                                     realGenba.push(localStorage.getItem("genba" + i));
                                 }
@@ -116,7 +154,8 @@ $(document).ready(async function () {
                             if (realGenba[i] && data.filter(item => item.工事名 === realGenba[i]).length) {
                                 genbaIDs.push(data.filter(item => item.工事名 === realGenba[i])[0])
                                 $(".selected-item[data-item='" + i + "'").html('<a class="genba-list-item">' + realGenba[i] + '</a>')
-                                newDashboardChartInit(i, data.filter(item => item.工事名 === realGenba[i])[0], Before10, today);
+                                newDashboardChartInit(genbaIDs, i, data.filter(item => item.工事名 === realGenba[i])[0], Before10, today);
+                                localStorage.setItem("genba" + i, data.filter(item => item.工事名 === realGenba[i])[0].工事名);
                             }
                         }
                     }
@@ -137,7 +176,7 @@ $(document).ready(async function () {
             $('.chart-date.end[chart-no="' + chartNo + '"').datepicker('setStartDate', dd);
             let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
             $('.chart-date.start[chart-no="' + chartNo + '"').attr('data-date', ct)
-            newDashboardChartInit(chartNo, genbaIDs[chartNo], ct, $('.chart-date.end').attr('data-date'));
+            newDashboardChartInit(genbaIDs, chartNo, genbaIDs[chartNo], ct, $('.chart-date.end').attr('data-date'));
 
         })
         $('.chart-date.end').datepicker({
@@ -156,17 +195,9 @@ $(document).ready(async function () {
             $('.chart-date.start[chart-no="' + chartNo + '"').datepicker('setEndDate', dd);
             let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
             $('.chart-date.end[chart-no="' + chartNo + '"').attr('data-date', ct);
-            newDashboardChartInit(chartNo, genbaIDs[chartNo], $('.chart-date.start').attr('data-date'), ct);
+            newDashboardChartInit(genbaIDs, chartNo, genbaIDs[chartNo], $('.chart-date.start').attr('data-date'), ct);
         })
-        const startVal = prevDate.getFullYear() + '/' + (prevDate.getMonth() + 1) + '/' + prevDate.getDate();
-        const endVal = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
-        let prevDateCt = (prevDate.getMonth() + 1) + '/' + prevDate.getDate() + '/' + prevDate.getFullYear();
-        $('.chart-date.start').val(startVal).change();
-        $('.chart-date.end').val(endVal).change();
-        $('.chart-date.start').attr('data-date', prevDateCt);
-        $('.chart-date.end').attr('data-date', today);
-        $('.chart-date.start').datepicker('update');
-        $('.chart-date.end').datepicker('update');
+
         $(".sortable-genba-list").sortable({
             connectWith: '.sortable-genba-list',
             receive: function (event, ui) {
@@ -191,13 +222,11 @@ $(document).ready(async function () {
             }
         });
         $(document).on('click', '#genba-select-modal-toggle', function () {
-            if (localStorage.getItem("genba0") || localStorage.getItem("genba1") || localStorage.getItem("genba2")) {
-                for (let i = 0; i < 3; i++) {
-                    if (localStorage.getItem("genba" + i)) {
-                        $(".selected-item[data-item='" + i + "'").html('<a class="genba-list-item">' + localStorage.getItem("genba" + i) + '</a>');
-                    } else {
-                        $(".selected-item[data-item='" + i + "'").html('');
-                    }
+            for (let i = 0; i < 3; i++) {
+                if (localStorage.getItem("genba" + i)) {
+                    $(".selected-item[data-item='" + i + "'").html('<a class="genba-list-item">' + localStorage.getItem("genba" + i) + '</a>');
+                } else {
+                    $(".selected-item[data-item='" + i + "'").html('');
                 }
             }
             setTimeout(() => {
@@ -224,8 +253,8 @@ $(document).ready(async function () {
                 for (let ii = 0; ii < 3; ii++) {
                     if (localStorage.getItem("genba" + ii)) {
                         if (allGenbaList.filter(item => item.工事名 === localStorage.getItem("genba" + ii)).length) {
-                            genbaIDs.push(allGenbaList.filter(item => item.工事名 === localStorage.getItem("genba" + ii))[0])
-                            newDashboardChartInit(ii, allGenbaList.filter(item => item.工事名 === localStorage.getItem("genba" + ii))[0], Before10, today);
+                            genbaIDs[ii] = allGenbaList.filter(item => item.工事名 === localStorage.getItem("genba" + ii))[0];
+                            newDashboardChartInit(genbaIDs, ii, allGenbaList.filter(item => item.工事名 === localStorage.getItem("genba" + ii))[0], Before10, today);
                         }
                     } else {
                         $("#new_dashboard_charts_group" + ii).remove();
@@ -238,11 +267,34 @@ $(document).ready(async function () {
 
     //NEW DASHBOARD ADMIN PAGE
     if (!!document.querySelector('#new_dashoboard_content_admin')) {
-        let userID = $('#userID').attr('data-value')
-        let start = $('#start-period').attr('data-value')
-        let end = $('#end-period').attr('data-value')
+        let userID = $('#userID').attr('data-value');
+        let start = $('#start-period').attr('data-value');
+        let end = $('#end-period').attr('data-value');
         let labels = null;
         let dataSets = [];
+        const fetchCalendar = await $.get("/api/calendar");
+        if (fetchCalendar) {
+            for ( let item of fetchCalendar) {
+                customHolidays["year" + item.year]= item;
+                if(!customHolidays["year" + item.year].legalHolidays) {
+                    customHolidays["year" + item.year].legalHolidays= {...patternYearHolidays.legalHolidays};
+                } else if(!customHolidays["year" + item.year].legalHolidays.days) {
+                    customHolidays["year" + item.year].legalHolidays.days = {};
+                } else if(!customHolidays["year" + item.year].legalHolidays.week) {
+                    customHolidays["year" + item.year].legalHolidays.week = [];
+                }
+                if(!customHolidays["year" + item.year].scheduledHolidays) {
+                    customHolidays["year" + item.year].scheduledHolidays= {...patternYearHolidays.scheduledHolidays};
+                } else if(!customHolidays["year" + item.year].scheduledHolidays.days) {
+                    customHolidays["year" + item.year].scheduledHolidays.days = {};
+                } else if(!customHolidays["year" + item.year].scheduledHolidays.week) {
+                    customHolidays["year" + item.year].scheduledHolidays.week = [];
+                }
+                if (!customHolidays["year" + item.year].workDays) {
+                    customHolidays["year" + item.year].workDays = {};
+                }
+            }
+        }
         const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + start + '&end=' + end);
         const usersData = await $.get('/api/userStatistic?today=' + today + '&start=' + start + '&end=' + today);
 
@@ -313,14 +365,56 @@ $(document).ready(async function () {
 
     //NEW HOLIDAY SETTING PAGE
     if (!!document.querySelector('#new_dashoboard_setting_holidays')) {
+        let changedData = false;
+        const fetchCalendar = await $.get("/api/calendar");
+        if (fetchCalendar) {
+            for ( let item of fetchCalendar) {
+                customHolidays["year" + item.year]= item;
+                if(!customHolidays["year" + item.year].legalHolidays) {
+                    customHolidays["year" + item.year].legalHolidays= {...patternYearHolidays.legalHolidays};
+                } else if(!customHolidays["year" + item.year].legalHolidays.days) {
+                    customHolidays["year" + item.year].legalHolidays.days = {};
+                } else if(!customHolidays["year" + item.year].legalHolidays.week) {
+                    customHolidays["year" + item.year].legalHolidays.week = [];
+                }
+                if(!customHolidays["year" + item.year].scheduledHolidays) {
+                    customHolidays["year" + item.year].scheduledHolidays= {...patternYearHolidays.scheduledHolidays};
+                } else if(!customHolidays["year" + item.year].scheduledHolidays.days) {
+                    customHolidays["year" + item.year].scheduledHolidays.days = {};
+                } else if(!customHolidays["year" + item.year].scheduledHolidays.week) {
+                    customHolidays["year" + item.year].scheduledHolidays.week = [];
+                }
+                if (!customHolidays["year" + item.year].workDays) {
+                    customHolidays["year" + item.year].workDays = {};
+                }
+            }
+        }
+        if (customHolidays["year" + new Date().getFullYear().toString()]) {
+            const currentYearData = customHolidays["year" + new Date().getFullYear().toString()];
+            if (currentYearData.legalHolidays.week.length) {
+                $("#legalHolidayCheck input").each(function () {
+                    if(currentYearData.legalHolidays.week.indexOf($(this).attr("name")) > -1) {
+                        $("#legalHolidayCheck input[name='" + $(this).attr("name") + "']").prop('checked', true);
+                    }
+                });
+            }
+            if (currentYearData.scheduledHolidays.week.length) {
+                $("#scheduledHolidayCheck input").each(function () {
+                    if(currentYearData.scheduledHolidays.week.indexOf($(this).attr("name")) > -1) {
+                        $("#scheduledHolidayCheck input[name='" + $(this).attr("name") + "']").prop('checked', true);
+                    }
+                });
 
-        let yearCalendar2018 = document.createElement("div");
-        yearCalendar2018.id = "2018";
-        yearCalendar2018.classList.add("yearCalendar");
-        // body.insertBefore(yearCalendar2018, body.lastElementChild);
-        $("#calendar_for_holiday").append(yearCalendar2018)
+            }
+            if (currentYearData.yearEndAndNewYear == "1") {
+                $("#yearEndAndNewYear").prop('checked', true);
+            }
+        }
+        let yearCalendar2018 = $("<div>");
+        yearCalendar2018.attr("id", "bodyCalendar");
+        yearCalendar2018.addClass("yearCalendar");
 
-        let months2018 = [
+        const months2018 = [
             {
                 name: "march",
                 index: 3,
@@ -382,7 +476,7 @@ $(document).ready(async function () {
                 calendar: createMonthCalendar
             }
         ];
-        let months2019 = [
+        const months2019 = [
             {
                 name: "january",
                 index: 1,
@@ -396,32 +490,359 @@ $(document).ready(async function () {
                 calendar: createMonthCalendar
             },
         ];
+        const monthIds = [
+            'january',
+            'february',
+            'march',
+            'april',
+            'may',
+            'june',
+            'july',
+            'august',
+            'september',
+            'october',
+            'november',
+            'december',
+        ]
         for (let month = 0; month < 10; month++) {
             yearCalendar2018.append(months2018[month].calendar());
         }
-        // let yearCalendar2019 = yearCalendar2018.cloneNode();
-        // yearCalendar2019.id = "2019";
-        // body.lastElementChild.before(yearCalendar2019);
-        // $("#calendar_for_holiday").append(yearCalendar2019)
+
         calendarDate.setFullYear(calendarDate.getFullYear() + 1);
         for (let month = 0; month < 2; month++) {
             yearCalendar2018.append(months2019[month].calendar());
         }
-        $(document).on('click', '.edit-holiday-btn', function () {
-            let modalMonth =             {
+        $("#calendar_for_holiday").html(yearCalendar2018);
+        // Event Listners
+        $(document).on('click', '#saveBtn', async function () {
+            $('#preloader').fadeIn('slow', function () {
+                $('#mainContainer').fadeOut(500)
+                // $('body').find('select').niceSelect();
+            });
+            const currentYear = $("#currentYear").val();
+            if (customHolidays["year" + currentYear]) {
+                let sendData = customHolidays["year" + currentYear];
+                if (!sendData.year) sendData.year = currentYear;
+                $.post('/api/saveYearCalendar', sendData, function () {
+                    console.log("OK");
+                    $('#preloader').fadeOut('slow', function () {
+                        $('#mainContainer').fadeIn(500);
+                        changedData = false;
+                    });
+                });
+            }
+        });
+        $(document).on('click', '.edit-holiday-btn', async function () {
+            let modalMonth = {
                 name: "modalMonth",
-                index: Number($(this).attr("data-month")),
+                index: parseInt($(this).attr("data-month")),
                 node: createDiv(),
                 calendar: createMonthCalendar
             };
-            calendarDate.setFullYear(Number($(this).attr("data-year")));
+            const currentYear = $("#currentYear").val();
+            calendarDate.setFullYear(parseInt($(this).attr("data-year")));
             let monthContent = modalMonth.calendar();
             $(monthContent).find(".edit-holiday-btn").remove();
+            let modalMonthHolidays = "";
+            await $(monthContent).find("table tbody td").each(function () {
+                const month = $(this).attr("data-month");
+                const year = $(this).attr("data-year");
+                if ($(this).text()) {
+                    if($(this).hasClass("saturday")) {
+                        modalMonthHolidays +='<div><span class="px-1">'+ year + '/' + month + '/' + $(this).text() + '</span><select class="custom-select-1 col-6 custom-select-2" name="month_start" ><option value="1" >所定休日</option><option value="2" selected>法定休日</option><option value="3" >出勤日</option></select><button class="px-1 close chart-close-btn col-1"><span aria-hidden="true">×</span></button></div>';
+                    } else if($(this).hasClass("sunday")) {
+                        modalMonthHolidays +='<div><span class="px-1">'+ year + '/' + month + '/' + $(this).text() + '</span><select class="custom-select-1 col-6 custom-select-2" name="month_start" ><option value="1" selected>所定休日</option><option value="2" >法定休日</option><option value="3" >出勤日</option></select><button class="px-1 close chart-close-btn col-1"><span aria-hidden="true">×</span></button></div>';
+                    } else if($(this).hasClass("workday")) {
+                        modalMonthHolidays +='<div><span class="px-1">'+ year + '/' + month + '/' + $(this).text() + '</span><select class="custom-select-1 col-6 custom-select-2" name="month_start" ><option value="1" >所定休日</option><option value="2" >法定休日</option><option value="3" selected>出勤日</option></select><button class="px-1 close chart-close-btn col-1"><span aria-hidden="true">×</span></button></div>';
+                    }
+                }
+            });
+            $("#modalMonthHolidays").html(modalMonthHolidays);
             $("#modalMonthContent").html(monthContent);
             $('#editMonth').modal('show');
         });
-    }
+        $(document).on('click', '#modalMonthContent table td', function () {
+            changedData = true;
+            if($(this).text() !== "") {
+                const year = $(this).attr("data-year");
+                const month = $(this).attr("data-month");
+                if ($("#modalMonthHolidays > div > span.px-1:contains('"+ year + "/" + month + "/" + $(this).text() +"')").length === 0) {
+                    let dayType = "3"; let dayClass="workday";
+                    if ($(this).hasClass("sunday") || $(this).hasClass("scheduledWeek")) {
+                        dayType = "1"; dayClass = "sunday";
+                    } else if($(this).hasClass("saturday") || $(this).hasClass("legalWeek")) {
+                        dayType = "2"; dayClass = "saturday";
+                    }
+                    let content = '<div ><span class="px-1">'+ year + '/' + month + '/' + $(this).text() + '</span><select class="custom-select-1 col-6 custom-select-2" name="month_start" ><option value="1" '+ (dayType == '1' ? 'selected' :'') + '>所定休日</option><option value="2" '+( dayType == '2' ? 'selected' :'') + '>法定休日</option><option value="3" '+ (dayType == '3' ? 'selected' :'') + '>出勤日</option></select><button class="px-1 close chart-close-btn col-1"><span aria-hidden="true">×</span></button></div>';
+                    $("#modalMonthContent table td[data-year='"+year+"'][data-month='"+ month+"'][data-date='"+ $(this).text() + "']").addClass(dayClass);
+                    $("#modalMonthHolidays").append(content);
+                } else return;
+            } else return;
+        });
+        $(document).on('click', '#modalMonthHolidays .chart-close-btn', function () {
+            changedData = true;
+            const fullDate = $(this).parent().find("span.px-1").text().split('/');
+            if ($("#modalMonthContent table td[data-year='"+fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2] + "']").hasClass("sunday"))$("#modalMonthContent table td[data-year='"+fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2] + "']").removeClass("sunday");
+            if ($("#modalMonthContent table td[data-year='"+fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2] + "']").hasClass("saturday"))$("#modalMonthContent table td[data-year='"+fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2] + "']").removeClass("saturday");
+            if ($("#modalMonthContent table td[data-year='"+fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2] + "']").hasClass("workday"))$("#modalMonthContent table td[data-year='"+fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2] + "']").removeClass("workday");
+            $(this).parent().remove();
+        });
+        $(document).on('click', '#confirmEditMonthModalBtn', function () {
+            const currentMonth = $("#modalMonthContent table .year-and-month").attr("month");
+            const currentYear = $("#currentYear").val();
+            $("#modalMonthContent table tbody td").each(function () {
+                if ($(this).text()) {
+                    const month = $(this).attr("data-month");
+                    const year = $(this).attr("data-year");
+                    if($(this).hasClass("saturday")) {
+                        if(customHolidays["year" + currentYear].legalHolidays.days["month" + month]) {
+                            if (customHolidays["year" + currentYear].legalHolidays.days["month" + month].indexOf($(this).text()) < 0) {
+                                customHolidays["year" + currentYear].legalHolidays.days["month" + month].push($(this).text());
+                            }
+                        } else {
+                            customHolidays["year" + currentYear].legalHolidays.days["month" + month] = [$(this).text()]
+                        }
+                        if(customHolidays["year" + currentYear].scheduledHolidays.days["month" + month]) {
+                            if (customHolidays["year" + currentYear].scheduledHolidays.days["month" + month].indexOf($(this).text()) > -1) {
+                                customHolidays["year" + currentYear].scheduledHolidays.days["month" + month].splice(customHolidays["year" + currentYear].scheduledHolidays.days["month" + month].indexOf($(this).text()), 1);
+                            }
+                        }
+                        if(customHolidays["year" + currentYear].workDays["month" + month]) {
+                            if (customHolidays["year" + currentYear].workDays["month" + month].indexOf($(this).text()) > -1) {
+                                customHolidays["year" + currentYear].workDays["month" + month].splice(customHolidays["year" + currentYear].workDays["month" + month].indexOf($(this).text()), 1);
+                            }
+                        }
+                    } else if($(this).hasClass("sunday")) {
+                        if(customHolidays["year" + currentYear].scheduledHolidays.days["month" + month]) {
+                            if (customHolidays["year" + currentYear].scheduledHolidays.days["month" + month].indexOf($(this).text()) < 0) {
+                                customHolidays["year" + currentYear].scheduledHolidays.days["month" + month].push($(this).text());
+                            }
+                        } else {
+                            customHolidays["year" + currentYear].scheduledHolidays.days["month" + month] = [$(this).text()]
+                        }
+                        if(customHolidays["year" + currentYear].legalHolidays.days["month" + month]) {
+                            if (customHolidays["year" + currentYear].legalHolidays.days["month" + month].indexOf($(this).text()) > -1) {
+                                customHolidays["year" + currentYear].legalHolidays.days["month" + month].splice(customHolidays["year" + currentYear].legalHolidays.days["month" + month].indexOf($(this).text()), 1);
+                            }
+                        }
+                        if(customHolidays["year" + currentYear].workDays["month" + month]) {
+                            if (customHolidays["year" + currentYear].workDays["month" + month].indexOf($(this).text()) > -1) {
+                                customHolidays["year" + currentYear].workDays["month" + month].splice(customHolidays["year" + currentYear].workDays["month" + month].indexOf($(this).text()), 1);
+                            }
+                        }
+                    } else if($(this).hasClass("workday")) {
+                        if(customHolidays["year" + currentYear].legalHolidays.days["month" + month]) {
+                            if (customHolidays["year" + currentYear].legalHolidays.days["month" + month].indexOf($(this).text()) > -1) {
+                                customHolidays["year" + currentYear].legalHolidays.days["month" + month].splice(customHolidays["year" + currentYear].legalHolidays.days["month" + month].indexOf($(this).text()), 1);
+                            }
+                        }
+                        if(customHolidays["year" + currentYear].scheduledHolidays.days["month" + month]) {
+                            if (customHolidays["year" + currentYear].scheduledHolidays.days["month" + month].indexOf($(this).text()) > -1) {
+                                customHolidays["year" + currentYear].scheduledHolidays.days["month" + month].splice(customHolidays["year" + currentYear].scheduledHolidays.days["month" + month].indexOf($(this).text()), 1);
+                            }
+                        }
+                        if(customHolidays["year" + currentYear].workDays["month" + month]) {
+                            if (customHolidays["year" + currentYear].workDays["month" + month].indexOf($(this).text()) < 0) {
+                                customHolidays["year" + currentYear].workDays["month" + month].push($(this).text());
+                            }
+                        } else {
+                            customHolidays["year" + currentYear].workDays["month" + month] = [$(this).text()]
+                        }
+                    } else {
+                        if(customHolidays["year" + currentYear].legalHolidays.days["month" + month]) {
+                            if (customHolidays["year" + currentYear].legalHolidays.days["month" + month].indexOf($(this).text()) > -1) {
+                                customHolidays["year" + currentYear].legalHolidays.days["month" + month].splice(customHolidays["year" + currentYear].legalHolidays.days["month" + month].indexOf($(this).text()), 1);
+                            }
+                        }
+                        if(customHolidays["year" + currentYear].scheduledHolidays.days["month" + month]) {
+                            if (customHolidays["year" + currentYear].scheduledHolidays.days["month" + month].indexOf($(this).text()) > -1) {
+                                customHolidays["year" + currentYear].scheduledHolidays.days["month" + month].splice(customHolidays["year" + currentYear].scheduledHolidays.days["month" + month].indexOf($(this).text()), 1);
+                            }
+                        }
+                        if(customHolidays["year" + currentYear].workDays["month" + month]) {
+                            if (customHolidays["year" + currentYear].workDays["month" + month].indexOf($(this).text()) > -1) {
+                                customHolidays["year" + currentYear].workDays["month" + month].splice(customHolidays["year" + currentYear].workDays["month" + month].indexOf($(this).text()), 1);
+                            }
+                        }
+                    }
+                }
+            });
+            $("#bodyCalendar #"+ monthIds[parseInt(currentMonth) - 1] + " table tbody").html($("#modalMonthContent table tbody").html());
+            $('#editMonth').modal('hide');
+        });
 
+        $(document).on("change", "#modalMonthHolidays .custom-select-1", function () {
+            changedData = true;
+            const fullDate = $(this).parent().find("span.px-1").text().split('/');
+            if ($(this).val() == "1") {
+                if($("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").hasClass("workday")) $("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").removeClass("workday");
+                if($("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").hasClass("saturday")) $("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").removeClass("saturday");
+                $("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").addClass("sunday");
+            } else if ($(this).val() == "2") {
+                if($("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").hasClass("sunday")) $("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").removeClass("sunday");
+                if($("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").hasClass("workday")) $("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").removeClass("workday");
+                $("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").addClass("saturday");
+            } else {
+                if($("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").hasClass("sunday")) $("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").removeClass("sunday");
+                if($("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").hasClass("saturday")) $("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").removeClass("saturday");
+                $("#modalMonthContent table td[data-year='"+ fullDate[0]+"'][data-month='"+ fullDate[1]+"'][data-date='"+ fullDate[2]+"']").addClass("workday");
+            }
+        });
+        $(document).on("change", "#scheduledHolidayCheck input", function () {
+            changedData = true;
+            $("#calendar_for_holiday").html("");
+            const currentYear = $("#currentYear").val();
+            if ($(this).is(':checked')) {
+                if (customHolidays["year" + currentYear]) {
+                    customHolidays["year" + currentYear].scheduledHolidays.week.push($(this).attr("name"));
+                    if(customHolidays["year" + currentYear].legalHolidays.week.indexOf($(this).attr("name")) > -1) {
+                        customHolidays["year" + currentYear].legalHolidays.week.splice(customHolidays["year" + currentYear].legalHolidays.week.indexOf($(this).attr("name")), 1);
+                    }
+                }
+            } else {
+                if(customHolidays["year" + currentYear].scheduledHolidays.week.indexOf($(this).attr("name")) > -1) {
+                    customHolidays["year" + currentYear].scheduledHolidays.week.splice(customHolidays["year" + currentYear].scheduledHolidays.week.indexOf($(this).attr("name")), 1);
+                }
+            }
+            if($("#legalHolidayCheck input[name='" + $(this).attr("name") + "']").is(':checked')) {
+                $("#legalHolidayCheck input[name='" + $(this).attr("name") + "']").prop('checked', false);
+            }
+
+            let updateYearCalendar = $("<div>");
+            calendarDate.setFullYear(currentYear);
+            updateYearCalendar.attr("id", "bodyCalendar");
+            updateYearCalendar.addClass("yearCalendar");
+            for (let month = 0; month < 10; month++) {
+                updateYearCalendar.append(months2018[month].calendar());
+            }
+    
+            calendarDate.setFullYear(parseInt(currentYear) + 1);
+            for (let month = 0; month < 2; month++) {
+                updateYearCalendar.append(months2019[month].calendar());
+            }
+            $("#calendar_for_holiday").html(updateYearCalendar);
+        });
+        $(document).on("change", "#legalHolidayCheck input", function () {
+            changedData = true;
+            $("#calendar_for_holiday").html("");
+            const currentYear = $("#currentYear").val();
+            if ($(this).is(':checked')) {
+                if (customHolidays["year" + currentYear]) {
+                    customHolidays["year" + currentYear].legalHolidays.week.push($(this).attr("name"));
+                    if(customHolidays["year" + currentYear].scheduledHolidays.week.indexOf($(this).attr("name")) > -1) {
+                        customHolidays["year" + currentYear].scheduledHolidays.week.splice(customHolidays["year" + currentYear].scheduledHolidays.week.indexOf($(this).attr("name")), 1);
+                    }
+                }
+            } else {
+                if(customHolidays["year" + currentYear].legalHolidays.week.indexOf($(this).attr("name")) > -1) {
+                    customHolidays["year" + currentYear].legalHolidays.week.splice(customHolidays["year" + currentYear].legalHolidays.week.indexOf($(this).attr("name")), 1);
+                }
+            }
+            if($("#scheduledHolidayCheck input[name='" + $(this).attr("name") + "']").is(':checked')) {
+                $("#scheduledHolidayCheck input[name='" + $(this).attr("name") + "']").prop('checked', false);
+            }
+
+            let updateYearCalendar = $("<div>");
+            calendarDate.setFullYear(currentYear);
+            updateYearCalendar.attr("id", "bodyCalendar");
+            updateYearCalendar.addClass("yearCalendar");
+            for (let month = 0; month < 10; month++) {
+                updateYearCalendar.append(months2018[month].calendar());
+            }
+    
+            calendarDate.setFullYear(parseInt(currentYear) + 1);
+            for (let month = 0; month < 2; month++) {
+                updateYearCalendar.append(months2019[month].calendar());
+            }
+            $("#calendar_for_holiday").html(updateYearCalendar);
+        });
+        $(document).on("change", "#yearEndAndNewYear", function () {
+            changedData = true;
+            const currentYear = $("#currentYear").val();
+            if (customHolidays["year" + currentYear]) {
+                if ($(this).is(':checked')) {
+                    customHolidays["year" + currentYear].yearEndAndNewYear = "1";
+                } else {
+                    customHolidays["year" + currentYear].yearEndAndNewYear = "0";
+                }
+                let updateYearCalendar = $("<div>");
+                calendarDate.setFullYear(currentYear);
+                updateYearCalendar.attr("id", "bodyCalendar");
+                updateYearCalendar.addClass("yearCalendar");
+                for (let month = 0; month < 10; month++) {
+                    updateYearCalendar.append(months2018[month].calendar());
+                }
+                calendarDate.setFullYear(parseInt(currentYear) + 1);
+                for (let month = 0; month < 2; month++) {
+                    updateYearCalendar.append(months2019[month].calendar());
+                }
+                $("#calendar_for_holiday").html(updateYearCalendar);
+            }
+        });
+        $(document).on("change", "#currentYear", function () {
+            const currentYear = $(this).val();
+            let updateYearCalendar = $("<div>");
+            calendarDate.setFullYear(currentYear);
+            updateYearCalendar.attr("id", "bodyCalendar");
+            updateYearCalendar.addClass("yearCalendar");
+            for (let month = 0; month < 10; month++) {
+                updateYearCalendar.append(months2018[month].calendar());
+            }
+            calendarDate.setFullYear(parseInt(currentYear) + 1);
+            for (let month = 0; month < 2; month++) {
+                updateYearCalendar.append(months2019[month].calendar());
+            }
+            if (customHolidays["year" + currentYear]) {
+                if (customHolidays["year" + currentYear].legalHolidays && customHolidays["year" + currentYear].legalHolidays.week) {
+                    $("#legalHolidayCheck input").each(function () {
+                        if (customHolidays["year" + currentYear].legalHolidays.week.indexOf($(this).attr("name")) > -1) {
+                            $(this).prop('checked', true);
+                        } else {
+                            $(this).prop('checked', false);
+                        }
+                    });
+                } else {
+                    $("#legalHolidayCheck input").each(function () {
+                        $(this).prop('checked', false);
+                    });
+                }
+                if (customHolidays["year" + currentYear].scheduledHolidays && customHolidays["year" + currentYear].scheduledHolidays.week) {
+                    $("#scheduledHolidayCheck input").each(function () {
+                        if (customHolidays["year" + currentYear].scheduledHolidays.week.indexOf($(this).attr("name")) > -1) {
+                            $(this).prop('checked', true);
+                        } else {
+                            $(this).prop('checked', false);
+                        }
+                    });
+                } else {
+                    $("#scheduledHolidayCheck input").each(function () {
+                        $(this).prop('checked', false);
+                    });
+                }
+                if (customHolidays["year" + currentYear].yearEndAndNewYear === "1") {
+                    $("#yearEndAndNewYear").prop('checked', true);
+                } else {
+                    $("#yearEndAndNewYear").prop('checked', false);
+                }
+            } else {
+                $("#yearEndAndNewYear").prop('checked', false);
+                $("#scheduledHolidayCheck input").each(function () {
+                    $(this).prop('checked', false);
+                });
+                $("#legalHolidayCheck input").each(function () {
+                    $(this).prop('checked', false);
+                });
+            }
+
+            $("#calendar_for_holiday").html(updateYearCalendar);
+        });
+        window.addEventListener('beforeunload', function (event) {
+            if (changedData) {
+                event.preventDefault();
+                event.returnValue = 'Are you sure you want to leave this page?';                
+            }
+        });
+    }
     //LOGIN PAGE
     if (!!document.querySelector('#loginForm')) {
         loginInit()
@@ -493,7 +914,6 @@ $(document).ready(async function () {
         (!!document.querySelector('#listUsers'))
         || (!!document.querySelector('#SettingsGlobal'))
         || (!!document.querySelector('#SettingsUpdate'))
-        || (!!document.querySelector('#new_dashoboard_setting_holidays'))
     ) {
         afterAllisDone()
     }
@@ -3803,6 +4223,61 @@ function newDashboardCalendarInit(userID, today, start, end) {
             ) {
                 dayContent = month + 1 + "/" + d;
             }
+            if (customHolidays["year" + year.toString()]) {
+                let currentYear = year;
+                const thisDate = currentDay;
+                if (nationalHolidays[thisDate.getMonth() + 1] && nationalHolidays[thisDate.getMonth() + 1].length) {
+                    if (nationalHolidays[thisDate.getMonth() + 1].indexOf(thisDate.getDate()) > -1) {
+                        if (customHolidays["year" + currentYear].legalHolidays.week.length ) {
+                            if (customHolidays["year" + currentYear].legalHolidays.week.indexOf("7") > -1) {
+                                if (classes.indexOf("legalHoliday")  < 0 ) classes.push("legalHoliday");
+                                if (classes.indexOf("scheduledHoliday") > -1) classes.splice(classes.indexOf("scheduledHoliday"), 1);
+                            }
+                        }
+                        if ( customHolidays["year" + currentYear].scheduledHolidays.week.length ) {
+                            if (customHolidays["year" + currentYear].scheduledHolidays.week.indexOf("7") > -1) {
+                                if (classes.indexOf("scheduledHoliday") ) classes.push("scheduledHoliday");
+                                if (classes.indexOf("legalHoliday") > -1) classes.splice(classes.indexOf("legalHoliday"), 1);
+                            }
+                        }
+                    }
+                }
+                if (customHolidays["year" + currentYear].legalHolidays.week && customHolidays["year" + currentYear].legalHolidays.week.indexOf(thisDate.getDay().toString()) > -1 ) {
+                    if (classes.indexOf("legalHoliday") < 0 ) classes.push("legalHoliday");
+                    if (classes.indexOf("scheduledHoliday") > -1) classes.splice(classes.indexOf("scheduledHoliday"), 1);
+                }
+                if (customHolidays["year" + currentYear].legalHolidays.days && customHolidays["year" + currentYear].legalHolidays.days["month" + (thisDate.getMonth() + 1)] && customHolidays["year" + currentYear].legalHolidays.days["month" + (thisDate.getMonth() + 1)].length) {
+                    if (customHolidays["year" + currentYear].legalHolidays.days["month" + (thisDate.getMonth() + 1)].indexOf(thisDate.getDate().toString()) > -1) {
+                        if (classes.indexOf("legalHoliday")  < 0 ) classes.push("legalHoliday");
+                        if (classes.indexOf("scheduledHoliday") > -1) classes.splice(classes.indexOf("scheduledHoliday"), 1);
+                    }
+                }
+                if (customHolidays["year" + currentYear].scheduledHolidays.week && customHolidays["year" + currentYear].scheduledHolidays.week.indexOf(thisDate.getDay().toString()) > -1 ) {
+                    if (classes.indexOf("scheduledHoliday") < 0 ) classes.push("scheduledHoliday");
+                    if (classes.indexOf("legalHoliday") > -1) classes.splice(classes.indexOf("legalHoliday"), 1);
+                }
+                if (customHolidays["year" + currentYear].scheduledHolidays.days && customHolidays["year" + currentYear].scheduledHolidays.days["month" + (thisDate.getMonth() + 1)] && customHolidays["year" + currentYear].scheduledHolidays.days["month" + (thisDate.getMonth() + 1)].length) {
+                    if (customHolidays["year" + currentYear].scheduledHolidays.days["month" + (thisDate.getMonth() + 1)].indexOf(thisDate.getDate().toString()) > -1) {
+                        if (classes.indexOf("scheduledHoliday") < 0 ) classes.push("scheduledHoliday");
+                        if (classes.indexOf("legalHoliday") > -1) classes.splice(classes.indexOf("legalHoliday"), 1);
+                    }
+                }
+                if (customHolidays["year" + currentYear].yearEndAndNewYear == "1") {
+                    if (
+                        (thisDate.getMonth() + 1) == 1 &&
+                        (thisDate.getDate() >= 1 && thisDate.getDate() < 4) ||
+                        (thisDate.getMonth() + 1) == 12 &&
+                        (thisDate.getDate() > 28 && thisDate.getDate() <= 31)
+                    ) {
+                        if (classes.indexOf("scheduledHoliday") < 0 ) classes.push("scheduledHoliday");
+                        if (classes.indexOf("legalHoliday") > -1) classes.splice(classes.indexOf("legalHoliday"), 1);
+                    }
+                }
+                if(customHolidays["year" + currentYear].workDays && customHolidays["year" + currentYear].workDays["month" + (thisDate.getMonth() + 1)] && customHolidays["year" + currentYear].workDays["month" + (thisDate.getMonth() + 1)].indexOf(thisDate.getDate().toString()) > -1) {
+                    if (classes.indexOf("scheduledHoliday") > -1) classes.splice(classes.indexOf("scheduledHoliday"), 1);
+                    if (classes.indexOf("legalHoliday") > -1) classes.splice(classes.indexOf("legalHoliday"), 1);
+                }
+            }
             const currentWorkData = data.filter(item =>
                 new Date(item.today).getFullYear() === year &&
                 new Date(item.today).getMonth() === month &&
@@ -3885,335 +4360,156 @@ function newDashboardCalendarInit(userID, today, start, end) {
     }
 }
 
-function newDashboardChartInit(chartNo, genba, start, end) {
-    $("#genbaichart" + chartNo).text(genba.工事名);
+function newDashboardChartInit(genbaIDs, chartNo, genba, start, end) {
     const genbaID = genba._id
     const stateDate = new Date(start);
     const endDate = new Date(end);
+    if (document.getElementById('chart_group_item_' + chartNo)) {
+        const startVal = stateDate.getFullYear() + '/' + (stateDate.getMonth() + 1) + '/' + stateDate.getDate();
+        const endVal = endDate.getFullYear() + '/' + (endDate.getMonth() + 1) + '/' + endDate.getDate();
+        $('.chart-date.start[chart-no="'+chartNo+'"]').val(startVal).change();
+        $('.chart-date.end[chart-no="'+chartNo+'"]').val(endVal).change();
+        $('.chart-date.start[chart-no="'+chartNo+'"]').attr('data-date', start);
+        $('.chart-date.end[chart-no="'+chartNo+'"]').attr('data-date', end);
+        $('.chart-date.start[chart-no="'+chartNo+'"]').datepicker('update');
+        $('.chart-date.end[chart-no="'+chartNo+'"]').datepicker('update');
+        $("#genbaichart" + chartNo).text(genba.工事名);
+    }
     let preData = {};
     let labels = [];
     let preDataSets = {};
     $.get('/api/genbaichiranDateRange?genbaID=' + genbaID + '&today=' + today + '&start=' + start + '&end=' + end, function (result) {
-        if (result) {
-            result.forEach(data => {
-                for (let n = 1; n <= data.totalLine; n++) {
-                    if (data) {
-                        let col2 = data['業社名-' + n] || '-'
-                        let col3 = data['人員-' + n] || '-'
-                        if (!$.isNumeric(col3)) {
-                            col3 = 0
-                        }
-                        let people = parseFloat(col3);
-                        if (col2 !== '-') {
-                            if (preData[col2]) {
-                                preData[col2].push({ people, date: data.today })
-                            } else {
-                                preData[col2] = [{ people, date: data.today }];
+        if(localStorage.getItem("genba" + chartNo)) {
+            if (result) {
+                result.forEach(data => {
+                    for (let n = 1; n <= data.totalLine; n++) {
+                        if (data) {
+                            let col2 = data['業社名-' + n] || '-'
+                            let col3 = data['人員-' + n] || '-'
+                            if (!$.isNumeric(col3)) {
+                                col3 = 0
+                            }
+                            let people = parseFloat(col3);
+                            if (col2 !== '-') {
+                                if (preData[col2]) {
+                                    preData[col2].push({ people, date: data.today })
+                                } else {
+                                    preData[col2] = [{ people, date: data.today }];
+                                }
                             }
                         }
                     }
-                }
-            });
-            if (stateDate.getFullYear() === endDate.getFullYear()) {
-                if (stateDate.getMonth() === endDate.getMonth()) {
-                    labels = [...labels, ...getMonthArray(stateDate.getFullYear(), stateDate.getMonth(), stateDate.getDate(), endDate.getDate(), false)];
-                } else {
-                    for (let i = stateDate.getMonth(); i <= endDate.getMonth(); i++) {
-                        if (i === stateDate.getMonth()) {
-                            labels = [...labels, ...getMonthArray(stateDate.getFullYear(), i, stateDate.getDate(), new Date(stateDate.getFullYear(), i + 1, 0).getDate(), false)];
-                        } else if (i === endDate.getMonth()) {
-                            labels = [...labels, ...getMonthArray(stateDate.getFullYear(), i, 1, endDate.getDate(), false)];
-                        } else {
-                            labels = [...labels, ...getMonthArray(stateDate.getFullYear(), i, 1, new Date(stateDate.getFullYear(), i + 1, 0).getDate(), false)];
-                        }
-                    }
-                }
-            } else {
-                for (let j = stateDate.getFullYear(); j <= endDate.getFullYear(); j++) {
-                    if (j === stateDate.getFullYear()) {
-                        for (let i = stateDate.getMonth(); i <= 11; i++) {
-                            if (i === stateDate.getMonth()) {
-                                labels = [...labels, ...getMonthArray(j, i, stateDate.getDate(), new Date(j, i + 1, 0).getDate(), true)];
-                            } else {
-                                labels = [...labels, ...getMonthArray(j, i, 1, new Date(j, i + 1, 0).getDate(), true)];
-                            }
-                        }
-                    } else if (j === endDate.getFullYear()) {
-                        for (let i = 1; i <= endDate.getMonth(); i++) {
-                            if (i === endDate.getMonth()) {
-                                labels = [...labels, ...getMonthArray(j, i, 1, endDate.getDate(), true)];
-                            } else {
-                                labels = [...labels, ...getMonthArray(j, i, 1, new Date(j, i + 1, 0).getDate(), true)];
-                            }
-                        }
-                    } else {
-                        for (let i = 1; i <= endDate.getMonth(); i++) {
-                            labels = [...labels, ...getMonthArray(j, i, 1, new Date(j, i + 1, 0).getDate(), true)];
-                        }
-                    }
-                }
-            }
-            function getMonthArray(year, month, start, end, full) {
-                let array = [];
-                for (let i = start; i <= end; i++) {
-                    let dateItem = full ? year + "/" : "";
-                    dateItem += (month + 1) + "/" + i;
-                    array.push(dateItem);
-                    let yData = Object.keys(preData)
-                    yData.forEach(element => {
-                        const dateString = (month + 1) + "/" + i + "/" + year;
-                        if (preData[element].filter(item => item.date === dateString).length) {
-                            const pp = preData[element].filter(item => item.date === dateString)[0].people;
-                            if (!preDataSets[element]) preDataSets[element] = [pp]; else preDataSets[element].push(pp);
-                        } else {
-                            if (!preDataSets[element]) preDataSets[element] = [0]; else preDataSets[element].push(0);
-                        }
-                    });
-                }
-                return array;
-            }
-
-            let datasets = [];
-            Object.keys(preData).forEach(element => {
-                datasets.push({
-                    label: element,
-                    data: preDataSets[element],
-                    stack: 'Stack 0',
                 });
-            });
-            const data = {
-                labels,
-                datasets,
-            };
-            const chartBarConfig = {
-                type: 'bar',
-                data: data,
-                options: {
-                    plugins: {
-                        title: {
-                            display: false,
-                            text: ''
-                        },
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                boxWidth: 10
+                if (stateDate.getFullYear() === endDate.getFullYear()) {
+                    if (stateDate.getMonth() === endDate.getMonth()) {
+                        labels = [...labels, ...getMonthArray(stateDate.getFullYear(), stateDate.getMonth(), stateDate.getDate(), endDate.getDate(), false)];
+                    } else {
+                        for (let i = stateDate.getMonth(); i <= endDate.getMonth(); i++) {
+                            if (i === stateDate.getMonth()) {
+                                labels = [...labels, ...getMonthArray(stateDate.getFullYear(), i, stateDate.getDate(), new Date(stateDate.getFullYear(), i + 1, 0).getDate(), false)];
+                            } else if (i === endDate.getMonth()) {
+                                labels = [...labels, ...getMonthArray(stateDate.getFullYear(), i, 1, endDate.getDate(), false)];
+                            } else {
+                                labels = [...labels, ...getMonthArray(stateDate.getFullYear(), i, 1, new Date(stateDate.getFullYear(), i + 1, 0).getDate(), false)];
                             }
-                        },
-                    },
-                    responsive: true,
-                    interaction: {
-                        intersect: false,
-                    },
-                    scales: {
-                        x: {
-                            stacked: true,
-                        },
-                        y: {
-                            stacked: true
+                        }
+                    }
+                } else {
+                    for (let j = stateDate.getFullYear(); j <= endDate.getFullYear(); j++) {
+                        if (j === stateDate.getFullYear()) {
+                            for (let i = stateDate.getMonth(); i <= 11; i++) {
+                                if (i === stateDate.getMonth()) {
+                                    labels = [...labels, ...getMonthArray(j, i, stateDate.getDate(), new Date(j, i + 1, 0).getDate(), true)];
+                                } else {
+                                    labels = [...labels, ...getMonthArray(j, i, 1, new Date(j, i + 1, 0).getDate(), true)];
+                                }
+                            }
+                        } else if (j === endDate.getFullYear()) {
+                            for (let i = 1; i <= endDate.getMonth(); i++) {
+                                if (i === endDate.getMonth()) {
+                                    labels = [...labels, ...getMonthArray(j, i, 1, endDate.getDate(), true)];
+                                } else {
+                                    labels = [...labels, ...getMonthArray(j, i, 1, new Date(j, i + 1, 0).getDate(), true)];
+                                }
+                            }
+                        } else {
+                            for (let i = 1; i <= endDate.getMonth(); i++) {
+                                labels = [...labels, ...getMonthArray(j, i, 1, new Date(j, i + 1, 0).getDate(), true)];
+                            }
                         }
                     }
                 }
-            };
-            if (document.getElementById('chart_group_item_' + chartNo)) {
-                const startVal = prevDate.getFullYear() + '/' + (prevDate.getMonth() + 1) + '/' + prevDate.getDate();
-                const endVal = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
-                $('.chart-date.start[chart-no="'+chartNo+'"]').val(startVal).change();
-                $('.chart-date.end[chart-no="'+chartNo+'"]').val(endVal).change();
-                $('.chart-date.start[chart-no="'+chartNo+'"]').attr('data-date', start);
-                $('.chart-date.end[chart-no="'+chartNo+'"]').attr('data-date', end);
-                $('.chart-date.start[chart-no="'+chartNo+'"]').datepicker('update');
-                $('.chart-date.end[chart-no="'+chartNo+'"]').datepicker('update');
-                $("#genbaichart" + chartNo).text(genba.工事名);
-                const ctx = document.getElementById('chart_group_item_' + chartNo);
-                if (Chart.getChart('chart_group_item_' + chartNo)) {
-                    const existingChart = Chart.getChart('chart_group_item_' + chartNo);
-                    existingChart.destroy();
+                function getMonthArray(year, month, start, end, full) {
+                    let array = [];
+                    for (let i = start; i <= end; i++) {
+                        let dateItem = full ? year + "/" : "";
+                        dateItem += (month + 1) + "/" + i;
+                        array.push(dateItem);
+                        let yData = Object.keys(preData)
+                        yData.forEach(element => {
+                            const dateString = (month + 1) + "/" + i + "/" + year;
+                            if (preData[element].filter(item => item.date === dateString).length) {
+                                const pp = preData[element].filter(item => item.date === dateString)[0].people;
+                                if (!preDataSets[element]) preDataSets[element] = [pp]; else preDataSets[element].push(pp);
+                            } else {
+                                if (!preDataSets[element]) preDataSets[element] = [0]; else preDataSets[element].push(0);
+                            }
+                        });
+                    }
+                    return array;
                 }
-                new Chart(ctx, chartBarConfig);
-            } else {
-                $("#chart-card-group").append(`<div class="card border-secondary mb-3" id="new_dashboard_charts_group${chartNo}" style="width: 100%;">
-                    <div class="card-body px-0 py-0">
-                        <span class="d-flex">
-                            <h5 class="px-2 py-1" id="genbaichart${chartNo}" style="width: -webkit-fill-available;">青谷工業</h5>
-                            <span class="d-flex py-2 justify-content-end mr-1" style="width: -webkit-fill-available;">
-                                <input
-                                    class="chart-date start text-center"
-                                    type="text"
-                                    chart-no="${chartNo}"
-                                    name="startDate"
-                                    data-name="nippo"
-                                    style="height: fit-content; width: 82px; padding-top: 2px; padding-bottom: 2px; border: gray solid 1px; border-radius: 2px; background-color: #00bbff5e;"
-                                />
-                                <span class="px-2" style="padding-top: 2px; padding-bottom: 2px;">~</span>
-                                <input
-                                    class="chart-date end text-center"
-                                    type="text"
-                                    name="endDate"
-                                    chart-no="${chartNo}"
-                                    data-name="nippo"
-                                    style="height: fit-content; width: 82px; padding-top: 2px; padding-bottom: 2px; border: gray solid 1px; border-radius: 2px; background-color: #00bbff5e;"
-                                />
-                                <button class="close chart-close-btn" chart-no="${chartNo}"><span aria-hidden="true">×</span></button>
-                            </span>
-                        </span>
-                        <canvas id="chart_group_item_${chartNo}"></canvas>
-                    </div>
-                </div>
-                `);
 
-                setTimeout(() => {
-                    $('.chart-date.start').datepicker({
-                        language: "ja",
-                        format: 'yyyy/m/d',
-                        autoclose: true,
-                        endDate: new Date(),
-                        todayHighlight: true,
-                    }).on('changeDate', function (e) {
-                        const chartNo = Number($(this).attr("chart-no"));
-                        let dd = new Date(e.date)
-                        $('.chart-date.end[chart-no="' + chartNo + '"').datepicker('setStartDate', dd);
-                        let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
-                        $('.chart-date.start[chart-no="' + chartNo + '"').attr('data-date', ct)
-                        newDashboardChartInit(chartNo, genbaIDs[chartNo], ct, $('.chart-date.end').attr('data-date'));
-            
-                    })
-                    $('.chart-date.end').datepicker({
-                        language: "ja",
-                        format: 'yyyy/m/d',
-                        autoclose: true,
-                        todayHighlight: true,
-                        endDate: new Date(),
-                    }).on('changeDate', function (e) {
-                        let dd = new Date(e.date)
-                        const chartNo = Number($(this).attr("chart-no"));
-                        $('.chart-date.start[chart-no="' + chartNo + '"').datepicker('setEndDate', dd);
-                        let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
-                        $('.chart-date.end[chart-no="' + chartNo + '"').attr('data-date', ct);
-                        newDashboardChartInit(chartNo, genbaIDs[chartNo], $('.chart-date.start').attr('data-date'), ct);
-                    })
-                    const startVal = prevDate.getFullYear() + '/' + (prevDate.getMonth() + 1) + '/' + prevDate.getDate();
-                    const endVal = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
-                    $('.chart-date.start[chart-no="'+chartNo+'"]').val(startVal).change();
-                    $('.chart-date.end[chart-no="'+chartNo+'"]').val(endVal).change();
-                    $('.chart-date.start[chart-no="'+chartNo+'"]').attr('data-date', start);
-                    $('.chart-date.end[chart-no="'+chartNo+'"]').attr('data-date', end);
-                    $('.chart-date.start[chart-no="'+chartNo+'"]').datepicker('update');
-                    $('.chart-date.end[chart-no="'+chartNo+'"]').datepicker('update');
-                    $("#genbaichart" + chartNo).text(genba.工事名);
-
+                let datasets = [];
+                Object.keys(preData).forEach(element => {
+                    datasets.push({
+                        label: element,
+                        data: preDataSets[element],
+                        stack: 'Stack 0',
+                    });
+                });
+                const data = {
+                    labels,
+                    datasets,
+                };
+                const chartBarConfig = {
+                    type: 'bar',
+                    data: data,
+                    options: {
+                        plugins: {
+                            title: {
+                                display: false,
+                                text: ''
+                            },
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    boxWidth: 10
+                                }
+                            },
+                        },
+                        responsive: true,
+                        interaction: {
+                            intersect: false,
+                        },
+                        scales: {
+                            x: {
+                                stacked: true,
+                            },
+                            y: {
+                                stacked: true
+                            }
+                        }
+                    }
+                };
+                if (document.getElementById('chart_group_item_' + chartNo)) {
                     const ctx = document.getElementById('chart_group_item_' + chartNo);
                     if (Chart.getChart('chart_group_item_' + chartNo)) {
                         const existingChart = Chart.getChart('chart_group_item_' + chartNo);
                         existingChart.destroy();
                     }
                     new Chart(ctx, chartBarConfig);
-                }, 100);
-            }
-
-        } else {
-
-            if (stateDate.getFullYear() === endDate.getFullYear()) {
-                if (stateDate.getMonth() === endDate.getMonth()) {
-                    labels = [...labels, ...getMonthArray(stateDate.getFullYear(), stateDate.getMonth(), stateDate.getDate(), endDate.getDate(), false)];
                 } else {
-                    for (let i = stateDate.getMonth(); i <= endDate.getMonth(); i++) {
-                        if (i === stateDate.getMonth()) {
-                            labels = [...labels, ...getMonthArray(stateDate.getFullYear(), i, stateDate.getDate(), new Date(stateDate.getFullYear(), i + 1, 0).getDate(), false)];
-                        } else if (i === endDate.getMonth()) {
-                            labels = [...labels, ...getMonthArray(stateDate.getFullYear(), i, 1, endDate.getDate(), false)];
-                        } else {
-                            labels = [...labels, ...getMonthArray(stateDate.getFullYear(), i, 1, new Date(stateDate.getFullYear(), i + 1, 0).getDate(), false)];
-                        }
-                    }
-                }
-            } else {
-                for (let j = stateDate.getFullYear(); j <= endDate.getFullYear(); j++) {
-                    if (j === stateDate.getFullYear()) {
-                        for (let i = stateDate.getMonth(); i <= 11; i++) {
-                            if (i === stateDate.getMonth()) {
-                                labels = [...labels, ...getMonthArray(j, i, stateDate.getDate(), new Date(j, i + 1, 0).getDate(), true)];
-                            } else {
-                                labels = [...labels, ...getMonthArray(j, i, 1, new Date(j, i + 1, 0).getDate(), true)];
-                            }
-                        }
-                    } else if (j === endDate.getFullYear()) {
-                        for (let i = 1; i <= endDate.getMonth(); i++) {
-                            if (i === endDate.getMonth()) {
-                                labels = [...labels, ...getMonthArray(j, i, 1, endDate.getDate(), true)];
-                            } else {
-                                labels = [...labels, ...getMonthArray(j, i, 1, new Date(j, i + 1, 0).getDate(), true)];
-                            }
-                        }
-                    } else {
-                        for (let i = 1; i <= endDate.getMonth(); i++) {
-                            labels = [...labels, ...getMonthArray(j, i, 1, new Date(j, i + 1, 0).getDate(), true)];
-                        }
-                    }
-                }
-            }
-            function getMonthArray(year, month, start, end, full) {
-                let array = [];
-                for (let i = start; i <= end; i++) {
-                    let dateItem = full ? year + "/" : "";
-                    dateItem += (month + 1) + "/" + i;
-                    array.push(dateItem);
-                }
-                return array;
-            }
-            const data = {
-                labels,
-                datasets: [],
-            };
-            const chartBarConfig = {
-                type: 'bar',
-                data: data,
-                options: {
-                    plugins: {
-                        title: {
-                            display: false,
-                            text: ''
-                        },
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                boxWidth: 10
-                            }
-                        },
-                    },
-                    responsive: true,
-                    interaction: {
-                        intersect: false,
-                    },
-                    scales: {
-                        x: {
-                            stacked: true,
-                        },
-                        y: {
-                            stacked: true
-                        }
-                    }
-                }
-            };
-            if (document.getElementById('chart_group_item_' + chartNo)) {
-                const startVal = prevDate.getFullYear() + '/' + (prevDate.getMonth() + 1) + '/' + prevDate.getDate();
-                const endVal = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
-                $('.chart-date.start[chart-no="'+chartNo+'"]').val(startVal).change();
-                $('.chart-date.end[chart-no="'+chartNo+'"]').val(endVal).change();
-                $('.chart-date.start[chart-no="'+chartNo+'"]').attr('data-date', start);
-                $('.chart-date.end[chart-no="'+chartNo+'"]').attr('data-date', end);
-                $('.chart-date.start[chart-no="'+chartNo+'"]').datepicker('update');
-                $('.chart-date.end[chart-no="'+chartNo+'"]').datepicker('update');
-                $("#genbaichart" + chartNo).text(genba.工事名);
-                const ctx = document.getElementById('chart_group_item_' + chartNo);
-                if (Chart.getChart('chart_group_item_' + chartNo)) {
-                    const existingChart = Chart.getChart('chart_group_item_' + chartNo);
-                    existingChart.destroy();
-                }
-                new Chart(ctx, chartBarConfig);
-            } else {
-                $("#chart-card-group").append(`
-                    <div class="card border-secondary mb-3" id="new_dashboard_charts_group${chartNo}" style="width: 100%;">
+                    $("#chart-card-group").append(`<div class="card border-secondary mb-3" id="new_dashboard_charts_group${chartNo}" style="width: 100%;">
                         <div class="card-body px-0 py-0">
                             <span class="d-flex">
                                 <h5 class="px-2 py-1" id="genbaichart${chartNo}" style="width: -webkit-fill-available;">青谷工業</h5>
@@ -4241,60 +4537,232 @@ function newDashboardChartInit(chartNo, genba, start, end) {
                             <canvas id="chart_group_item_${chartNo}"></canvas>
                         </div>
                     </div>
-                `);
-                setTimeout(() => {
-                    $('.chart-date.start').datepicker({
-                        language: "ja",
-                        format: 'yyyy/m/d',
-                        autoclose: true,
-                        endDate: new Date(),
-                        todayHighlight: true,
-                    }).on('changeDate', function (e) {
-                        const chartNo = Number($(this).attr("chart-no"));
-                        let dd = new Date(e.date)
-                        $('.chart-date.end[chart-no="' + chartNo + '"').datepicker('setStartDate', dd);
-                        let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
-                        $('.chart-date.start[chart-no="' + chartNo + '"').attr('data-date', ct)
-                        newDashboardChartInit(chartNo, genbaIDs[chartNo], ct, $('.chart-date.end').attr('data-date'));
-            
-                    })
-                    $('.chart-date.end').datepicker({
-                        language: "ja",
-                        format: 'yyyy/m/d',
-                        autoclose: true,
-                        todayHighlight: true,
-                        endDate: new Date(),
-                        // beforeShowDay: function (date) {
-                        //     return nippoCalendar(date, nippoichiran)
-                        // }
-            
-                    }).on('changeDate', function (e) {
-                        let dd = new Date(e.date)
-                        const chartNo = Number($(this).attr("chart-no"));
-                        $('.chart-date.start[chart-no="' + chartNo + '"').datepicker('setEndDate', dd);
-                        let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
-                        $('.chart-date.end[chart-no="' + chartNo + '"').attr('data-date', ct);
-                        newDashboardChartInit(chartNo, genbaIDs[chartNo], $('.chart-date.start').attr('data-date'), ct);
-                    })
-                    const startVal = prevDate.getFullYear() + '/' + (prevDate.getMonth() + 1) + '/' + prevDate.getDate();
-                    const endVal = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
-                    $('.chart-date.start[chart-no="'+chartNo+'"]').val(startVal).change();
-                    $('.chart-date.end[chart-no="'+chartNo+'"]').val(endVal).change();
-                    $('.chart-date.start[chart-no="'+chartNo+'"]').attr('data-date', start);
-                    $('.chart-date.end[chart-no="'+chartNo+'"]').attr('data-date', end);
-                    $('.chart-date.start[chart-no="'+chartNo+'"]').datepicker('update');
-                    $('.chart-date.end[chart-no="'+chartNo+'"]').datepicker('update');
-                    $("#genbaichart" + chartNo).text(genba.工事名);
+                    `);
+
+                    setTimeout(() => {
+                        $('.chart-date.start[chart-no="' + chartNo + '"').datepicker({
+                            language: "ja",
+                            format: 'yyyy/m/d',
+                            autoclose: true,
+                            endDate: new Date(),
+                            todayHighlight: true,
+                        }).on('changeDate', function (e) {
+                            const chartNo = Number($(this).attr("chart-no"));
+                            let dd = new Date(e.date)
+                            $('.chart-date.end[chart-no="' + chartNo + '"').datepicker('setStartDate', dd);
+                            let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
+                            $('.chart-date.start[chart-no="' + chartNo + '"').attr('data-date', ct)
+                            newDashboardChartInit(genbaIDs, chartNo, genbaIDs[chartNo], ct, $('.chart-date.end').attr('data-date'));
+                
+                        })
+                        $('.chart-date.end[chart-no="' + chartNo + '"').datepicker({
+                            language: "ja",
+                            format: 'yyyy/m/d',
+                            autoclose: true,
+                            todayHighlight: true,
+                            endDate: new Date(),
+                        }).on('changeDate', function (e) {
+                            let dd = new Date(e.date)
+                            const chartNo = Number($(this).attr("chart-no"));
+                            $('.chart-date.start[chart-no="' + chartNo + '"').datepicker('setEndDate', dd);
+                            let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
+                            $('.chart-date.end[chart-no="' + chartNo + '"').attr('data-date', ct);
+                            newDashboardChartInit(genbaIDs, chartNo, genbaIDs[chartNo], $('.chart-date.start[chart-no="' + chartNo + '"').attr('data-date'), ct);
+                        })
+                        const startVal = stateDate.getFullYear() + '/' + (stateDate.getMonth() + 1) + '/' + stateDate.getDate();
+                        const endVal = endDate.getFullYear() + '/' + (endDate.getMonth() + 1) + '/' + endDate.getDate();
+                        $('.chart-date.start[chart-no="'+chartNo+'"]').val(startVal).change();
+                        $('.chart-date.end[chart-no="'+chartNo+'"]').val(endVal).change();
+                        $('.chart-date.start[chart-no="'+chartNo+'"]').attr('data-date', start);
+                        $('.chart-date.end[chart-no="'+chartNo+'"]').attr('data-date', end);
+                        $('.chart-date.start[chart-no="'+chartNo+'"]').datepicker('update');
+                        $('.chart-date.end[chart-no="'+chartNo+'"]').datepicker('update');
+                        $("#genbaichart" + chartNo).text(genba.工事名);
+
+                        const ctx = document.getElementById('chart_group_item_' + chartNo);
+                        if (Chart.getChart('chart_group_item_' + chartNo)) {
+                            const existingChart = Chart.getChart('chart_group_item_' + chartNo);
+                            existingChart.destroy();
+                        }
+                        new Chart(ctx, chartBarConfig);
+                    }, 100);
+                }
+
+            } else {
+
+                if (stateDate.getFullYear() === endDate.getFullYear()) {
+                    if (stateDate.getMonth() === endDate.getMonth()) {
+                        labels = [...labels, ...getMonthArray(stateDate.getFullYear(), stateDate.getMonth(), stateDate.getDate(), endDate.getDate(), false)];
+                    } else {
+                        for (let i = stateDate.getMonth(); i <= endDate.getMonth(); i++) {
+                            if (i === stateDate.getMonth()) {
+                                labels = [...labels, ...getMonthArray(stateDate.getFullYear(), i, stateDate.getDate(), new Date(stateDate.getFullYear(), i + 1, 0).getDate(), false)];
+                            } else if (i === endDate.getMonth()) {
+                                labels = [...labels, ...getMonthArray(stateDate.getFullYear(), i, 1, endDate.getDate(), false)];
+                            } else {
+                                labels = [...labels, ...getMonthArray(stateDate.getFullYear(), i, 1, new Date(stateDate.getFullYear(), i + 1, 0).getDate(), false)];
+                            }
+                        }
+                    }
+                } else {
+                    for (let j = stateDate.getFullYear(); j <= endDate.getFullYear(); j++) {
+                        if (j === stateDate.getFullYear()) {
+                            for (let i = stateDate.getMonth(); i <= 11; i++) {
+                                if (i === stateDate.getMonth()) {
+                                    labels = [...labels, ...getMonthArray(j, i, stateDate.getDate(), new Date(j, i + 1, 0).getDate(), true)];
+                                } else {
+                                    labels = [...labels, ...getMonthArray(j, i, 1, new Date(j, i + 1, 0).getDate(), true)];
+                                }
+                            }
+                        } else if (j === endDate.getFullYear()) {
+                            for (let i = 1; i <= endDate.getMonth(); i++) {
+                                if (i === endDate.getMonth()) {
+                                    labels = [...labels, ...getMonthArray(j, i, 1, endDate.getDate(), true)];
+                                } else {
+                                    labels = [...labels, ...getMonthArray(j, i, 1, new Date(j, i + 1, 0).getDate(), true)];
+                                }
+                            }
+                        } else {
+                            for (let i = 1; i <= endDate.getMonth(); i++) {
+                                labels = [...labels, ...getMonthArray(j, i, 1, new Date(j, i + 1, 0).getDate(), true)];
+                            }
+                        }
+                    }
+                }
+                function getMonthArray(year, month, start, end, full) {
+                    let array = [];
+                    for (let i = start; i <= end; i++) {
+                        let dateItem = full ? year + "/" : "";
+                        dateItem += (month + 1) + "/" + i;
+                        array.push(dateItem);
+                    }
+                    return array;
+                }
+                const data = {
+                    labels,
+                    datasets: [],
+                };
+                const chartBarConfig = {
+                    type: 'bar',
+                    data: data,
+                    options: {
+                        plugins: {
+                            title: {
+                                display: false,
+                                text: ''
+                            },
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    boxWidth: 10
+                                }
+                            },
+                        },
+                        responsive: true,
+                        interaction: {
+                            intersect: false,
+                        },
+                        scales: {
+                            x: {
+                                stacked: true,
+                            },
+                            y: {
+                                stacked: true
+                            }
+                        }
+                    }
+                };
+                if (document.getElementById('chart_group_item_' + chartNo)) {
                     const ctx = document.getElementById('chart_group_item_' + chartNo);
                     if (Chart.getChart('chart_group_item_' + chartNo)) {
                         const existingChart = Chart.getChart('chart_group_item_' + chartNo);
                         existingChart.destroy();
                     }
                     new Chart(ctx, chartBarConfig);
-                }, 100);
+                } else {
+                    $("#chart-card-group").append(`
+                        <div class="card border-secondary mb-3" id="new_dashboard_charts_group${chartNo}" style="width: 100%;">
+                            <div class="card-body px-0 py-0">
+                                <span class="d-flex">
+                                    <h5 class="px-2 py-1" id="genbaichart${chartNo}" style="width: -webkit-fill-available;">青谷工業</h5>
+                                    <span class="d-flex py-2 justify-content-end mr-1" style="width: -webkit-fill-available;">
+                                        <input
+                                            class="chart-date start text-center"
+                                            type="text"
+                                            chart-no="${chartNo}"
+                                            name="startDate"
+                                            data-name="nippo"
+                                            style="height: fit-content; width: 82px; padding-top: 2px; padding-bottom: 2px; border: gray solid 1px; border-radius: 2px; background-color: #00bbff5e;"
+                                        />
+                                        <span class="px-2" style="padding-top: 2px; padding-bottom: 2px;">~</span>
+                                        <input
+                                            class="chart-date end text-center"
+                                            type="text"
+                                            name="endDate"
+                                            chart-no="${chartNo}"
+                                            data-name="nippo"
+                                            style="height: fit-content; width: 82px; padding-top: 2px; padding-bottom: 2px; border: gray solid 1px; border-radius: 2px; background-color: #00bbff5e;"
+                                        />
+                                        <button class="close chart-close-btn" chart-no="${chartNo}"><span aria-hidden="true">×</span></button>
+                                    </span>
+                                </span>
+                                <canvas id="chart_group_item_${chartNo}"></canvas>
+                            </div>
+                        </div>
+                    `);
+                    setTimeout(() => {
+                        $('.chart-date.start[chart-no="' + chartNo + '"').datepicker({
+                            language: "ja",
+                            format: 'yyyy/m/d',
+                            autoclose: true,
+                            endDate: new Date(),
+                            todayHighlight: true,
+                        }).on('changeDate', function (e) {
+                            const chartNo = Number($(this).attr("chart-no"));
+                            let dd = new Date(e.date)
+                            $('.chart-date.end[chart-no="' + chartNo + '"').datepicker('setStartDate', dd);
+                            let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
+                            $('.chart-date.start[chart-no="' + chartNo + '"').attr('data-date', ct)
+                            newDashboardChartInit(genbaIDs, chartNo, genbaIDs[chartNo], ct, $('.chart-date.end[chart-no="' + chartNo + '"').attr('data-date'));
+                
+                        })
+                        $('.chart-date.end[chart-no="' + chartNo + '"').datepicker({
+                            language: "ja",
+                            format: 'yyyy/m/d',
+                            autoclose: true,
+                            todayHighlight: true,
+                            endDate: new Date(),
+                            // beforeShowDay: function (date) {
+                            //     return nippoCalendar(date, nippoichiran)
+                            // }
+                
+                        }).on('changeDate', function (e) {
+                            let dd = new Date(e.date)
+                            const chartNo = Number($(this).attr("chart-no"));
+                            $('.chart-date.start[chart-no="' + chartNo + '"').datepicker('setEndDate', dd);
+                            let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
+                            $('.chart-date.end[chart-no="' + chartNo + '"').attr('data-date', ct);
+                            newDashboardChartInit(genbaIDs, chartNo, genbaIDs[chartNo], $('.chart-date.start[chart-no="' + chartNo + '"').attr('data-date'), ct);
+                        })
+                        const startVal = stateDate.getFullYear() + '/' + (stateDate.getMonth() + 1) + '/' + stateDate.getDate();
+                        const endVal = endDate.getFullYear() + '/' + (endDate.getMonth() + 1) + '/' + endDate.getDate();
+                        $('.chart-date.start[chart-no="'+chartNo+'"]').val(startVal).change();
+                        $('.chart-date.end[chart-no="'+chartNo+'"]').val(endVal).change();
+                        $('.chart-date.start[chart-no="'+chartNo+'"]').attr('data-date', start);
+                        $('.chart-date.end[chart-no="'+chartNo+'"]').attr('data-date', end);
+                        $('.chart-date.start[chart-no="'+chartNo+'"]').datepicker('update');
+                        $('.chart-date.end[chart-no="'+chartNo+'"]').datepicker('update');
+                        $("#genbaichart" + chartNo).text(genba.工事名);
+                        const ctx = document.getElementById('chart_group_item_' + chartNo);
+                        if (Chart.getChart('chart_group_item_' + chartNo)) {
+                            const existingChart = Chart.getChart('chart_group_item_' + chartNo);
+                            existingChart.destroy();
+                        }
+                        new Chart(ctx, chartBarConfig);
+                    }, 100);
+                }
             }
         }
-        
     });
 
 }
@@ -4480,8 +4948,56 @@ function drawCalendarTableForNewAdminDashboard(data, start, end) {
     function createMonthTableContent(data, startDate, lastDay) {
         let tableContent = "";
         for (let i = startDate.getDate(); i <= lastDay; i++) {
-            tableContent += "<tr><td>";
             const thisDate = new Date(`${startDate.getFullYear()}/${startDate.getMonth() + 1}/${i}`);
+            let firstTd = '<td>';
+            if (customHolidays["year" + startDate.getFullYear().toString()]) {
+                let currentYear = startDate.getFullYear().toString();
+                if (nationalHolidays[thisDate.getMonth() + 1] && nationalHolidays[thisDate.getMonth() + 1].length) {
+                    if (nationalHolidays[thisDate.getMonth() + 1].indexOf(thisDate.getDate()) > -1) {
+                        if (customHolidays["year" + currentYear].legalHolidays.week.length ) {
+                            if (customHolidays["year" + currentYear].legalHolidays.week.indexOf("7") > -1) {
+                                firstTd = "<td style='color:blue;' nationalHolidays>";
+                            }
+                        }
+                        if ( customHolidays["year" + currentYear].scheduledHolidays.week.length ) {
+                            if (customHolidays["year" + currentYear].scheduledHolidays.week.indexOf("7") > -1) {
+                                firstTd = "<td style='color:red;' nationalHolidays>";
+                            }
+                        }
+                    }
+                }
+                if (customHolidays["year" + currentYear].legalHolidays.week && customHolidays["year" + currentYear].legalHolidays.week.indexOf(thisDate.getDay().toString()) > -1 ) {
+                    firstTd = "<td style='color:blue;' legalHolidaysweek>";
+                }
+                if (customHolidays["year" + currentYear].legalHolidays.days && customHolidays["year" + currentYear].legalHolidays.days["month" + (thisDate.getMonth() + 1)] && customHolidays["year" + currentYear].legalHolidays.days["month" + (thisDate.getMonth() + 1)].length) {
+                    if (customHolidays["year" + currentYear].legalHolidays.days["month" + (thisDate.getMonth() + 1)].indexOf(thisDate.getDate().toString()) > -1) {
+                        firstTd = "<td style='color:blue;' legalHolidaysDays>";
+                    }
+                }
+                if (customHolidays["year" + currentYear].scheduledHolidays.week && customHolidays["year" + currentYear].scheduledHolidays.week.indexOf(thisDate.getDay().toString()) > -1 ) {
+
+                    firstTd = "<td style='color:red;' scheduledHolidaysWeek>";
+                }
+                if (customHolidays["year" + currentYear].scheduledHolidays.days && customHolidays["year" + currentYear].scheduledHolidays.days["month" + (thisDate.getMonth() + 1)] && customHolidays["year" + currentYear].scheduledHolidays.days["month" + (thisDate.getMonth() + 1)].length) {
+                    if (customHolidays["year" + currentYear].scheduledHolidays.days["month" + (thisDate.getMonth() + 1)].indexOf(thisDate.getDate().toString()) > -1) {
+                        firstTd = "<td style='color:red;' scheduledHolidaysDays>";
+                    }
+                }
+                if (customHolidays["year" + currentYear].yearEndAndNewYear == "1") {
+                    if (
+                        (thisDate.getMonth() + 1) == 1 &&
+                        (thisDate.getDate() >= 1 && thisDate.getDate() < 4) ||
+                        (thisDate.getMonth() + 1) == 12 &&
+                        (thisDate.getDate() > 28 && thisDate.getDate() <= 31)
+                    ) {
+                        firstTd = "<td style='color:red;' yearEndAndNewYear>";
+                    }
+                }
+                if(customHolidays["year" + currentYear].workDays && customHolidays["year" + currentYear].workDays["month" + (thisDate.getMonth() + 1)] && customHolidays["year" + currentYear].workDays["month" + (thisDate.getMonth() + 1)].indexOf(thisDate.getDate().toString()) > -1) {
+                    firstTd = "<td workDays>";
+                }
+            }
+            tableContent += "<tr>" + firstTd;
             tableContent += `${thisDate.getMonth() + 1}月 ${thisDate.getDate()}日 (${weekDays[thisDate.getDay()][0]})</td>`;
             for (let j = 0; j < data.length; j++) {
                 const day = document.createElement("a");
@@ -4556,5 +5072,3 @@ function drawChartForNewAdminDashboard(labels, cData) {
     new Chart(ctx, config);
 }
 //  End New Dashboard For Admin Page Init
-
-
