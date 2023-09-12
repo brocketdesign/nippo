@@ -717,7 +717,32 @@ router.post('/userinfo', urlencodedParser, async (req, res) => {
 
   res.sendStatus(200)
 })
-
+// カレンダー(所定休日、法定休日)を設定する
+router.post('/saveYearCalendar', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req);
+  if (dbData.isLogin) {
+    db.collection('calendar').findOne({ year: req.body.year }, (err, result) => {
+      if (result) {
+        const value = {
+          year : req.body.year,
+          yearEndAndNewYear : req.body.yearEndAndNewYear,
+          legalHolidays : req.body.legalHolidays,
+          scheduledHolidays : req.body.scheduledHolidays,
+          workDays : req.body.workDays
+        };
+        db.collection('calendar').deleteOne({ 'year': req.body.year }, (err, result) => { });
+        db.collection('calendar').insertOne(value, (err, result) => {
+          res.sendStatus(200);
+        });
+      } else {
+        db.collection('calendar').insertOne(req.body, (err, result) => { });
+        res.sendStatus(200);
+      }
+    });
+  } else {
+    res.sendStatus(403);
+  }
+});
 router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {

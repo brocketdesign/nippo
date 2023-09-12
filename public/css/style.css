@@ -457,7 +457,8 @@ input:disabled {
   color: #ff0000;
   margin: auto;
 }
-.calendar>.months>.month>.days>.day.weekd0 {color: red;}
+.calendar>.months>.month>.days>.day.legalHoliday {color: blue;}
+.calendar>.months>.month>.days>.day.scheduledHoliday {color: red;}
 .calendar>.months>.month>.days>.day>.work-history {
   height: 50px;
   padding: 3px 0;
@@ -646,16 +647,20 @@ input:disabled {
 	border: 2px solid red;
 }
 
-.table-calendar .holyday,.table-calendar .sunday {
+.table-calendar .scheduledWeek,.table-calendar .sunday, .table-calendar .legalWeek.sunday, .table-calendar .scheduledWeek.sunday {
   color: red;
   background: #ffcfcf;
 }
-.table-calendar .saturday {
+.table-calendar .saturday, .table-calendar .legalWeek, .table-calendar .legalWeek.saturday, .table-calendar .scheduledWeek.saturday {
   color: blue;
   background: #bdfbf3;
 }
 .yearCalendar .month {
 	margin-top: 1rem;
+}
+.table-calendar .legalWeek.workday, .table-calendar .scheduledWeek.workday {
+  color: initial;
+  background: initial;
 }
 .year-and-month {
   border: none!important;
@@ -761,9 +766,13 @@ input:disabled {
 /* Edit Holidays of Month on Modal */
 #modalMonthHolidays > div {
   justify-content: center;
-  padding: 3rem 1rem;
+  padding: 0.2rem 1rem;
 }
-#modalMonthContent {
+#modalMonthHolidays {
+  margin-top: 3rem;
+  overflow: auto;
+}
+  #modalMonthContent {
   display: flex;
   justify-content: center;
 }
@@ -775,22 +784,33 @@ input:disabled {
 }
 @media (min-width: 576px) {
   #editMonth .modal-dialog {
-    max-width: 85%;
+    max-width: 90%;
   }
 }
 @media (min-width: 768px) {
   #editMonth .modal-dialog {
-    max-width: 70%;
+    max-width: 75%;
   }
 }
 @media (min-width: 992px) {
   #editMonth .modal-dialog {
-    max-width: 50%;
+    max-width:65%;
   }
 }
 @media (min-width: 1200px) {
   #editMonth .modal-dialog {
-    max-width: 45%;
+    max-width: 55%;
   }
+}
+.custom-select-2.custom-select-1 {
+  padding: 0 5px!important;
+}
+#modalMonthHolidays > div > span {
+  align-self: center;
+  width: 90px;
+  display: inline-table;
+}
+#modalMonthHolidays {
+  height: 17rem;
 }
 /* End Edit Holidays of Month on Modal */
