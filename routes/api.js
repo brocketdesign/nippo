@@ -617,7 +617,7 @@ router.post('/genbanippo', urlencodedParser, async (req, res) => {
       var date = new Date(value.日付);
       var today = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
       const options = {
-        //year: 'numeric',
+        year: 'numeric',
         month: 'short',
         day: 'numeric',
         weekday: 'short',

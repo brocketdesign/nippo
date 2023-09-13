@@ -133,7 +133,7 @@ block content
                                         .sr-only ローディング...
                             .display.view-table(style="display:none")
                                 .table-responsive.border.border-secondary.rounded
-                                        table.ichiran.w-100.table-bordered(data-name="nippoichiran")
+                                        table.ichiran#tableIchiran.w-100.table-bordered(data-name="nippoichiran")
                                             thead.bg-primary.text-white.text-center
                                                 tr 
                                             tbody.edit-options
@@ -258,4 +258,53 @@ block content
                                     .spinner-border.text-secondary.m-3(role="status" data-value="0")
                                         .sr-only ローディング...
                             p#noResult.d-none.text-center.m-3 該当する項目がありません。
-                                
+            .modal.fade#myModal
+                .modal-dialog.modal-lg
+                    .modal-content
+                        // Modal Header
+                        .modal-header
+                            h4.modal-title 業者名を追加する
+                            button.close(data-dismiss="modal")
+                        // Modal body
+                        .modal-body
+                                #SettingsCompany.container.col-md-10.ml-sm-auto.col-lg-10.pt-3.px-1
+                                    #formCompany.card.mb-3.w-100
+                                        .card-body
+                                            .form-container
+                                                div.col-12
+                                                    .form-group.row
+                                                        label.control-label.col-sm-2(for="業社名") 業社名
+                                                            span.badge.badge-danger.ml-2 必須
+                                                        input.form-control.col-sm-10(type="text" placeholder="業社名" name="el" required)
+                                                    .form-group.row
+                                                        label.control-label.col-sm-2(for="業社名kana") 
+                                                            span 業社名
+                                                            span.fw-light(style="font-size:12px") (ふりがな)
+                                                        input.form-control.col-sm-10( type="text" placeholder="" name="業社名kana" )
+                                                    .row.border-bottom.border-secondary
+                                                        .col-6
+                                                            .my-2.font-weight-bold.pb-2 工種
+                                                        .col-6.p-2
+                                                            a.float-right.badge.badge-primary.p-2.rounded(href='/dashboard/settings/nippo') 工種を追加する
+                                                    #koushuCheckList.form-group.row.p-3(data-id=`${companyID}`)
+                                                        .form-check.col-3.d-none
+                                                            input.form-check-input( type="checkbox" name="sub" id="chckbox_none" value="" data-id="none" checked)
+                                                    .form-group.row
+                                                        label.control-label.col-sm-2(for="担当者名") 担当者名
+                                                        input.form-control.col-sm-10( type="text" placeholder="担当者名" name="担当者名")
+                                                    .form-group.row
+                                                        label.control-label.col-sm-2(for="電話番号") 電話番号
+                                                        input.form-control.col-sm-10( type="tel" placeholder="電話番号" name="電話番号")
+                                                    .form-group.row
+                                                        label.control-label.col-sm-2(for="FAX番号") FAX番号
+                                                        input.form-control.col-sm-10( type="fax" placeholder="FAX番号" name="FAX番号")
+                                                    .form-group.row
+                                                        label.control-label.col-sm-2(for="メールアドレス") メールアドレス
+                                                        input.form-control.col-sm-10( type="email" placeholder="メールアドレス" name="メールアドレス")
+                                                    .form-group.row
+                                                        label.control-label.col-sm-2(for="メモ") メモ
+                                                        textarea.input-date.form-control.col-sm-10( placeholder="メモ" name="メモ")
+                                                .row
+                                                    .col.text-right.border-top.pt-3
+                                                        button.btn.btn-secondary(data-dismiss="modal" style="margin-right: 10px") キャンセル     
+                                                        button#submit_company.btn.btn-primary(onclick="submitData(this)" data-value="formCompany" data-redirect="/dashboard/settings/company") 追加                                
