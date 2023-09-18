@@ -2236,7 +2236,6 @@ function nipposhukeiInit() {
     //作業時間 to 日
     $.get('/api/shukei', function (data) {
         data = data[0]
-        //console.log(data)
         let genbas = Object.keys(data)
         genbas.forEach(genba => {
             let shukei = data[genba]
@@ -2426,22 +2425,30 @@ function nippoEveryInit() {
             event: '#searchEvery click -> nippoEveryInit ',
             req: { startDate: startDate, endDate: endDate, genba: genba, type: type, responsible: responsible },
         })
-        $.get('/api/filter?startDate=' + startDate + '&endDate=' + endDate + '&genba=' + genba + '&type=' + type + '&responsible=' + responsible, function (result) {
+        $.get('/api/filter?startDate=' + startDate + '&endDate=' + endDate + '&genba=' + genba + '&type=' + type + '&responsible=' + responsible, async function (result) {
             console.log({
                 event: 'nippoEveryInit -> GET',
                 result: result.length
             })
+            let genbaList = await $.get("/api/genba");
+
             if (result.length > 0) {
                 result.forEach(data => {
+                    console.log('dat', data)
                     for (let i = 1; i <= data.totalLine; i++) {
                         if (data['工事名-' + i]) {
+                            let genba = genbaList.filter(genba => genba._id === data['工事名-'+i]);
+                            let genbaName = '-';
+                            if (genba[0]) {
+                                genbaName = genba[0].工事名
+                            }
                             if (data['作業名-' + i] == undefined) { data['作業名-' + i] = '-' }
                             if (data['日-' + i] == undefined) { data['日-' + i] = '-' }
                             if (data['作業内容-' + i] == undefined) { data['作業内容-' + i] = '-' }
                             let content = '<tr data-id="' + data._id + '" data-value="' + i + '" class="element removeThisIdHide">'
                             content += '<td class="date" data-value="' + data.日付 + '" >' + data.todayJP + '</td>'
                             content += '<td class="responsible" data-value="' + data.userID + '"" style="cursor:pointer" >' + data.userName + '</td>'
-                            content += '<td class="genba" data-value="' + data['工事名-' + i] + '" style="cursor:pointer" >' + data['工事名-' + i] + '</td>'
+                            content += '<td class="genba" data-value="' + data['工事名-' + i] + '" style="cursor:pointer" >' + genbaName + '</td>'
                             content += '<td class="type" data-value="' + data['作業名-' + i] + '" style="cursor:pointer" >' + data['作業名-' + i] + '</td>'
                             content += '<td class="time" data-value="' + data['日-' + i] + '" style="cursor:pointer" >' + data['日-' + i] + ' 日</td>'
                             content += '<td class="time" data-value="' + data['作業内容-' + i] + '" style="cursor:pointer" >' + data['作業内容-' + i] + '</td>'
