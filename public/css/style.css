@@ -474,8 +474,8 @@ input:disabled {
   color: #ff0000;
   margin: auto;
 }
-.calendar>.months>.month>.days>.day.legalHoliday {color: blue;}
-.calendar>.months>.month>.days>.day.scheduledHoliday {color: red;}
+.calendar>.months>.month>.days>.day.legalHoliday {color: red;}
+.calendar>.months>.month>.days>.day.scheduledHoliday {color: blue;}
 .calendar>.months>.month>.days>.day>.work-history {
   height: 50px;
   padding: 3px 0;
