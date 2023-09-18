@@ -665,12 +665,12 @@ input:disabled {
 }
 
 .table-calendar .scheduledWeek,.table-calendar .sunday, .table-calendar .legalWeek.sunday, .table-calendar .scheduledWeek.sunday {
-  color: red;
-  background: #ffcfcf;
-}
-.table-calendar .saturday, .table-calendar .legalWeek, .table-calendar .legalWeek.saturday, .table-calendar .scheduledWeek.saturday {
   color: blue;
   background: #bdfbf3;
+}
+.table-calendar .saturday, .table-calendar .legalWeek, .table-calendar .legalWeek.saturday, .table-calendar .scheduledWeek.saturday {
+  color: red;
+  background: #ffcfcf;
 }
 .yearCalendar .month {
 	margin-top: 1rem;

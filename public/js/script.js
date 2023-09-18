@@ -110,21 +110,21 @@ $(document).ready(async function () {
         let allGenbaList = [];
         $.get("/api/genba", function (data) {
             $.get('/api/users?elID=' + userID, function (result) {
-                if (data && result.genba) {
+                if (data) {
                     allGenbaList = data;
                     if (!Array.isArray(result.genba)) {
                         result.genba = result.genba.split(' ')
                     }
                     let realGenba = [];
-                    if (localStorage.getItem("genba0") || localStorage.getItem("genba1") || localStorage.getItem("genba2")) {
+                    if (localStorage.getItem(userID + "genba0") || localStorage.getItem(userID + "genba1") || localStorage.getItem(userID + "genba2")) {
                         let genbaModalList = '';
                         for (let i = 0; i < 3; i++) {
-                            if (localStorage.getItem("genba" + i)) {
-                                if (data.filter(item => item.工事名 === localStorage.getItem("genba" + i)).length) {
-                                    genbaIDs.push(data.filter(item => item.工事名 === localStorage.getItem("genba" + i))[0])
-                                    newDashboardChartInit(genbaIDs, i, data.filter(item => item.工事名 === localStorage.getItem("genba" + i))[0], Before10, today);
-                                    $(".selected-item[data-item='" + i + "'").html('<a class="genba-list-item">' + localStorage.getItem("genba" + i) + '</a>')
-                                    realGenba.push(localStorage.getItem("genba" + i));
+                            if (localStorage.getItem(userID + "genba" + i)) {
+                                if (data.filter(item => item.工事名 === localStorage.getItem(userID + "genba" + i)).length) {
+                                    genbaIDs.push(data.filter(item => item.工事名 === localStorage.getItem(userID + "genba" + i))[0])
+                                    newDashboardChartInit(genbaIDs, i, data.filter(item => item.工事名 === localStorage.getItem(userID + "genba" + i))[0], Before10, today);
+                                    $(".selected-item[data-item='" + i + "'").html('<a class="genba-list-item">' + localStorage.getItem(userID + "genba" + i) + '</a>')
+                                    realGenba.push(localStorage.getItem(userID + "genba" + i));
                                 }
                             } else {
                                 $("#new_dashboard_charts_group" + i).remove();
@@ -155,7 +155,7 @@ $(document).ready(async function () {
                                 genbaIDs.push(data.filter(item => item.工事名 === realGenba[i])[0])
                                 $(".selected-item[data-item='" + i + "'").html('<a class="genba-list-item">' + realGenba[i] + '</a>')
                                 newDashboardChartInit(genbaIDs, i, data.filter(item => item.工事名 === realGenba[i])[0], Before10, today);
-                                localStorage.setItem("genba" + i, data.filter(item => item.工事名 === realGenba[i])[0].工事名);
+                                localStorage.setItem(userID + "genba" + i, data.filter(item => item.工事名 === realGenba[i])[0].工事名);
                             }
                         }
                     }
@@ -223,8 +223,8 @@ $(document).ready(async function () {
         });
         $(document).on('click', '#genba-select-modal-toggle', function () {
             for (let i = 0; i < 3; i++) {
-                if (localStorage.getItem("genba" + i)) {
-                    $(".selected-item[data-item='" + i + "'").html('<a class="genba-list-item">' + localStorage.getItem("genba" + i) + '</a>');
+                if (localStorage.getItem(userID + "genba" + i)) {
+                    $(".selected-item[data-item='" + i + "'").html('<a class="genba-list-item">' + localStorage.getItem(userID + "genba" + i) + '</a>');
                 } else {
                     $(".selected-item[data-item='" + i + "'").html('');
                 }
@@ -234,27 +234,26 @@ $(document).ready(async function () {
             }, 400)
         });
         $(document).on('click', '.chart-close-btn', function () {
-            if (localStorage.getItem("genba" + $(this).attr("chart-no"))) {
-                console.log('localStorage.getItem("genba" + $(this).attr("chart-no")', localStorage.getItem("genba" + $(this).attr("chart-no")))
-                localStorage.removeItem("genba" + $(this).attr("chart-no"));
+            if (localStorage.getItem(userID + "genba" + $(this).attr("chart-no"))) {
+                localStorage.removeItem(userID + "genba" + $(this).attr("chart-no"));
             }
             $("#new_dashboard_charts_group" + $(this).attr("chart-no")).remove();
         });
         $(document).on('click', '#confirmModalBtn', function () {
             $(".selected-genba-list").find(".selected-item").each(function (index) {
                 if ($(this).children().length > 0) {
-                    localStorage.setItem("genba" + index, $(this).children().first().text());
+                    localStorage.setItem(userID + "genba" + index, $(this).children().first().text());
                 } else {
-                    localStorage.removeItem("genba" + index)
+                    localStorage.removeItem(userID + "genba" + index)
                 }
             });
             if (allGenbaList) {
                 genbaIDs = [];
                 for (let ii = 0; ii < 3; ii++) {
-                    if (localStorage.getItem("genba" + ii)) {
-                        if (allGenbaList.filter(item => item.工事名 === localStorage.getItem("genba" + ii)).length) {
-                            genbaIDs[ii] = allGenbaList.filter(item => item.工事名 === localStorage.getItem("genba" + ii))[0];
-                            newDashboardChartInit(genbaIDs, ii, allGenbaList.filter(item => item.工事名 === localStorage.getItem("genba" + ii))[0], Before10, today);
+                    if (localStorage.getItem(userID + "genba" + ii)) {
+                        if (allGenbaList.filter(item => item.工事名 === localStorage.getItem(userID + "genba" + ii)).length) {
+                            genbaIDs[ii] = allGenbaList.filter(item => item.工事名 === localStorage.getItem(userID + "genba" + ii))[0];
+                            newDashboardChartInit(genbaIDs, ii, allGenbaList.filter(item => item.工事名 === localStorage.getItem(userID + "genba" + ii))[0], Before10, today);
                         }
                     } else {
                         $("#new_dashboard_charts_group" + ii).remove();
@@ -295,16 +294,15 @@ $(document).ready(async function () {
                 }
             }
         }
-        const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + start + '&end=' + end);
-        const usersData = await $.get('/api/userStatistic?today=' + today + '&start=' + start + '&end=' + today);
-
+        const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + start + '&end=' + today);
+        let allPeopleNum=0;
         for (let i = 0; i < genbaList.length; i++) {
-            const res = await processingDataForNewDashboardAdmin(genbaList[i], Before10, today);
+            const res = await processingDataForNewDashboardAdmin(genbaList[i], Before10, today, i);
             dataSets.push(res.dataset);
             if (!labels) labels = res.labels;
+            allPeopleNum += res.allPeopleNum;
         }
-        await drawCalendarTableForNewAdminDashboard(usersData, start, today)
-        await drawChartForNewAdminDashboard(labels, dataSets)
+        await drawChartForNewAdminDashboard(labels, dataSets, allPeopleNum)
 
         $('.chart-date.start').datepicker({
             language: "ja",
@@ -322,12 +320,14 @@ $(document).ready(async function () {
             $('.chart-date.start[chart-no="' + chartNo + '"').attr('data-date', ct);
             const changeDataSet1 = [];
             const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + ct + '&end=' + $('.chart-date.end').attr('data-date'));
+            allPeopleNum = 0;
             for (let i = 0; i < genbaList.length; i++) {
-                const res = await processingDataForNewDashboardAdmin(genbaList[i], ct, $('.chart-date.end').attr('data-date'));
+                const res = await processingDataForNewDashboardAdmin(genbaList[i], ct, $('.chart-date.end').attr('data-date'), i);
                 changeDataSet1.push(res.dataset);
                 labels = res.labels;
+                allPeopleNum += res.allPeopleNum;
             }
-            await drawChartForNewAdminDashboard(labels, changeDataSet1);
+            await drawChartForNewAdminDashboard(labels, changeDataSet1, allPeopleNum);
         })
         $('.chart-date.end').datepicker({
             language: "ja",
@@ -345,12 +345,14 @@ $(document).ready(async function () {
             $('.chart-date.end[chart-no="' + chartNo + '"').attr('data-date', ct);
             const changeDataSet2 = [];
             const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + $('.chart-date.start').attr('data-date') + '&end=' + ct);
+            allPeopleNum = 0;
             for (let i = 0; i < genbaList.length; i++) {
-                const res = await processingDataForNewDashboardAdmin(genbaList[i], $('.chart-date.start').attr('data-date'), ct);
+                const res = await processingDataForNewDashboardAdmin(genbaList[i], $('.chart-date.start').attr('data-date'), ct, i);
                 changeDataSet2.push(res.dataset);
                 labels = res.labels;
+                allPeopleNum += res.allPeopleNum;
             }
-            await drawChartForNewAdminDashboard(labels, changeDataSet2);
+            await drawChartForNewAdminDashboard(labels, changeDataSet2, allPeopleNum);
         })
         const startVal = prevDate.getFullYear() + '/' + (prevDate.getMonth() + 1) + '/' + prevDate.getDate();
         const endVal = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
@@ -361,6 +363,46 @@ $(document).ready(async function () {
         $('.chart-date.end').attr('data-date', today);
         $('.chart-date.start').datepicker('update');
         $('.chart-date.end').datepicker('update');
+        
+        $(document).on('change', '.period-list.globalselector', async function () {
+            let lastStart = $(".period-list.globalselector option:last").attr('data-value').toString().split(' - ')[0];
+            $('.period-list.globalselector').val($('.period-list.globalselector').find('option:checked').text());
+            $('.period-list.globalselector').niceSelect('update')
+
+            let postStart = $('.period-list.globalselector').find('option:checked').attr('data-value').substring(0, $('.period-list.globalselector').find('option:checked').attr('data-value').indexOf(' -'))
+            let postEnd = $('.period-list.globalselector').find('option:checked').attr('data-value').substring($('.period-list.globalselector').find('option:checked').attr('data-value').indexOf('- ') + 1)
+            if (postStart === start) {
+                $(".changePeriod.next").prop("disabled", true)
+            } else {
+                $(".changePeriod.next").prop("disabled", false)
+            }
+            if (lastStart === postStart) {
+                $(".changePeriod.prev").prop("disabled", true)
+            } else {
+                $(".changePeriod.prev").prop("disabled", false)
+            }
+            $(".calendar-table").html(`<tbody> <tr><td><div class="d-flex justify-content-center" style="align-items:center;height:300px;"><div class="spinner-border" role="status"><div class="sr-only">ローディング...</div></div></div></td></tr></tbody>`);
+
+            if (new Date(postEnd) >= new Date(today)) {
+                const usersData = await $.get('/api/userStatistic?today=' + today + '&start=' + postStart + '&end=' + today);
+                await drawCalendarTableForNewAdminDashboard(usersData, postStart, today)
+            } else {
+                const usersData = await $.get('/api/userStatistic?today=' + today + '&start=' + postStart + '&end=' + postEnd);
+                await drawCalendarTableForNewAdminDashboard(usersData, postStart, postEnd)
+            }
+
+
+        })
+        $(document).on('click', '.changePeriod', function () {
+            if ($(this).hasClass('prev')) {
+                $(".period-list.globalselector").val($('.period-list.globalselector').find('option:checked').next().text()).change();
+                $(".period-list.globalselector").attr('value', $('.period-list.globalselector').find('option:checked').next().text());
+            } else {
+                $(".period-list.globalselector").val($('.period-list.globalselector').find('option:checked').prev().text()).change();
+                $(".period-list.globalselector").attr('value', $('.period-list.globalselector').find('option:checked').prev().text());
+            }
+            $('.period-list.globalselector').niceSelect('update')
+        });
     }
 
     //NEW HOLIDAY SETTING PAGE
@@ -847,6 +889,13 @@ $(document).ready(async function () {
     if (!!document.querySelector('#loginForm')) {
         loginInit()
     }
+    //FORGOT PASSWORD PAGE
+    if (!!document.querySelector('#forgotPassword')) {
+        //HIDE NAVBAR
+        $('nav').hide()
+        $('body').addClass('bg-white')
+        $('main').addClass('bg-white')
+    }
     //NIPPO FORM PAGE
     if (!!document.querySelector("#formPage")) {
         inputInit()
@@ -928,44 +977,6 @@ $(document).ready(async function () {
 $(document).ajaxStop(function () {
     afterAllisDone()
 });
-function addSearchToSelect() {
-    // Classes to target
-    const targetClasses = ['.nice-select.input-type', '.nice-select.input-genba'];
-
-    // Detect when the target classes are clicked
-    $(document).on('click', targetClasses.join(', '), function() {
-        const $niceSelect = $(this);
-        if (!$niceSelect.find('.nice-search-input').length) { // Only add the input if it's not already present
-            const searchInput = $('<input>', {
-                type: 'text',
-                class: 'nice-search-input form-control',
-                style: 'border: none;',
-                placeholder: '検索...'
-            });
-            $niceSelect.prepend(searchInput);
-            searchInput.focus();
-        }
-    });
-
-    // Remove the input when it loses focus
-    $(document).on('blur', '.nice-search-input', function() {
-        $(this).remove();
-    });
-
-    // Handle the search functionality
-    $(document).on('keyup', '.nice-search-input', function() {
-        const searchValue = $(this).val().toLowerCase().normalize("NFD");
-        $(this).siblings().each(function() {
-            const itemText = $(this).text().toLowerCase().normalize("NFD");
-            if (itemText.indexOf(searchValue) !== -1) {
-                $(this).show();
-            } else {
-                $(this).hide();
-            }
-        });
-    });
-
-}
 function afterAllisDone() {
     formInitCompany()
     feather.replace();
@@ -1211,21 +1222,27 @@ function nippoFormInit(callback) {
                     $(this).attr('data-value', index)
                 })
                 $.each($(this).find('input'), function () {
-                    let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-                    $(this).attr('name', name + index)
+                    if($(this).attr('name')) {
+                        let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+                        $(this).attr('name', name + index)
+                    }
                 })
                 $.each($(this).find('select'), function () {
                     if ($(this).attr('name')) {
                         let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
                         $(this).attr('name', name + index)
                     } else {
-                        let name = $(this).attr('data-name').substring(0, $(this).attr('data-name').indexOf('-') + 1)
-                        $(this).attr('data-name', name + index)
+                        if($(this).attr('data-name')) {
+                            let name = $(this).attr('data-name').substring(0, $(this).attr('data-name').indexOf('-') + 1)
+                            $(this).attr('data-name', name + index)
+                        }
                     }
                 })
                 $.each($(this).find('textarea'), function () {
-                    let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-                    $(this).attr('name', name + index)
+                    if ($(this).attr('name')) {
+                        let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+                        $(this).attr('name', name + index)
+                    }
                 })
             })
         })
@@ -1764,9 +1781,11 @@ function resetGroupForm(formSelectQuery) {
             groupContainer.find('.addGroop').attr('data-value', formIndex)
             $('.addGroupContainer').attr('data-value', formIndex)
             $.each(groupContainer.find('input'), function () {
-                let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-                $(this).attr('name', name + '1')
-                $(this).val('').change()
+                if ($(this).attr('name')) {
+                    let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+                    $(this).attr('name', name + '1')
+                    $(this).val('').change()
+                }
             })
             $.each(groupContainer.find('select'), function () {
                 if ($(this).attr('name')) {
@@ -1776,9 +1795,11 @@ function resetGroupForm(formSelectQuery) {
                 }
             })
             $.each(groupContainer.find('textarea'), function () {
-                let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-                $(this).attr('name', name + '1')
-                $(this).val('').change()
+                if ($(this).attr('name')) {
+                    let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+                    $(this).attr('name', name + '1')
+                    $(this).val('').change()
+                }
             })
         } else {
             let group = $(formID + ' .form-container .form-group').first().clone()
@@ -1787,9 +1808,11 @@ function resetGroupForm(formSelectQuery) {
             $('.totalLine.' + formSelect).attr('value', 1)
             group.find('.removeGroup').attr('data-value', 1)
             $.each(group.find('input'), function () {
-                let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-                $(this).attr('name', name + '1')
-                $(this).val('').change()
+                if($(this).attr('name')) {
+                    let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+                    $(this).attr('name', name + '1')
+                    $(this).val('').change()                    
+                }
             })
             $.each(group.find('select'), function () {
                 if ($(this).attr('name')) {
@@ -1799,9 +1822,11 @@ function resetGroupForm(formSelectQuery) {
                 }
             })
             $.each(group.find('textarea'), function () {
-                let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-                $(this).attr('name', name + '1')
-                $(this).val('').change()
+                if($(this).attr('name')) {
+                    let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+                    $(this).attr('name', name + '1')
+                    $(this).val('').change()
+                }
             })
         }
     }
@@ -1821,21 +1846,27 @@ function addGroupForm(formSelect, formIndex) {
         group.find('label').remove()
         $(formID + ' .form-container').append(group).fadeIn(500);
         $.each(group.find('input'), function () {
-            let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-            $(this).attr('name', name + currVal)
-            $(this).val('').change()
-            $(this).attr('value', '')
+            if($(this).attr('name')) {
+                let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+                $(this).attr('name', name + currVal)
+                $(this).val('').change()
+                $(this).attr('value', '');
+            }
         })
         $.each(group.find('select'), function () {
-            let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-            $(this).attr('name', name + currVal)
-            $(this).val('').change()
-            $(this).niceSelect('update')
+            if($(this).attr('name')) {
+                let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+                $(this).attr('name', name + currVal)
+                $(this).val('').change()
+                $(this).niceSelect('update')
+            }
         })
         $.each(group.find('textarea'), function () {
-            let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-            $(this).attr('name', name + currVal)
-            $(this).val('').change()
+            if($(this).attr('name')) {
+                let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+                $(this).attr('name', name + currVal)
+                $(this).val('').change()
+            }
         })
     }
 
@@ -4360,63 +4391,66 @@ function sortTableByDate(tableId, columnIndex) {
 function newDashboardCalendarInit(userID, today, start, end) {
     let altogetherWorkDays = 0;
     $("#calendar_nippo").html('<div class="months"><div class="month"><div class="days"><div class="day weekLabel weekd0" title="Sunday">日</div><div class="day weekLabel weekd1" title="Monday">月</div><div class="day weekLabel weekd2" title="Tuesday">火</div><div class="day weekLabel weekd3" title="Wednesday">水</div><div class="day weekLabel weekd4" title="Thursday">木</div><div class="day weekLabel weekd5" title="Friday">金</div><div class="day weekLabel weekd6" title="Saturday">土</div></div></div></div></div>');
-    $.get('/api/nippoichiran?userID=' + userID + '&today=' + today + '&start=' + start + '&end=' + end, function (result) {
+    $.get('/api/nippoichiran?userID=' + userID + '&today=' + today + '&start=' + start + '&end=' + end, function (res) {
         let calendar = '<div class="months"><div class="month"><div class="days"><div class="day weekLabel weekd0" title="Sunday">日</div><div class="day weekLabel weekd1" title="Monday">月</div><div class="day weekLabel weekd2" title="Tuesday">火</div><div class="day weekLabel weekd3" title="Wednesday">水</div><div class="day weekLabel weekd4" title="Thursday">木</div><div class="day weekLabel weekd5" title="Friday">金</div><div class="day weekLabel weekd6" title="Saturday">土</div>';
-        if (result) {
-            let preStartPeriod = start.split("/")
-            let preEndPeriod = end.split("/")
-            const preStart = new Date(preStartPeriod[2], preStartPeriod[0] - 1, preStartPeriod[1]);
-            const preEnd = new Date(preEndPeriod[2], preEndPeriod[0] - 1, preEndPeriod[1]);
-            // const startPeriod = preStart.toISOString().replace("Z", "+02:00");
-            // const endPeriod = preEnd.toISOString().replace("Z", "+02:00");
-            const realStartDate = new Date(preStart);
-            const realEndDate = new Date(preEnd);
-            let startDate, endDate;
-            const startDay = realStartDate.getDay();
-            if (startDay === 0) {
-                startDate = realStartDate;
-            } else {
-                if (realStartDate.getDate() <= startDay) {
-                    const restDate = startDay - realStartDate.getDate() + 1;
-                    const lastDateOfPreMonth = (new Date(realStartDate.getFullYear(), realStartDate.getMonth(), 0)).getDate();
-                    startDate = new Date(realStartDate.getMonth() + "/" + (lastDateOfPreMonth - restDate) + "/" + realStartDate.getFullYear());
-                } else {
-                    startDate = new Date((realStartDate.getMonth() + 1) + "/" + (realStartDate.getDate() - startDay) + "/" + realStartDate.getFullYear());
-                }
-            }
-            const endDay = realEndDate.getDay();
-            if (endDay === 6) {
-                endDate = realEndDate;
-            } else {
-                const lastDateOfThisMonth = (new Date(realEndDate.getFullYear(), (realEndDate.getMonth() + 1), 0)).getDate();
-                if ((realEndDate.getDate() + 6 - endDay) > lastDateOfThisMonth) {
-                    endDate = new Date((realEndDate.getMonth() + 2) + "/" + (6 - endDay) + "/" + realEndDate.getFullYear());
-                } else {
-                    endDate = new Date((realEndDate.getMonth() + 1) + "/" + (realEndDate.getDate() + 6 - endDay) + "/" + realEndDate.getFullYear());
-                }
-            }
-            if (endDate < startDate) throw "Cannot render reversed calendar!";
-
-            const startYear = startDate.getFullYear();
-            const endYear = endDate.getFullYear();
-            // const tzOffset = (new Date()).getTimezoneOffset() * 1000;
-
-            const series = (start, end) => {
-                const a = [];
-                for (let i = start; i <= end; i++) a.push(i);
-                return a;
-            };
-            for (let year of series(startYear, endYear)) {
-                const fromMonth = year == startYear ? startDate.getMonth() : 0;
-                const toMonth = year == endYear ? endDate.getMonth() : 11;
-
-                for (let month of series(fromMonth, toMonth)) {
-                    calendar += monthCreating(year, month, startDate, endDate, realStartDate, realEndDate, result);
-                }
-            }
-        } else {
-            calendar += '<div style="height:50%; width: 100%;">データなし</div>'
+        let result = []
+        if (res) {
+            result = res;
         }
+        let preStartPeriod = start.split("/")
+        let preEndPeriod = end.split("/")
+        const preStart = new Date(preStartPeriod[2], preStartPeriod[0] - 1, preStartPeriod[1]);
+        const preEnd = new Date(preEndPeriod[2], preEndPeriod[0] - 1, preEndPeriod[1]);
+        // const startPeriod = preStart.toISOString().replace("Z", "+02:00");
+        // const endPeriod = preEnd.toISOString().replace("Z", "+02:00");
+        const realStartDate = new Date(preStart);
+        const realEndDate = new Date(preEnd);
+        let startDate, endDate;
+        const startDay = realStartDate.getDay();
+        if (startDay === 0) {
+            startDate = realStartDate;
+        } else {
+            if (realStartDate.getDate() <= startDay) {
+                const restDate = startDay - realStartDate.getDate() + 1;
+                const lastDateOfPreMonth = (new Date(realStartDate.getFullYear(), realStartDate.getMonth(), 0)).getDate();
+                startDate = new Date(realStartDate.getMonth() + "/" + (lastDateOfPreMonth - restDate) + "/" + realStartDate.getFullYear());
+            } else {
+                startDate = new Date((realStartDate.getMonth() + 1) + "/" + (realStartDate.getDate() - startDay) + "/" + realStartDate.getFullYear());
+            }
+        }
+        const endDay = realEndDate.getDay();
+        if (endDay === 6) {
+            endDate = realEndDate;
+        } else {
+            const lastDateOfThisMonth = (new Date(realEndDate.getFullYear(), (realEndDate.getMonth() + 1), 0)).getDate();
+            if ((realEndDate.getDate() + 6 - endDay) > lastDateOfThisMonth) {
+                endDate = new Date((realEndDate.getMonth() + 2) + "/" + (6 - endDay) + "/" + realEndDate.getFullYear());
+            } else {
+                endDate = new Date((realEndDate.getMonth() + 1) + "/" + (realEndDate.getDate() + 6 - endDay) + "/" + realEndDate.getFullYear());
+            }
+        }
+        if (endDate < startDate) throw "Cannot render reversed calendar!";
+
+        const startYear = startDate.getFullYear();
+        const endYear = endDate.getFullYear();
+        // const tzOffset = (new Date()).getTimezoneOffset() * 1000;
+
+        const series = (start, end) => {
+            const a = [];
+            for (let i = start; i <= end; i++) a.push(i);
+            return a;
+        };
+        for (let year of series(startYear, endYear)) {
+            const fromMonth = year == startYear ? startDate.getMonth() : 0;
+            const toMonth = year == endYear ? endDate.getMonth() : 11;
+
+            for (let month of series(fromMonth, toMonth)) {
+                calendar += monthCreating(year, month, startDate, endDate, realStartDate, realEndDate, result);
+            }
+        }
+        // } else {
+        //     calendar += '<div style="height:50%; width: 100%;">データなし</div>'
+        // }
         calendar += "</div></div></div></div>";
         $("#calendar_nippo").html(calendar);
         $(".work-days").text("出動 : " + altogetherWorkDays + "日")
@@ -4499,12 +4533,14 @@ function newDashboardCalendarInit(userID, today, start, end) {
                     if (classes.indexOf("legalHoliday") > -1) classes.splice(classes.indexOf("legalHoliday"), 1);
                 }
             }
-            const currentWorkData = data.filter(item =>
-                new Date(item.today).getFullYear() === year &&
-                new Date(item.today).getMonth() === month &&
-                new Date(item.today).getDate() === d
-            )
-
+            let currentWorkData = [];
+            if (data.length) {
+                currentWorkData = data.filter(item =>
+                    new Date(item.today).getFullYear() === year &&
+                    new Date(item.today).getMonth() === month &&
+                    new Date(item.today).getDate() === d
+                )                
+            }
             const day = document.createElement("a");
             if (
                 year === date.getFullYear() &&
@@ -4582,7 +4618,8 @@ function newDashboardCalendarInit(userID, today, start, end) {
 }
 
 function newDashboardChartInit(genbaIDs, chartNo, genba, start, end) {
-    const genbaID = genba._id
+    let userID = $('#userID').attr('data-value');
+    const genbaID = genba._id;
     const stateDate = new Date(start);
     const endDate = new Date(end);
     if (document.getElementById('chart_group_item_' + chartNo)) {
@@ -4600,7 +4637,7 @@ function newDashboardChartInit(genbaIDs, chartNo, genba, start, end) {
     let labels = [];
     let preDataSets = {};
     $.get('/api/genbaichiranDateRange?genbaID=' + genbaID + '&today=' + today + '&start=' + start + '&end=' + end, function (result) {
-        if(localStorage.getItem("genba" + chartNo)) {
+        if(localStorage.getItem(userID + "genba" + chartNo)) {
             if (result) {
                 result.forEach(data => {
                     for (let n = 1; n <= data.totalLine; n++) {
@@ -4983,6 +5020,10 @@ function newDashboardChartInit(genbaIDs, chartNo, genba, start, end) {
                     }, 100);
                 }
             }
+        } else {
+            if ($(`#new_dashboard_charts_group${chartNo}`)) {
+                $(`#new_dashboard_charts_group${chartNo}`).remove();
+            }
         }
     });
 
@@ -4991,14 +5032,26 @@ function newDashboardChartInit(genbaIDs, chartNo, genba, start, end) {
 // End New Dashboard Page Init
 //  New Dashboard For Admin Page Init
 
-async function processingDataForNewDashboardAdmin(genba, start, end) {
+async function processingDataForNewDashboardAdmin(genba, start, end, i) {
     const stateDate = new Date(start);
     const endDate = new Date(end);
     let preData = {};
     let labels = [];
     let preDataSets = [];
     const result = genba.data;
-
+    let allPeopleNum = 0;
+    const color = [
+        "#FF3FA4",
+        "#A8DF8E",
+        "#0E21A0",
+        "#FFB000",
+        "#088395",
+        "#E55604",
+        "#9400FF",
+        "#FFCC70",
+        "#45FFCA",
+        "#E25E3E",
+    ];
     if (!result) {
 
         if (stateDate.getFullYear() === endDate.getFullYear()) {
@@ -5053,6 +5106,7 @@ async function processingDataForNewDashboardAdmin(genba, start, end) {
             label: genba.工事名,
             data: [],
             stack: 'Stack 0',
+            backgroundColor: color[i],
         };
         return {
             labels,
@@ -5060,7 +5114,7 @@ async function processingDataForNewDashboardAdmin(genba, start, end) {
         };
     } else {
         result.forEach(data => {
-            for (let n = 1; n <= data.totalLine; n++) {
+            for (let n = 1; n <= parseInt(data.totalLine); n++) {
                 if (data) {
                     let col3 = data['人員-' + n] || '-'
                     if (!$.isNumeric(col3)) {
@@ -5122,16 +5176,22 @@ async function processingDataForNewDashboardAdmin(genba, start, end) {
                 let dateItem = full ? year + "/" : "";
                 dateItem += (month + 1) + "/" + i;
                 array.push(dateItem);
-                let yData = Object.keys(preData)
-                yData.forEach(element => {
-                    const dateString = (month + 1) + "/" + i + "/" + year;
-                    if (element === dateString) {
-                        const pp = preData[element];
-                        preDataSets.push(pp);
-                    } else {
-                        preDataSets.push(0);
-                    }
-                });
+                let yData = Object.keys(preData);
+                const dateString = (month + 1) + "/" + i + "/" + year;
+                if (yData.indexOf(dateString) > -1) {
+                    preDataSets.push(preData[dateString]);
+                    allPeopleNum += preData[dateString];
+                } else {
+                    preDataSets.push(0);
+                }
+                // yData.forEach(element => {
+                //     if (element === dateString) {
+                //         const pp = preData[element];
+                //         preDataSets.push(pp);
+                //     } else {
+                //         preDataSets.push(0);
+                //     }
+                // });
             }
             return array;
         }
@@ -5140,11 +5200,13 @@ async function processingDataForNewDashboardAdmin(genba, start, end) {
             label: genba.label,
             data: preDataSets,
             stack: 'Stack 0',
+            backgroundColor: color[i],
         };
 
         return {
             labels,
             dataset,
+            allPeopleNum,
         };
     }
 }
@@ -5177,31 +5239,31 @@ function drawCalendarTableForNewAdminDashboard(data, start, end) {
                     if (nationalHolidays[thisDate.getMonth() + 1].indexOf(thisDate.getDate()) > -1) {
                         if (customHolidays["year" + currentYear].legalHolidays.week.length ) {
                             if (customHolidays["year" + currentYear].legalHolidays.week.indexOf("7") > -1) {
-                                firstTd = "<td style='color:blue;' nationalHolidays>";
+                                firstTd = "<td style='color:red;' nationalHolidays>";
                             }
                         }
                         if ( customHolidays["year" + currentYear].scheduledHolidays.week.length ) {
                             if (customHolidays["year" + currentYear].scheduledHolidays.week.indexOf("7") > -1) {
-                                firstTd = "<td style='color:red;' nationalHolidays>";
+                                firstTd = "<td style='color:blue;' nationalHolidays>";
                             }
                         }
                     }
                 }
                 if (customHolidays["year" + currentYear].legalHolidays.week && customHolidays["year" + currentYear].legalHolidays.week.indexOf(thisDate.getDay().toString()) > -1 ) {
-                    firstTd = "<td style='color:blue;' legalHolidaysweek>";
+                    firstTd = "<td style='color:red;' legalHolidaysweek>";
                 }
                 if (customHolidays["year" + currentYear].legalHolidays.days && customHolidays["year" + currentYear].legalHolidays.days["month" + (thisDate.getMonth() + 1)] && customHolidays["year" + currentYear].legalHolidays.days["month" + (thisDate.getMonth() + 1)].length) {
                     if (customHolidays["year" + currentYear].legalHolidays.days["month" + (thisDate.getMonth() + 1)].indexOf(thisDate.getDate().toString()) > -1) {
-                        firstTd = "<td style='color:blue;' legalHolidaysDays>";
+                        firstTd = "<td style='color:red;' legalHolidaysDays>";
                     }
                 }
                 if (customHolidays["year" + currentYear].scheduledHolidays.week && customHolidays["year" + currentYear].scheduledHolidays.week.indexOf(thisDate.getDay().toString()) > -1 ) {
 
-                    firstTd = "<td style='color:red;' scheduledHolidaysWeek>";
+                    firstTd = "<td style='color:blue;' scheduledHolidaysWeek>";
                 }
                 if (customHolidays["year" + currentYear].scheduledHolidays.days && customHolidays["year" + currentYear].scheduledHolidays.days["month" + (thisDate.getMonth() + 1)] && customHolidays["year" + currentYear].scheduledHolidays.days["month" + (thisDate.getMonth() + 1)].length) {
                     if (customHolidays["year" + currentYear].scheduledHolidays.days["month" + (thisDate.getMonth() + 1)].indexOf(thisDate.getDate().toString()) > -1) {
-                        firstTd = "<td style='color:red;' scheduledHolidaysDays>";
+                        firstTd = "<td style='color:blue;' scheduledHolidaysDays>";
                     }
                 }
                 if (customHolidays["year" + currentYear].yearEndAndNewYear == "1") {
@@ -5250,7 +5312,7 @@ function drawCalendarTableForNewAdminDashboard(data, start, end) {
     }
 }
 
-function drawChartForNewAdminDashboard(labels, cData) {
+function drawChartForNewAdminDashboard(labels, cData, allPeopleNum) {
     const data = {
         labels: labels,
         datasets: cData,
@@ -5285,6 +5347,7 @@ function drawChartForNewAdminDashboard(labels, cData) {
             }
         }
     };
+    $("#admin_chart_days").text(allPeopleNum + "人");
     const ctx = document.getElementById('chart_group_item_1');
     if (Chart.getChart('chart_group_item_1')) {
         const existingChart = Chart.getChart('chart_group_item_1');

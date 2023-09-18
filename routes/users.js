@@ -7,6 +7,8 @@ const bodyParser = require("body-parser");
 const urlencodedParser = bodyParser.urlencoded({ extended: false })  
 router.use(cookieParser('twa'));
 require('dotenv').config({ path: './.env' });
+let nodemailer = require('nodemailer');
+const currVersion = '8.0'
 
 var db;
 MongoClient.connect(process.env.MONGODB_URL)
@@ -17,7 +19,16 @@ MongoClient.connect(process.env.MONGODB_URL)
     console.log(e)
     console.log('DB connection error !')
 })
-
+let transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: process.env.EMAIL_SMTP_HOST, 
+    port: process.env.EMAIL_SMTP_PORT,
+    secure: process.env.EMAIL_SMTP_SECURE,
+    auth: {
+        user: process.env.EMAIL_SMTP_USERNAME,
+        pass: process.env.EMAIL_SMTP_PASSWORD 
+    },
+});
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
@@ -165,5 +176,86 @@ router.get('/info/:userID',urlencodedParser, (req, res) => {
         //console.log('Problem identifying the user')
     }
   
-  });
+});
+router.post('/forgot-password', urlencodedParser,async function (req, res, next) {
+    var date = new Date();
+    var today = (date.getMonth() + 1) + '/' + date.getDate() + '/' +  date.getFullYear();
+    const email = req.body.email;
+
+    let user =  await db.collection('users').findOne({'email':email});
+    if( user != null){
+        const verification_key = generateVerificationKey();
+        db.collection('users').updateOne({ '_id': new ObjectId(user._id) }, { $set: {verification_key} }, (err, result) => { 
+            const html = `
+            <div>
+                堀健データベースをご利用いただきありがとうございます。<br/>
+                このメールは、パスワードリセットの手続きをされた方に送信しています。<br/>
+                このメールに心当たりがない場合（パスワードリセットの申請に心当たりがない場合）、何も行わずにこのメールを破棄してください。<br/>
+                堀健データベース上で下記の確認コードと新しいパスワードを入力いただき、パスワードリセットの手続きを完了してください。<br/>
+                確認コード：${verification_key}
+            </div>
+            `;
+            const mailOptions = {
+                from :  `noreply@horiken.com`,
+                to : email,
+                subject: "パスワードリセット手続きのお知らせ",
+                html: html
+            }
+            transporter.sendMail(mailOptions, (err, data) => {
+                if(err){
+                    res.render('forgot_password', {title:'堀健データベース',error: true, version:currVersion});
+                    console.log(err)
+                } else {
+                    res.cookie('email_for_verification', {email});
+                    res.redirect('../reset-password');
+                }
+            })
+        });
+    } else {
+        res.render('forgot_password', {title:'堀健データベース',error: true,  version:currVersion});
+    }
+});
+router.post('/reset-password',urlencodedParser, async (req, res) => {
+    if (req.cookies.email_for_verification) {
+        const email = req.cookies.email_for_verification.email;
+        const password = req.body.new_password;
+        const password2 = req.body.new_password2;
+        let user =  await db.collection('users').findOne({'email':email});
+        if( user != null){
+            if(password == password2){
+                if (user.verification_key !=req.body.verifiction) {
+                    res.render('reset_password', {title:'新しいパスワードの設定', version:currVersion, email:email, error_invalid_verification_key:true});
+                } else {
+                    const verification_key = generateVerificationKey();
+                    db.collection('users').updateOne({ '_id': new ObjectId(user._id) }, { $set: {password, verification_key} }, (err, result) => {
+                        res.render('reset_password', {title:'新しいパスワードの設定', success: true, version:currVersion});
+                    });
+                }
+            } else {
+                res.render('reset_password', {title:'新しいパスワードの設定', version:currVersion, email:email, error_not_same:true});
+            }
+        }else{
+            res.redirect('../dashboard');
+        }
+    } else {
+        res.redirect('../dashboard');
+    }
+});
+function generateVerificationKey() {
+    const keyLength = 5;
+    let verificationKey = '';
+  
+    for (let i = 0; i < keyLength; i++) {
+      verificationKey += Math.floor(Math.random() * 10);
+    }
+  
+    return verificationKey;
+  }
+transporter.verify(function(error, success) {
+    if (error) {
+        console.log(error);
+    } else {
+        console.log("Server is ready to take our messages!");
+    }
+});
 module.exports = router;

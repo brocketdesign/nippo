@@ -25,6 +25,7 @@
     "json-2-csv": "^3.14.1",
     "mongodb": "^4.0.1",
     "node-cron": "^3.0.2",
+    "nodemailer": "^6.9.5",
     "nodemon": "^2.0.12",
     "pug": "^3.0.2"
   }

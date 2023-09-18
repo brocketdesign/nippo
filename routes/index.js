@@ -18,6 +18,27 @@ router.get('/',urlencodedParser, async(req, res) => {
     res.render('login', {title:'堀健データベース',version:currVersion,error: false});
   }
 });
-
-
+router.get('/forgot-password',urlencodedParser, async(req, res) => {
+  const db = req.app.locals.db;
+  let dbData = await initData(req)
+  if((dbData.isLogin == true )){
+    res.redirect('/dashboard')
+  }else{
+    res.render('forgot_password', {title:'堀健データベース',version:currVersion,error: false});
+  }
+});
+router.get('/reset-password',urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db;
+  let dbData = await initData(req)
+  if((dbData.isLogin == true )){
+    res.redirect('/dashboard')
+  }else{
+    if (req.cookies.email_for_verification) {
+      const cookie = req.cookies.email_for_verification;
+      res.render('reset_password', {title:'新しいパスワードの設定', version:currVersion, email:cookie.email});
+    } else {
+      res.redirect('/');
+    }
+  }
+});
 module.exports = router;

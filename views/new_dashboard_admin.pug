@@ -7,6 +7,16 @@ block content
                 .card.border-secondary.mb-3(style="width:100%")
                     .card-body.px-0.py-0
                         h5.px-2.py-1 業務日報カレンダー
+                        div.px-2.d-xl-flex.d-block
+                            span.d-flex.mr-1
+                                span.d-xl-flex.d-block
+                                    select.period-list.globalselector.float-xl-none.float-right
+                            button.btn.btn-outline-secondary.changePeriod.prev.mr-2.px-3.my-1.my-xl-0.ml-xl-2.ml-0
+                                span(data-feather="chevrons-left")
+                                span 前月へ
+                            button.btn.btn-outline-secondary.changePeriod.next.ml-2.px-3.my-1.my-xl-0.float-xl-none.float-right(disabled)
+                                span 翌月へ
+                                span(data-feather="chevrons-right")
                         div.table-wrapper
                             table.fl-table.calendar-table
                                 tbody 
@@ -19,7 +29,7 @@ block content
                 .card.border-secondary.mb-3#new_dashboard_charts_group1(style="width:100%")
                     .card-body.px-0.py-0
                         span.d-flex
-                            h5.px-2.py-1(style="width: -webkit-fill-available;") ハンズトレーディング
+                            h5.px-2.py-1#admin_chart_days(style="width: -webkit-fill-available;")
                             -
                                 const chartStartDate = realStartDate.getFullYear() + '/' + (realStartDate.getMonth() + 1) + '/' + realStartDate.getDate();
                                 const chartEndDate = realEndDate.getFullYear() + '/' + (realEndDate.getMonth() + 1) + '/' + realEndDate.getDate();

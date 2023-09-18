@@ -24,7 +24,7 @@ router.get('/genbaStatistic', urlencodedParser, async (req, res) => {
     let end_period = req.query.end;
     let genbaCollection = db.collection(dbName);
     
-    genbaCollection.find().sort({ '_id': 1 }).limit(10).toArray()
+    genbaCollection.find().sort({ 'updatedAt': -1 }).limit(10).toArray()
       .then(async (genbaList10) => {
         let result = [];
         if (genbaList10.length) {
@@ -36,10 +36,10 @@ router.get('/genbaStatistic', urlencodedParser, async (req, res) => {
             if (genbaNippoList.length > 0) {
               genbaNippoList.forEach((element, index) => {
                 if ((start_period != 'false') && (end_period != 'false')) {
-                  if ((new Date(element.日付) >= new Date(start_period)) && (new Date(element.日付) <= new Date(end_period))) {
+                  if ((new Date(element.today) >= new Date(start_period)) && (new Date(element.today) <= new Date(end_period))) {
                     data.push(element);
                   }
-                }
+                } 
                 if ((index + 1) >= genbaNippoList.length) {
                   result.push({
                     label: genbaList10[i].工事名,
@@ -617,7 +617,7 @@ router.post('/genbanippo', urlencodedParser, async (req, res) => {
       var date = new Date(value.日付);
       var today = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
       const options = {
-        year: 'numeric',
+        //year: 'numeric',
         month: 'short',
         day: 'numeric',
         weekday: 'short',
@@ -665,7 +665,10 @@ router.post('/genbanippo', urlencodedParser, async (req, res) => {
         if (result) {
           nippoCollection.deleteOne({ '_id': new ObjectId(result._id) }, (err, result) => { });
           nippoCollection.insertOne(value, (err, result) => {
-            res.sendStatus(200);
+            let genbaCollection = db.collection("genba")
+            genbaCollection.updateOne({ '_id': new ObjectId(value.genbaID) }, { $set: {updatedAt: new Date()} }, (err, result) => {
+              res.sendStatus(200);
+            });
           });
           /*
           nippoCollection.updateOne({ userID: value.userID,today:value.today }, { $set: value}, (err, result) => {
@@ -902,69 +905,34 @@ router.get('/:dbName', urlencodedParser, async (req, res) => {
     if (elID) {
       if (req.query.getGenba) {
         db.collection(dbName).findOne({ '_id': new ObjectId(elID) }, async (err, result) => {
-          if (result == undefined) {
-            db.collection(dbName).findOne({ '_id': elID }, async (err, result) => {
-              if(result) {
-                let genbaList=[]
-                let genbaCollection = db.collection("genba");
-                const genbaList10 = await genbaCollection.find().sort({ '_id': 1 }).toArray()
-                if (genbaList10.length) {
-                      for (let k = 0; k < genbaList10.length; k++) {
-                        let nippoCollection = db.collection(genbaList10[k]._id + '_genbanippo');
-                        let genbaNippoList = await nippoCollection.find().sort({ 'today': -1 }).toArray();
-                        if (genbaNippoList.length > 0) {
-                          for (let j = 0; j < genbaNippoList.length; j++) {
-                            if(genbaNippoList[j].totalLine) {
-                              for (let i = 1; i <= genbaNippoList[j].totalLine; i++) {
-                                if (genbaNippoList[j]['業社名-' + i] === result.el) {
-                                  genbaList.push(genbaList10[k]);
-                                  break;
-                                } else { continue; }
-                              }
-                            } else { continue; }
-                            if (genbaList.indexOf(genbaList10[k]) > -1) break;
-                          }
-                        }
-                        if (k + 1 >= genbaList10.length) {
-                          res.send({company:result,genba:genbaList});
-                        }
-                      }
-                } else {
-                  res.send({company:result,genba:[]});
-                }
-              } else {
-                res.send({company:{},genba:[]});
-              }
-            })
-          } else {
             let genbaList=[]
             let genbaCollection = db.collection("genba");
-            const genbaList10 = await genbaCollection.find().sort({ '_id': 1 }).toArray();
+            const genbaList10 = await genbaCollection.find().toArray();
             if (genbaList10.length) {
-                  for (let k = 0; k < genbaList10.length; k++) {
-                    let nippoCollection = db.collection(genbaList10[k]._id + '_genbanippo');
-                    let genbaNippoList = await nippoCollection.find().sort({ 'today': -1 }).toArray();
-                    if (genbaNippoList.length > 0) {
-                      for (let j = 0; j < genbaNippoList.length; j++) {
-                        if(genbaNippoList[j].totalLine) {
-                          for (let i = 1; i <= genbaNippoList[j].totalLine; i++) {
-                            if (genbaNippoList[j]['業社名-' + i] === result.el) {
-                              genbaList.push(genbaList10[k]);
-                              break;
-                            } else { continue; }
-                          }
+              for (let k = 0; k < genbaList10.length; k++) {
+                let nippoCollection = db.collection(genbaList10[k]._id + '_genbanippo');
+                let genbaNippoList = await nippoCollection.find().toArray();
+                if (genbaNippoList.length > 0) {
+                  for (let j = 0; j < genbaNippoList.length; j++) {
+                    if (genbaList.indexOf(genbaList10[k]) > -1) break;
+                    if(genbaNippoList[j].totalLine) {
+                      for (let i = 1; i <= parseInt(genbaNippoList[j].totalLine); i++) {
+                        if (genbaNippoList[j]['業社名-' + i] === result.el) {
+                          if (genbaList.indexOf(genbaList10[k]) > -1) break;
+                          genbaList.push(genbaList10[k]);
+                          break;
                         } else { continue; }
-                        if (genbaList.indexOf(genbaList10[k]) > -1) break;
                       }
-                    }
-                    if (k + 1 >= genbaList10.length) {
-                      res.send({company:result,genba:genbaList});
-                    }
+                    } else { continue; }
                   }
+                }
+                if (k + 1 >= genbaList10.length) {
+                  res.send({company:result,genba:genbaList});
+                }
+              }
             } else {
               res.send({company:result,genba:[]});
             }
-          }
         })
       } else {
         db.collection(dbName).findOne({ '_id': new ObjectId(elID) }, (err, result) => {
