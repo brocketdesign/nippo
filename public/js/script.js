@@ -881,7 +881,7 @@ $(document).ready(async function () {
         window.addEventListener('beforeunload', function (event) {
             if (changedData) {
                 event.preventDefault();
-                event.returnValue = 'Are you sure you want to leave this page?';                
+                event.returnValue = 'このページを離れますか？';                
             }
         });
     }
@@ -895,6 +895,16 @@ $(document).ready(async function () {
         $('nav').hide()
         $('body').addClass('bg-white')
         $('main').addClass('bg-white')
+        $(document).on("submit", "#forgotPasswordForm", function (e) {
+            if(!$("#inputEmail").val() || !$("#inputEmail").val().toString().trim() || $("#inputEmail").val().indexOf("@") == -1 || $("#inputEmail").val().indexOf('.') == -1) {
+                e.preventDefault();
+                $("#invalidEmail").show();
+            }
+        });
+        $(document).on("keydown", "#inputEmail", function () {
+            $("#invalidEmail").hide();
+            if ($("#error")) $("#error").hide();
+        });
     }
     //NIPPO FORM PAGE
     if (!!document.querySelector("#formPage")) {
