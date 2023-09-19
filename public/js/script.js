@@ -2118,7 +2118,7 @@ async function genbaIchiranInit(today, start, end) {
                     $('.loading').addClass('d-none')
                 }
 
-                $.get('/api/shukei', function (data) {
+                $.get('/api/shukei', async function (data) {
                     // if (data[0].todayJP) {
                     //     let ctodayJP = data[0].todayJP
                     //     data = data[0][genbaName]
@@ -2163,12 +2163,18 @@ async function genbaIchiranInit(today, start, end) {
                     //         }
                     //     });
                     let ctodayJP = data[0].todayJP
-                    data = data[0][genbaName]
+                    let genbaList = await $.get("/api/genba");
+                    let preGenba = genbaList.filter(genba => genba._id === genbaName);
+                    let genba = '-';
+                    if (preGenba[0]) {
+                        genba = preGenba[0].工事名
+                    }
+                    data = data[0][genba]
                     $('.info.savingPointer').hide()
                     $('.nice-select.input-genba.globalselector').removeClass('disabled')
                     $('select.input-genba.globalselector').prop('disabled',false)
                     let dTotal = 0;let dDetail = {}
-                    if($.isNumeric(data.作業時間)==true){
+                    if( data.作業時間 && $.isNumeric(data.作業時間)==true){
                         dTotal=data.作業時間
                     }
                     if(typeof data.detail === 'object'){
@@ -2275,10 +2281,11 @@ function nipposhukeiInit() {
 function displayCompanyShukei(el) {
     let k = $(el).val()
     $('.company-shukei-container').html('')
-    $.get('/api/companyShukei', function (result) {
+    $.get('/api/companyShukei', async function (result) {
         result = result[0][k]
         let companies = Object.keys(result)
         let avoidthis = ['_id', 'undefined', '', 'date', 'today', 'todayJP']
+        let genbaList = await $.get("/api/genba");
         companies.forEach(company => {
             if (avoidthis.includes(company) == false) {
                 let shukei = result[company]['data']
@@ -2434,7 +2441,6 @@ function nippoEveryInit() {
 
             if (result.length > 0) {
                 result.forEach(data => {
-                    console.log('dat', data)
                     for (let i = 1; i <= data.totalLine; i++) {
                         if (data['工事名-' + i]) {
                             let genba = genbaList.filter(genba => genba._id === data['工事名-'+i]);
@@ -2896,7 +2902,6 @@ function SettingsUsersInit() {
                         datas.push(element)
                     }
                 });
-                //console.log(datas)
                 let list_content_item = ''
                 let options = {
                     year: 'numeric',
@@ -3861,9 +3866,11 @@ function inputInit(callback) {
                                         let element = data[index]
                                         if (element.工事名 && (user.genba.includes(element.工事名) == true)) {
                                             if (genbaYesterdayIDs.includes(element._id)) {
+                                                console.log('element.工事名', element.工事名)
                                                 genbaSelect.prepend('<option value="' + element.工事名 + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
                                             } else {
                                                 genbaSelect.append('<option value="' + element.工事名 + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
+                                                console.log('element.工事名', element.工事名)
                                             }
                                         }
                                     };
