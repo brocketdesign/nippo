@@ -2159,7 +2159,7 @@ async function genbaIchiranInit(today, start, end) {
                     $('.loading').addClass('d-none')
                 }
 
-                $.get('/api/shukei', function (data) {
+                $.get('/api/shukei', async function (data) {
                     // if (data[0].todayJP) {
                     //     let ctodayJP = data[0].todayJP
                     //     data = data[0][genbaName]
@@ -2204,12 +2204,18 @@ async function genbaIchiranInit(today, start, end) {
                     //         }
                     //     });
                     let ctodayJP = data[0].todayJP
-                    data = data[0][genbaName]
+                    let genbaList = await $.get("/api/genba");
+                    let preGenba = genbaList.filter(genba => genba._id === genbaName);
+                    let genba = '-';
+                    if (preGenba[0]) {
+                        genba = preGenba[0].工事名
+                    }
+                    data = data[0][genba]
                     $('.info.savingPointer').hide()
                     $('.nice-select.input-genba.globalselector').removeClass('disabled')
                     $('select.input-genba.globalselector').prop('disabled',false)
                     let dTotal = 0;let dDetail = {}
-                    if($.isNumeric(data.作業時間)==true){
+                    if( data.作業時間 && $.isNumeric(data.作業時間)==true){
                         dTotal=data.作業時間
                     }
                     if(typeof data.detail === 'object'){
@@ -2277,7 +2283,6 @@ function nipposhukeiInit() {
     //作業時間 to 日
     $.get('/api/shukei', function (data) {
         data = data[0]
-        //console.log(data)
         let genbas = Object.keys(data)
         genbas.forEach(genba => {
             let shukei = data[genba]
@@ -2317,10 +2322,11 @@ function nipposhukeiInit() {
 function displayCompanyShukei(el) {
     let k = $(el).val()
     $('.company-shukei-container').html('')
-    $.get('/api/companyShukei', function (result) {
+    $.get('/api/companyShukei', async function (result) {
         result = result[0][k]
         let companies = Object.keys(result)
         let avoidthis = ['_id', 'undefined', '', 'date', 'today', 'todayJP']
+        let genbaList = await $.get("/api/genba");
         companies.forEach(company => {
             if (avoidthis.includes(company) == false) {
                 let shukei = result[company]['data']
@@ -2467,22 +2473,29 @@ function nippoEveryInit() {
             event: '#searchEvery click -> nippoEveryInit ',
             req: { startDate: startDate, endDate: endDate, genba: genba, type: type, responsible: responsible },
         })
-        $.get('/api/filter?startDate=' + startDate + '&endDate=' + endDate + '&genba=' + genba + '&type=' + type + '&responsible=' + responsible, function (result) {
+        $.get('/api/filter?startDate=' + startDate + '&endDate=' + endDate + '&genba=' + genba + '&type=' + type + '&responsible=' + responsible, async function (result) {
             console.log({
                 event: 'nippoEveryInit -> GET',
                 result: result.length
             })
+            let genbaList = await $.get("/api/genba");
+
             if (result.length > 0) {
                 result.forEach(data => {
                     for (let i = 1; i <= data.totalLine; i++) {
                         if (data['工事名-' + i]) {
+                            let genba = genbaList.filter(genba => genba._id === data['工事名-'+i]);
+                            let genbaName = '-';
+                            if (genba[0]) {
+                                genbaName = genba[0].工事名
+                            }
                             if (data['作業名-' + i] == undefined) { data['作業名-' + i] = '-' }
                             if (data['日-' + i] == undefined) { data['日-' + i] = '-' }
                             if (data['作業内容-' + i] == undefined) { data['作業内容-' + i] = '-' }
                             let content = '<tr data-id="' + data._id + '" data-value="' + i + '" class="element removeThisIdHide">'
                             content += '<td class="date" data-value="' + data.日付 + '" >' + data.todayJP + '</td>'
                             content += '<td class="responsible" data-value="' + data.userID + '"" style="cursor:pointer" >' + data.userName + '</td>'
-                            content += '<td class="genba" data-value="' + data['工事名-' + i] + '" style="cursor:pointer" >' + data['工事名-' + i] + '</td>'
+                            content += '<td class="genba" data-value="' + data['工事名-' + i] + '" style="cursor:pointer" >' + genbaName + '</td>'
                             content += '<td class="type" data-value="' + data['作業名-' + i] + '" style="cursor:pointer" >' + data['作業名-' + i] + '</td>'
                             content += '<td class="time" data-value="' + data['日-' + i] + '" style="cursor:pointer" >' + data['日-' + i] + ' 日</td>'
                             content += '<td class="time" data-value="' + data['作業内容-' + i] + '" style="cursor:pointer" >' + data['作業内容-' + i] + '</td>'
@@ -2930,7 +2943,6 @@ function SettingsUsersInit() {
                         datas.push(element)
                     }
                 });
-                //console.log(datas)
                 let list_content_item = ''
                 let options = {
                     year: 'numeric',
@@ -3895,9 +3907,11 @@ function inputInit(callback) {
                                         let element = data[index]
                                         if (element.工事名 && (user.genba.includes(element.工事名) == true)) {
                                             if (genbaYesterdayIDs.includes(element._id)) {
+                                                console.log('element.工事名', element.工事名)
                                                 genbaSelect.prepend('<option value="' + element.工事名 + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
                                             } else {
                                                 genbaSelect.append('<option value="' + element.工事名 + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
+                                                console.log('element.工事名', element.工事名)
                                             }
                                         }
                                     };
