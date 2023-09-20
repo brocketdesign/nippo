@@ -3905,9 +3905,9 @@ function inputInit(callback) {
                                         let element = data[index]
                                         if (element.工事名 && (user.genba.includes(element.工事名) == true)) {
                                             if (genbaYesterdayIDs.includes(element._id)) {
-                                                genbaSelect.prepend('<option value="' + element.工事名 + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
+                                                genbaSelect.prepend('<option value="' + element._id + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
                                             } else {
-                                                genbaSelect.append('<option value="' + element.工事名 + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
+                                                genbaSelect.append('<option value="' + element._id + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
                                             }
                                         }
                                     };
