@@ -69,8 +69,6 @@ $(document).ready(async function () {
                 }
             }
         }
-        newDashboardCalendarInit(userID, today, start, end);
-
         $(document).on('change', '.period-list.globalselector', function () {
             let lastStart = $(".period-list.globalselector option:last").attr('data-value').toString().split(' - ')[0];
             // const originalDateStr = $(".period-list.globalselector").val().toString().split(" - ");
@@ -881,7 +879,7 @@ $(document).ready(async function () {
         window.addEventListener('beforeunload', function (event) {
             if (changedData) {
                 event.preventDefault();
-                event.returnValue = 'このページを離れますか？';                
+                event.returnValue = 'このページを離れますか？';
             }
         });
     }
@@ -2740,21 +2738,21 @@ function SettingsCompnayInit() {
             data = sortit(data, '業社名kana')
             for (let index = 0; index < data.length; index++) {
                 let element = data[index]
-                $.get( "/api/company", function( data ) {
-                    data=sortit(data,'業社名kana')
-                    for(let index=0;index<data.length;index++){
-                        let element=data[index]
-                        if(element.el ){
-                            let col1 = element.el || ""
-                            let col2 = element.sub || ""
-                            let col3 = element['業社名kana'] || ""
-                            if(Array.isArray(col2)){
-                                col2 = col2.filter(String)
-                            }
-                            cSelector.find('tbody').append('<tr class="clickable" data-link="/dashboard/settings/company?companyID='+element._id+'"><td>'+col1+'</td><td>'+col3+'</td><td>'+col2+'</td></tr>')
-                        }
-                    };
-                });
+                // $.get( "/api/company", function( data ) {
+                //     data=sortit(data,'業社名kana')
+                //     for(let index=0;index<data.length;index++){
+                //         let element=data[index]
+                //         if(element.el ){
+                //             let col1 = element.el || ""
+                //             let col2 = element.sub || ""
+                //             let col3 = element['業社名kana'] || ""
+                //             if(Array.isArray(col2)){
+                //                 col2 = col2.filter(String)
+                //             }
+                //             cSelector.find('tbody').append('<tr class="clickable" data-link="/dashboard/settings/company?companyID='+element._id+'"><td>'+col1+'</td><td>'+col3+'</td><td>'+col2+'</td></tr>')
+                //         }
+                //     };
+                // });
 
                 if (element.el) {
                     let col1 = element.el || ""
@@ -3192,8 +3190,8 @@ function displayPeriodList(period) {
                     let d_period_end = period_end.getFullYear() + '年' + (period_end.getMonth() + 1) + '月' + (period_end.getDate()) + '日';
                     let s_period_start = (period_start.getMonth() + 1) + '/' + period_start.getDate() + '/' + period_start.getFullYear();
                     let s_period_end = (period_end.getMonth() + 1) + '/' + period_end.getDate() + '/' + period_end.getFullYear();
-                    if (!!document.querySelector('#new_dashoboard_content')) {
-                        if (date <= period_end) {
+                    if (!!document.querySelector('#new_dashoboard_content') || !!document.querySelector('#new_dashoboard_content_admin')) {
+                        if (date <= period_end || date.getFullYear() == period_end.getFullYear() && date.getMonth() == period_end.getMonth() && date.getDate() == period_end.getDate()) {
                             updateGlobalSetting(s_period_start, s_period_end);
                             $('.period-list').prepend('<option data-value="' + s_period_start + ' - ' + s_period_end + '" class="current-period" selected>' + d_period_start + ' - ' + d_period_end + '</option>')
                         } else {
@@ -3907,11 +3905,9 @@ function inputInit(callback) {
                                         let element = data[index]
                                         if (element.工事名 && (user.genba.includes(element.工事名) == true)) {
                                             if (genbaYesterdayIDs.includes(element._id)) {
-                                                console.log('element.工事名', element.工事名)
                                                 genbaSelect.prepend('<option value="' + element.工事名 + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
                                             } else {
                                                 genbaSelect.append('<option value="' + element.工事名 + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
-                                                console.log('element.工事名', element.工事名)
                                             }
                                         }
                                     };
@@ -4414,7 +4410,7 @@ function sortTableByDate(tableId, columnIndex) {
 // New Dashboard Page Init
 function newDashboardCalendarInit(userID, today, start, end) {
     let altogetherWorkDays = 0;
-    $("#calendar_nippo").html('<div class="months"><div class="month"><div class="days"><div class="day weekLabel weekd0" title="Sunday">日</div><div class="day weekLabel weekd1" title="Monday">月</div><div class="day weekLabel weekd2" title="Tuesday">火</div><div class="day weekLabel weekd3" title="Wednesday">水</div><div class="day weekLabel weekd4" title="Thursday">木</div><div class="day weekLabel weekd5" title="Friday">金</div><div class="day weekLabel weekd6" title="Saturday">土</div></div></div></div></div>');
+    $("#calendar_nippo").html('<div class="d-flex justify-content-center" style="align-items:center;height:300px;"><div class="spinner-border" role="status"><div class="sr-only">ローディング...</div></div></div>');
     $.get('/api/nippoichiran?userID=' + userID + '&today=' + today + '&start=' + start + '&end=' + end, function (res) {
         let calendar = '<div class="months"><div class="month"><div class="days"><div class="day weekLabel weekd0" title="Sunday">日</div><div class="day weekLabel weekd1" title="Monday">月</div><div class="day weekLabel weekd2" title="Tuesday">火</div><div class="day weekLabel weekd3" title="Wednesday">水</div><div class="day weekLabel weekd4" title="Thursday">木</div><div class="day weekLabel weekd5" title="Friday">金</div><div class="day weekLabel weekd6" title="Saturday">土</div>';
         let result = []
@@ -4599,7 +4595,7 @@ function newDashboardCalendarInit(userID, today, start, end) {
                         for (let n = 1; n <= currentWorkData[0].totalLine; n++) {
                             let work = "";
                             if (currentWorkData[0]['作業内容-' + n]) {
-                                work = currentWorkData[0]['作業内容-' + n].length > 6 ? `${currentWorkData[0]['作業内容-' + n].slice(0, 6)}...` : currentWorkData['作業内容-' + n];
+                                work = currentWorkData[0]['作業内容-' + n].length > 6 ? `${currentWorkData[0]['作業内容-' + n].slice(0, 6)}...` : currentWorkData[0]['作業内容-' + n];
                                 mainContent.push(work)
                             }
                         }
