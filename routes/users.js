@@ -203,7 +203,7 @@ router.post('/forgot-password', urlencodedParser,async function (req, res, next)
             }
             transporter.sendMail(mailOptions, (err, data) => {
                 if(err){
-                    res.render('forgot_password', {title:'堀健データベース',error: true, version:currVersion});
+                    res.render('forgot_password', {title:'堀健データベース',errorSendEmail: true, version:currVersion});
                     console.log(err)
                 } else {
                     res.cookie('email_for_verification', {email});

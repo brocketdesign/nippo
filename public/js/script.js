@@ -4076,6 +4076,7 @@ function initGlobalSelector() {
                 day: 'numeric',
                 weekday: 'short',
             }
+            $('form').find('.input-date').val(fullDay);
             const dJP = dd.toLocaleDateString('ja-JP', options)
             $('.input-date.globalselector').val(dJP)
             $('.input-date.globalselector').attr('data-date', fullDay)
@@ -4410,8 +4411,11 @@ function sortTableByDate(tableId, columnIndex) {
 // New Dashboard Page Init
 function newDashboardCalendarInit(userID, today, start, end) {
     let altogetherWorkDays = 0;
+
+    const preStartDateForGetData = new Date(start);
+    const startDateForGetData = preStartDateForGetData.getMonth() + '/' + '10/' + preStartDateForGetData.getFullYear();
     $("#calendar_nippo").html('<div class="d-flex justify-content-center" style="align-items:center;height:300px;"><div class="spinner-border" role="status"><div class="sr-only">ローディング...</div></div></div>');
-    $.get('/api/nippoichiran?userID=' + userID + '&today=' + today + '&start=' + start + '&end=' + end, function (res) {
+    $.get('/api/nippoichiran?userID=' + userID + '&today=' + today + '&start=' + startDateForGetData + '&end=' + end, function (res) {
         let calendar = '<div class="months"><div class="month"><div class="days"><div class="day weekLabel weekd0" title="Sunday">日</div><div class="day weekLabel weekd1" title="Monday">月</div><div class="day weekLabel weekd2" title="Tuesday">火</div><div class="day weekLabel weekd3" title="Wednesday">水</div><div class="day weekLabel weekd4" title="Thursday">木</div><div class="day weekLabel weekd5" title="Friday">金</div><div class="day weekLabel weekd6" title="Saturday">土</div>';
         let result = []
         if (res) {

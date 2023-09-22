@@ -92,7 +92,12 @@ router.get('/userStatistic', urlencodedParser, async (req, res) => {
           userNippoData.forEach((element, index) => {
             if (element.日付) {
               if ((start_period != 'false') && (end_period != 'false')) {
-                if ((new Date(element.日付) >= new Date(start_period)) && (new Date(element.日付) <= new Date(end_period))) {
+                const end_full_date = end_period.split('/');
+                const end_month = parseInt(end_full_date[0]) - 1;
+                const end_date = parseInt(end_full_date[1]);
+                const end_year = parseInt(end_full_date[2]);
+                if ((new Date(element.日付).getFullYear() == new Date(start_period).getFullYear() && (new Date(element.日付).getMonth() > new Date(start_period).getMonth() || new Date(element.日付).getMonth() == new Date(start_period).getMonth() && new Date(element.日付).getDate() >= new Date(start_period).getDate()))
+                && (new Date(element.日付).getFullYear() == end_year && (new Date(element.日付).getMonth() < end_month || new Date(element.日付).getMonth() == end_month && new Date(element.日付).getDate() <= end_date))) {
                   data.push(element)
                 }
               }
@@ -151,7 +156,12 @@ router.get('/nippoichiran', urlencodedParser, async (req, res) => {
           results.forEach((element, index) => {
             if ((count.includes(element.日付) == false) && (element.日付)) {
               if ((start_period != 'false') && (end_period != 'false')) {
-                if ((new Date(element.日付) >= new Date(start_period)) && (new Date(element.日付) <= new Date(end_period))) {
+                const end_full_date = end_period.split('/');
+                const end_month = parseInt(end_full_date[0]) - 1;
+                const end_date = parseInt(end_full_date[1]);
+                const end_year = parseInt(end_full_date[2]);
+                if ((new Date(element.日付).getFullYear() == new Date(start_period).getFullYear() && (new Date(element.日付).getMonth() > new Date(start_period).getMonth() || new Date(element.日付).getMonth() == new Date(start_period).getMonth() && new Date(element.日付).getDate() >= new Date(start_period).getDate()))
+                && (new Date(element.日付).getFullYear() == end_year && (new Date(element.日付).getMonth() < end_month || new Date(element.日付).getMonth() == end_month && new Date(element.日付).getDate() <= end_date))) {
                   data.push(element)
                   //console.log(element)
                   //count.push(element.日付)
@@ -290,7 +300,12 @@ router.get('/genbaichiranDateRange', urlencodedParser, async (req, res) => {
           results.forEach((element, index) => {
             if ((count.includes(element.日付) == false) && (element.日付)) {
               if((start_period != 'false') && (end_period != 'false' )){
-                if(( new Date(element.日付) >= new Date(start_period) ) && (new Date(element.日付) <= new Date(end_period))){
+                const end_full_date = end_period.split('/');
+                const end_month = parseInt(end_full_date[0]) - 1;
+                const end_date = parseInt(end_full_date[1]);
+                const end_year = parseInt(end_full_date[2]);
+                if ((new Date(element.日付).getFullYear() == new Date(start_period).getFullYear() && new Date(element.日付).getMonth() >= new Date(start_period).getMonth() && new Date(element.日付).getDate() >= new Date(start_period).getDate())
+                && (new Date(element.日付).getFullYear() == end_year && new Date(element.日付).getMonth() <= end_month && new Date(element.日付).getDate() <= end_date)) {
                   data.push(element)
                   //count.push(element.日付)
                 }
