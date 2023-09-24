@@ -1912,7 +1912,7 @@ function genbatoday(userID, today) {
     $('.genbatoday').html('')
     $('.genbatodayloading').show()
     if (userID == undefined) { userID = $('#userID').attr('data-value') }
-    $.get('/api/genba/today' + userID + '?today=' + today, function (result) {
+    $.get('/api/genba/today' + userID + '?today=' + today, async function (result) {
         console.log({
             event: 'genbatoday',
             userID: userID,
@@ -1920,9 +1920,11 @@ function genbatoday(userID, today) {
             result: result,
         })
         $('.genbatodayloading').hide()
+        let genbaList = await $.get("/api/genba");
         if (result.length > 0) {
             result.forEach(element => {
-                $('.genbatoday').append('<button class="btn btn-success btn-sm mx-2" data-id="' + element.genbaID + '" data-name="' + element.genbaName + '">' + element.genbaName + '</button>')
+                let preGenba = genbaList.filter(genba => genba._id === element.genbaID);
+                $('.genbatoday').append('<button class="btn btn-success btn-sm mx-2" data-id="' + element.genbaID + '" data-name="' + element.genbaName + '">' + preGenba[0].工事名 + '</button>')
             });
         } else {
             $('.genbatoday').append('<span class="text-secondary" style="font-size:12px">データがございません。</span>')
