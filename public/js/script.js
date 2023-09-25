@@ -1940,7 +1940,7 @@ $(document).on('click', '.genbatoday button', function () {
         genbaID: genbaID,
         genbaName: genbaName
     })
-    $('select.input-genba.globalselector').val(genbaName).change()
+    $('select.input-genba.globalselector').val(genbaID).change()
     $('select.input-genba.globalselector').niceSelect('update')
 })
 function genbaNippoInit() {
