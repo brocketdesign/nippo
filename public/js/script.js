@@ -2218,10 +2218,15 @@ async function genbaIchiranInit(today, start, end) {
                     if (preGenba[0]) {
                         genba = preGenba[0].工事名
                     }
-                    data = data[0][genba]
+                    let genbaData = data[0][genba];  
                     $('.info.savingPointer').hide()
                     $('.nice-select.input-genba.globalselector').removeClass('disabled')
                     $('select.input-genba.globalselector').prop('disabled',false)
+                    // Check if genbaData is undefined
+                    if (typeof genbaData === "undefined") {
+                        console.log('データが見つかりませんでした。');
+                    }
+                    data = genbaData || {};
                     let dTotal = 0;let dDetail = {}
                     if( data.作業時間 && $.isNumeric(data.作業時間)==true){
                         dTotal=data.作業時間
