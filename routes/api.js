@@ -19,13 +19,16 @@ router.get('/genbaStatistic', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req);
   if (dbData.isLogin) {
     let today = req.query.today;
+    let userID = req.query.userID;
     let dbName = "genba";
     let start_period = req.query.start;
     let end_period = req.query.end;
     let genbaCollection = db.collection(dbName);
-    
-    genbaCollection.find().sort({ 'updatedAt': -1 }).limit(10).toArray()
-      .then(async (genbaList10) => {
+    let userData = await db.collection('users').findOne({'_id':new ObjectId(userID)})
+    let userGenba = userData.genba || []
+    genbaCollection.find({ '工事名': { $in: userGenba } }).sort({ 'updatedAt': 1 }).limit(10).toArray()
+        .then(async (genbaList10) => {
+        //工事名 is in userGenba
         let result = [];
         if (genbaList10.length) {
           for (let i = 0; i < genbaList10.length; i++) {

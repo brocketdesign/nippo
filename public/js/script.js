@@ -292,7 +292,8 @@ $(document).ready(async function () {
                 }
             }
         }
-        const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + start + '&end=' + today);
+        const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + start + '&end=' + today + '&userID=' + userID);
+        console.log({genbaList})
         let allPeopleNum=0;
         for (let i = 0; i < genbaList.length; i++) {
             const res = await processingDataForNewDashboardAdmin(genbaList[i], Before10, today, i);
@@ -5364,7 +5365,7 @@ function drawChartForNewAdminDashboard(labels, cData, allPeopleNum) {
         datasets: cData,
     };
     const config = {
-        type: 'line',
+        type: 'bar',
         data: data,
         options: {
             plugins: {
