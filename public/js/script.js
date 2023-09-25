@@ -990,7 +990,14 @@ function afterAllisDone() {
     formInitCompany()
     feather.replace();
     $('#preloader').fadeOut('fast');
-    
+    reloadNiceselect();
+}
+function reloadNiceselect(){
+    // First, destroy the current niceSelect instance
+    $('body').find('select').niceSelect('destroy');
+
+    // Then, re-initialize niceSelect
+    $('body').find('select').niceSelect();
 }
 function displayMainCOntent(){
     $('#mainContainer').show()
