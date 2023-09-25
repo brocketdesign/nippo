@@ -88,6 +88,10 @@ table {
   display: none !important;
 }
 
+#preloader{
+  opacity:0.5
+}
+
 .editThisId:hover {
   color: blue
 }

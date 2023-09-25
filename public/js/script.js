@@ -555,7 +555,7 @@ $(document).ready(async function () {
         $("#calendar_for_holiday").html(yearCalendar2018);
         // Event Listners
         $(document).on('click', '#saveBtn', async function () {
-            $('#preloader').fadeIn('slow', function () {
+            $('#preloader').fadeIn('fast', function () {
                 $('#mainContainer').fadeOut(500)
                 // $('body').find('select').niceSelect();
             });
@@ -565,7 +565,7 @@ $(document).ready(async function () {
                 if (!sendData.year) sendData.year = currentYear;
                 $.post('/api/saveYearCalendar', sendData, function () {
                     console.log("OK");
-                    $('#preloader').fadeOut('slow', function () {
+                    $('#preloader').fadeOut('fast', function () {
                         $('#mainContainer').fadeIn(500);
                         changedData = false;
                     });
@@ -981,6 +981,7 @@ $(document).ready(async function () {
     updateDate();
     miniTools();
 
+    displayMainCOntent()
 });
 $(document).ajaxStop(function () {
     afterAllisDone()
@@ -988,15 +989,13 @@ $(document).ajaxStop(function () {
 function afterAllisDone() {
     formInitCompany()
     feather.replace();
-    //OVERLAY
-    setTimeout(() => {
-        $('#preloader').fadeOut('slow', function () {
-            $('#mainContainer').fadeIn(500)
-            $('body').find('select').niceSelect();
-        })
-    }, 500);
+    $('#preloader').fadeOut('fast');
+    
 }
-
+function displayMainCOntent(){
+    $('#mainContainer').show()
+    $('body').find('select').niceSelect();
+}
 //CALENDAR COLORED
 function nippoCalendar(date, nippoichiran) {
     //console.log(nippoichiran)
@@ -1450,15 +1449,25 @@ $(document).on('change', '.input-responsible.globalselector', function () {
 
 function ichiranManage() {
     let userID = $('.input-responsible.globalselector').val() || $('#userID').attr('data-value')
-    if (!!document.querySelector('#nippoichiran')) {
-        let start = $('.period-list.globalselector').find('option:checked').attr('data-value').substring(0, $('.period-list.globalselector').find('option:checked').attr('data-value').indexOf(' -'))
-        let end = $('.period-list.globalselector').find('option:checked').attr('data-value').substring($('.period-list.globalselector').find('option:checked').attr('data-value').indexOf('-'))
-        nippoIchiranInit(userID, today, start, end)
+    let $selectedOption = $('.period-list.globalselector').find('option:checked');
+    let dataValue = $selectedOption.attr('data-value');
+
+    let start = "";
+    let end = "";
+
+    if (dataValue) {
+        let indexOfDash = dataValue.indexOf('-');
+        if (indexOfDash !== -1) {
+            start = dataValue.substring(0, indexOfDash).trim(); // Extracting start
+            end = dataValue.substring(indexOfDash + 1).trim(); // Extracting end
+        }
     }
-    if (!!document.querySelector('#genbaichiran')) {
+
+    if (!!document.querySelector('#nippoichiran') && start && end) {
+        nippoIchiranInit(userID, today, start, end);
+    }
+    if (!!document.querySelector('#genbaichiran')  && start && end) {
         $('.input-genba.globalselector').attr('data-userid', userID)
-        let start = $('.period-list.globalselector').find('option:checked').attr('data-value').substring(0, $('.period-list.globalselector').find('option:checked').attr('data-value').indexOf(' -'))
-        let end = $('.period-list.globalselector').find('option:checked').attr('data-value').substring($('.period-list.globalselector').find('option:checked').attr('data-value').indexOf('-'))
         genbaIchiranInit(today, start, end)
     }
 }
@@ -1490,7 +1499,6 @@ async function nippoIchiranInit(userID, today, start, end) {
             $('.info.savingPointer').removeClass('d-none')
         }
         $.get('/api/nippoichiran?userID='+userID+'&today='+today+'&start='+start+'&end='+end, async function(result){
-
             $('#nippoichiran .ichiran thead tr').html('')
             $('#nippoichiran').show()
             //SET HEADINGS
@@ -1503,7 +1511,7 @@ async function nippoIchiranInit(userID, today, start, end) {
                     if (data._id) {
                         for (let n = 1; n <= data.totalLine; n++) {
                             let genba = genbaList.filter(genba => genba._id === data['工事名-'+n]);
-                            let genbaName = '';
+                            let genbaName = data['工事名-'+n];
                             if (genba[0]) {
                                 genbaName = genba[0].工事名
                             }
@@ -1534,8 +1542,8 @@ async function nippoIchiranInit(userID, today, start, end) {
                                     $('#nippoichiran ul.ichiran').append(header_content)
                                 }
                                 content += '<tr data-id="' + data._id + '" data-value="' + n + '" class="ms-nippoichiran removeThisIdHide">'
-                                list_content_item += '<div class="list_container ms-nippoichiran row px-3 py-2 border rounded-0 m-0 bg-white" data-id="' + data._id + '" data-value="' + n + '">'
-                                list_content_item += '<div class="list_container ms-genbanippo row px-3 py-2 border rounded-0 m-0 bg-white" data-id="'+data._id+'" data-value="'+n+'">'
+                                list_content_item += '<div class="list_container ms-nippoichiran row px-3 py-2 border rounded-0 m-0 bg-white w-100" data-id="' + data._id + '" data-value="' + n + '">'
+                                list_content_item += '<div class="list_container ms-genbanippo row px-3 py-2 border rounded-0 m-0 bg-white w-100" data-id="'+data._id+'" data-value="'+n+'">'
                                 content += '<td><span class="pl-2 py-3 isweekend-'+data['todayJP'].substring(data['todayJP'].indexOf('(')).replace('(','').replace(')','')+'" style="width:auto;display:inline-block" data-name="todayJP" data-value="'+westernDate(data['date'])+'">'+westernDate(data['date'])+'</span></td>'
 
                                 list_content_item += '<div class="col" data-type="input-genba" data-field="工事名-' + n + '" data-name="' + userID + '_nippo" data-id="' + data._id + '" data-userid="' + userID + '" >' + col1 + '</div>'
@@ -2121,7 +2129,7 @@ async function genbaIchiranInit(today, start, end) {
                                     $('#genbaichiran ul.ichiran').append(header_content)
                                 }
                                 content += '<tr data-id="' + data._id + '" data-value="' + n + '" class="ms-genbanippo removeThisIdHide">'
-                                list_content_item += '<div class="list_container ms-genbanippo row px-3 py-2 border rounded-0 m-0 bg-white" data-id="' + data._id + '" data-value="' + n + '">'
+                                list_content_item += '<div class="list_container ms-genbanippo row px-3 py-2 border rounded-0 m-0 bg-white w-100" data-id="' + data._id + '" data-value="' + n + '">'
 
                                 content += '<td><span class="pl-2 py-3 isweekend-'+data['todayJP'].substring(data['todayJP'].indexOf('(')).replace('(','').replace(')','')+'" style="width:auto;display:inline-block" data-name="todayJP" data-value="'+westernDate(data['date'])+'">'+westernDate(data['date'])+'</span></td>'
                                 //content += '<td><select style="display:none" data-type="input-koushu" data-field="工種-'+n+'" data-name="'+genbaID+'_genbanippo" data-id="'+data._id+'" data-userid="'+data.userID+'" class="editor input-koushu px-2 bg-white border border-secondary rounded" placeholder="'+col1+'" value="'+col1+'" name="工種-'+n+'" onchange="updateField(this)"></select></td>'
@@ -2963,7 +2971,7 @@ function SettingsUsersInit() {
                             $('#userActivity ul.activity').append(header_content)
                         }
                         let xtime = new Date(data._date).getHours() + ':' + new Date(data._date).getMinutes()
-                        list_content_item += '<div class="list_container row px-3 py-2 border rounded-0 m-0 bg-white" data-time="' + xtime + '" data-value="' + n + '">'
+                        list_content_item += '<div class="list_container row px-3 py-2 border rounded-0 m-0 bg-white w-100" data-time="' + xtime + '" data-value="' + n + '">'
                         list_content_item += '<h5 class="col-12">' + data.event + '</h5>'
                         if (data.detail != undefined) {
                             list_content_item += '<p class="col-12" style="font-size: 13px;">' + data.detail + '</p>'
