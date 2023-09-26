@@ -76,7 +76,9 @@ table {
 .settingOptions {
   display: none;
 }
-
+.input-date.globalselector{
+  cursor:pointer;
+}
 .collapsed .on,
 .edit-options.off .locked {
   display: inline !important;
@@ -89,7 +91,7 @@ table {
 }
 
 #preloader{
-  opacity:0.5
+  opacity:0.5;
 }
 
 .editThisId:hover {

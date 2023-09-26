@@ -65,7 +65,10 @@ router.get('/ichiran',urlencodedParser, async(req, res) => {
     if(req.query.genbaID!=undefined){
       SelectGenbaID=req.query.selectid
     }
-    res.render('dashboard_nippo_ichiran',Object.assign({type:req.query.type,selectid:selectid},dbData));
+    let globalsetting = await db.collection('globalsetting').find({}).toArray()
+    const shimebi = parseInt(globalsetting[0].period)
+    console.log(shimebi)
+    res.render('dashboard_nippo_ichiran',Object.assign({type:req.query.type,selectid:selectid},shimebi,dbData));
   }else{
     res.redirect('../');
   }

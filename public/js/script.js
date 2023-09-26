@@ -884,6 +884,7 @@ $(document).ready(async function () {
             }
         });
     }
+
     //LOGIN PAGE
     if (!!document.querySelector('#loginForm')) {
         loginInit()
@@ -905,40 +906,20 @@ $(document).ready(async function () {
             if ($("#error")) $("#error").hide();
         });
     }
+    
     //NIPPO FORM PAGE
     if (!!document.querySelector("#formPage")) {
-        inputInit()
+        nippoFormInit()
+        inputInit(function(){
+            displayMainContent()
+        })
         genbatoday($('#userID').attr('data-value'), today)
         $('.SelectUserID').attr('data-selectid', $('#userID').attr('data-value'))
-        setTimeout(() => {
-            nippoFormInit()
-        }, 1000);
         SUA({ event: '日報入力ページ' });
     }
     //ICHIRAN PAGE
-    if (!!document.querySelector('.period-list') || !!document.querySelector('.ichiranPage')) {
-        let userID = $('#userID').attr('data-value')
-        inputInit(function () {
-            $.get("/api/globalsetting", function (data) {
-                shimebi = parseInt(data[0].period)
-                displayPeriodList(shimebi)
-                if (!!document.querySelector('#nippoichiran.current')) {
-                    let selectid = userID
-                    if (getUrlParameter('selectid') != undefined) {
-                        selectid = getUrlParameter('selectid')
-                    }
-                    console.log({
-                        event: 'nippoIchiranInit -> selectid',
-                        selectid: selectid
-                    })
-                    nippoIchiranInit(selectid, today)
-                }
-                if (!!document.querySelector('#genbaichiran.current')) {
-                    //genbaIchiranInit(today)
-                }
-            })
-        });
-        SUA({ event: $('.title').text() })
+    if (!!document.querySelector('.period-list') || !!document.querySelector('.ichiranPage')) {        
+        handleNippoIchiran()
     }
     //NIPPO SHUKEI
     if (!!document.querySelector('#nipposhukei')) {
@@ -975,6 +956,9 @@ $(document).ready(async function () {
     ) {
         afterAllisDone()
     }
+
+    displayMainContent()
+
     //TOOLS
     updateUserInfo();
     adminOnly();
@@ -982,17 +966,13 @@ $(document).ready(async function () {
     updateDate();
     miniTools();
 
-    displayMainCOntent()
 });
 $(document).ajaxStop(function () {
-    afterAllisDone()
-});
-function afterAllisDone() {
-    formInitCompany()
-    feather.replace();
-    $('#preloader').fadeOut('fast');
+    formInitCompany();
     reloadNiceselect();
-}
+    displayMainContent()
+    feather.replace();
+});
 function reloadNiceselect(){
     // First, destroy the current niceSelect instance
     $('body').find('select').niceSelect('destroy');
@@ -1000,8 +980,9 @@ function reloadNiceselect(){
     // Then, re-initialize niceSelect
     $('body').find('select').niceSelect();
 }
-function displayMainCOntent(){
+function displayMainContent(){
     $('#mainContainer').show()
+    $('#preloader').hide();
     $('body').find('select').niceSelect();
 }
 //CALENDAR COLORED
@@ -1054,16 +1035,18 @@ function datecontrol() {
         } else {
             $('.changeDay.next').prop('disabled', true)
         }
-        console.log({
-            event: 'datecontrol',
-            isAdmin: isAdmin,
-            ctoday: ctoday,
-            today: today,
-            sPeriod: sPeriod,
-            ePeriod: ePeriod,
-            pDay: pDay,
-            nDay: nDay,
-        })
+        if(false){
+            console.log({
+                event: 'datecontrol',
+                isAdmin: isAdmin,
+                ctoday: ctoday,
+                today: today,
+                sPeriod: sPeriod,
+                ePeriod: ePeriod,
+                pDay: pDay,
+                nDay: nDay,
+            })
+        }
     }
 }
 $(document).on('click', '.changeDay', function () {
@@ -1090,30 +1073,16 @@ $(document).on('click', '.changeDay', function () {
 })
 
 $(document).on('click','#nav-nippo-tab',function() {
-    let userID = $('#userID').attr('data-value')
-    inputInit(function(){
-        $.get("/api/globalsetting",function(data) {
-            shimebi = parseInt(data[0].period)
-            displayPeriodList(shimebi)
-            if (!! document.querySelector('#nippoichiran.current')) {
-                let selectid = userID
-                if(getUrlParameter('selectid')!=undefined){
-                    selectid=getUrlParameter('selectid')
-                }
-                console.log({
-                    event:'nippoIchiranInit -> selectid',
-                    selectid:selectid
-                })
-                nippoIchiranInit(selectid,today)
-            }
-            if (!! document.querySelector('#genbaichiran.current')) {
-                //genbaIchiranInit(today)
-            }
-        })
-    });
-    SUA({event:$('.title').text()})
+    handleNippoIchiran()
 })
 
+function handleNippoIchiran(){
+    if (!! document.querySelector('#nippoichiran.current')) {
+        let selectid=getUrlParameter('selectid') || $('#userID').attr('data-value')
+        nippoIchiranInit(selectid,today)
+    }
+    SUA({event:$('.title').text()})
+}
 //NIPPO FORM
 function nippoFormInit(callback) {
     //INITIALIZE FORM FIELDS
@@ -1487,24 +1456,21 @@ async function nippoIchiranInit(userID, today, start, end) {
         end = $('#end-period').attr('data-value')
     }
     if (!$('#nippoichiran').hasClass('ongoing')) {
-        console.log({
-            event: 'nippoIchiranInit',
-            userID: userID,
-            today: today,
-            start: start,
-            end: end,
-        })
         $('#nippoichiran').addClass('ongoing')
         $('#nippoichiran .ichiran tbody').html('')
         $('#nippoichiran ul.ichiran').html('')
         $('#totalDays').html('')
         $('#info.nippo').html('')
+        
         if (!$('#noResult').hasClass('d-none')) {
             $('#noResult').addClass('d-none')
         }
         if ($('#nippoichiran .loading').hasClass('d-none')) {
             $('#nippoichiran .loading').removeClass('d-none')
-            $('.info.savingPointer').removeClass('d-none')
+            $('.info.nippo-loading').removeClass('d-none')
+        }
+        if ($('.info.nippo-loading').hasClass('d-none')) {
+            $('.info.nippo-loading').removeClass('d-none')
         }
         $.get('/api/nippoichiran?userID='+userID+'&today='+today+'&start='+start+'&end='+end, async function(result){
             $('#nippoichiran .ichiran thead tr').html('')
@@ -1592,6 +1558,7 @@ async function nippoIchiranInit(userID, today, start, end) {
                 });
                 //$('#totalDays').append(info.totalDays)
             }
+
             if ($('#nippoichiran .ichiran tbody tr').length == 0) {
                 if ($('#noResult').hasClass('d-none')) {
                     $('#noResult').removeClass('d-none')
@@ -1599,7 +1566,9 @@ async function nippoIchiranInit(userID, today, start, end) {
             }
             if (!$('#nippoichiran .loading').hasClass('d-none')) {
                 $('#nippoichiran .loading').addClass('d-none')
-                $('.info.savingPointer').addClass('d-none')
+            }
+            if (!$('.info.nippo-loading').hasClass('d-none')) {
+                $('.info.nippo-loading').addClass('d-none')
             }
             /*
             $(document).find('.editThisId').each(function(){
@@ -1616,6 +1585,8 @@ async function nippoIchiranInit(userID, today, start, end) {
             adminOnly()
             $('#nippoichiran').removeClass('ongoing')
         })
+    }else{
+        //console.log(`Nippo ichiran is loading`)
     }
 }
 function initFormField(userID, day, editForm) {
@@ -1628,13 +1599,13 @@ function initFormField(userID, day, editForm) {
         })
     } else {
         let genbaID = $('.input-genba[data-name="genbanippo"]').find('option:checked').attr('data-id')
-        console.log({
+        if(false){console.log({
             event: 'initFormField',
             editForm: editForm,
             userID: userID,
             genbaID: genbaID,
             day: day,
-        })
+        })}
         let formID = $('form.' + editForm)
         if (editForm == 'genbanippo') {
             if (genbaID) {
@@ -1715,49 +1686,40 @@ function doForm(formID, element, day, editForm) {
         }
     } else {
         let formSelect = formID.attr('data-name')
-        $.get('/api/globalsetting/', function (setting) {
-            setting = setting[0]
-            let totalLine = setting[formSelect + 'DefaultLine']
-            for (let i = 1; i < totalLine; i++) {
-                addGroupForm(formSelect, 1)
-            }
-            //SET DEFAULT SETTINGS
-            let GuserID = null
-            let userName = null
-            if (!!document.querySelector('.input-responsible.globalselector')) {
-                GuserID = $('select.input-responsible.globalselector').val()
-                userName = $('select.input-responsible.globalselector').find('option:checked').text()
-            } else {
-                GuserID = $('#userID').attr('data-value')
-                userName = $('#userName').attr('data-value')
-            }
-            let genbaID = $('.input-genba[data-name="genbanippo"]').find('option:checked').attr('data-id')
-            let genbaName = $('.input-genba[data-name="genbanippo"]').val()
-            if (GuserID != null) {
-                $('form.' + editForm).find('.input-userID').val(GuserID)
-                $('form.' + editForm).find('.input-userName').val(userName)
-            }
-            if (genbaID != null) {
-                $('form.' + editForm).find('.input-genbaID').val(genbaID)
-                $('form.' + editForm).find('.input-genbaName').val(genbaName)
-            }
-            console.log({
-                event: 'doForm -> default form init',
-                formSelect: formSelect,
-                userName, userName,
-                GuserID: GuserID,
-                totalLine: totalLine,
-                setting: setting,
-                genbaID: genbaID,
-                genbaName: genbaName,
-            })
-            $.each(formID.find('select'), function () {
-                $(this).val('').change()
-                $(this).niceSelect('update')
-            })
-            $.each(formID.find('textarea'), function () {
-                $(this).val('').change()
-            })
+        //SET DEFAULT SETTINGS
+        let GuserID = null
+        let userName = null
+        if (!!document.querySelector('.input-responsible.globalselector')) {
+            GuserID = $('select.input-responsible.globalselector').val()
+            userName = $('select.input-responsible.globalselector').find('option:checked').text()
+        } else {
+            GuserID = $('#userID').attr('data-value')
+            userName = $('#userName').attr('data-value')
+        }
+        let genbaID = $('.input-genba[data-name="genbanippo"]').find('option:checked').attr('data-id')
+        let genbaName = $('.input-genba[data-name="genbanippo"]').val()
+        if (GuserID != null) {
+            $('form.' + editForm).find('.input-userID').val(GuserID)
+            $('form.' + editForm).find('.input-userName').val(userName)
+        }
+        if (genbaID != null) {
+            $('form.' + editForm).find('.input-genbaID').val(genbaID)
+            $('form.' + editForm).find('.input-genbaName').val(genbaName)
+        }
+        console.log({
+            event: 'doForm -> default form init',
+            formSelect: formSelect,
+            userName, userName,
+            GuserID: GuserID,
+            genbaID: genbaID,
+            genbaName: genbaName,
+        })
+        $.each(formID.find('select'), function () {
+            $(this).val('').change()
+            $(this).niceSelect('update')
+        })
+        $.each(formID.find('textarea'), function () {
+            $(this).val('').change()
         })
     }
 }
@@ -1784,13 +1746,13 @@ function resetGroupForm(formSelectQuery) {
             }
         })
     } else {
-        console.log({
-            event: 'resetGroupForm',
-            formSelectQuery: formSelectQuery
-        })
         let $this = formSelectQuery
         let formSelect = $this.attr('data-name')
         let formIndex = $this.attr('data-value')
+        console.log({
+            event: 'resetGroupForm',
+            form: formSelect
+        })
 
         let formID = 'form.' + formSelect + '[data-value="' + formIndex + '"]'
         if ($(formID + ' .form-group-container').length > 0) {
@@ -1929,12 +1891,6 @@ function genbatoday(userID, today) {
     $('.genbatodayloading').show()
     if (userID == undefined) { userID = $('#userID').attr('data-value') }
     $.get('/api/genba/today' + userID + '?today=' + today, async function (result) {
-        console.log({
-            event: 'genbatoday',
-            userID: userID,
-            today: today,
-            result: result,
-        })
         $('.genbatodayloading').hide()
         let genbaList = await $.get("/api/genba");
         if (result.length > 0) {
@@ -1951,11 +1907,6 @@ function genbatoday(userID, today) {
 $(document).on('click', '.genbatoday button', function () {
     let genbaID = $(this).attr('data-id')
     let genbaName = $(this).attr('data-name')
-    console.log({
-        event: 'genbatoday',
-        genbaID: genbaID,
-        genbaName: genbaName
-    })
     $('select.input-genba.globalselector').val(genbaID).change()
     $('select.input-genba.globalselector').niceSelect('update')
 })
@@ -2076,8 +2027,8 @@ async function genbaIchiranInit(today, start, end) {
         if (!$('#noResult').hasClass('d-none')) {
             $('#noResult').addClass('d-none')
         }
-        if ($('.loading').hasClass('d-none')) {
-            $('.loading').removeClass('d-none')
+        if ($('#genbaichiran .loading').hasClass('d-none')) {
+            $('#genbaichiran .loading').removeClass('d-none')
         }
         if (!$('.info.savingPointer').is(':visible')) {
             $('.info.savingPointer').show()
@@ -2171,8 +2122,8 @@ async function genbaIchiranInit(today, start, end) {
                         $('#noResult').removeClass('d-none')
                     }
                 }
-                if (!$('.loading').hasClass('d-none')) {
-                    $('.loading').addClass('d-none')
+                if (!$('#genbaichiran .loading').hasClass('d-none')) {
+                    $('#genbaichiran .loading').addClass('d-none')
                 }
 
                 $.get('/api/shukei', async function (data) {
@@ -2280,8 +2231,8 @@ async function genbaIchiranInit(today, start, end) {
                         $('#noResult').removeClass('d-none')
                     }
                 }
-                if (!$('.loading').hasClass('d-none')) {
-                    $('.loading').addClass('d-none')
+                if (!$('#genbaichiran .loading').hasClass('d-none')) {
+                    $('#genbaichiran .loading').addClass('d-none')
                 }
                 //SHUKEI INFO
                 $('.info.savingPointer').hide()
@@ -2748,9 +2699,7 @@ function formInitCompany() {
 }
 //SETTGIN COMPANY PAGE
 function SettingsCompnayInit() {
-    console.log({
-        event: 'SettingsCompnayInit'
-    })
+
     $.fn.autoKana('input[name="el"]', 'input[name="業社名kana"]');
 
     let companyID = getUrlParameter('companyID')
@@ -3172,42 +3121,54 @@ function updateGlobalSetting(period_start, period_end) {
         }
     });
 }
+// Main function to display the period list
 function displayPeriodList(period) {
-    console.log({
-        event: 'displayPeriodList',
-        period: period
-    })
-    if ((period == undefined) || (isNaN(period))) {
-        $.get("/api/globalsetting", function (data) {
-            shimebi = parseInt(data[0].period)
-            mainPeriodList(shimebi)
-        })
-    } else {
-        shimebi = parseInt(period)
-        mainPeriodList(shimebi)
-    }
-    $('select.period-list.globalselector').find('option:checked').prop('selected', true).change()
+    const $globalSelector = $('select.period-list.globalselector');
 
-    function mainPeriodList(shimebi) {
-        console.log({
-            event: 'mainPeriodList',
-            shimebi: shimebi
-        })
+    // Check if the global selector is already initialized
+    if ($globalSelector.length > 0 && !$globalSelector.hasClass('initialized')) {
+        //console.log("Initializing period list.");
+
+        // Mark the global selector as initialized
+        $globalSelector.addClass('initialized');
+
+        // Determine the period to use
+        determinePeriod(period, function(shimebi) {
+            // Populate the period list
+            mainPeriodList(shimebi);
+        });
+
+        // Set the checked option as selected and trigger change event
+        $globalSelector.find('option:checked').prop('selected', true).change();
+    }
+}
+
+// Function to determine the period to use
+function determinePeriod(period, callback) {
+    if (period === undefined || isNaN(period)) {
+        console.log("Fetching period from global settings.");
+        
+        // Fetch period from global settings if not provided or invalid
+        $.get("/api/globalsetting", function (data) {
+            const shimebi = parseInt(data[0].period);
+            callback(shimebi);
+        });
+    } else {
+        //console.log("Using provided period.");
+        
+        // Use the provided period
+        const shimebi = parseInt(period);
+        callback(shimebi);
+    }
+}
+
+function mainPeriodList(shimebi) {
         let date = new Date()
         $('.period-list').html('')
         for (let i = -1; i <= 0; i++) {
             for (let month = 0; month <= 11; month++) {
                 let period_start = new Date(date.getFullYear() + i, month, (shimebi + 1))
                 let period_end = new Date(date.getFullYear() + i, month + 1, shimebi)
-                /*
-                console.log({
-                    period_start:period_start.toLocaleDateString('ja-JP'),
-                    period_end:period_end.toLocaleDateString('ja-JP'),
-                    date:date.toLocaleDateString('ja-JP'),
-                    moment:new Date(moment(date).add(10, 'days')._d).toLocaleDateString('ja-JP'),
-                    c:(period_start <= date),
-                })
-                */
                 if (period_start <= date) {
                     let d_period_start = period_start.getFullYear() + '年' + (period_start.getMonth() + 1) + '月' + (period_start.getDate()) + '日';
                     let d_period_end = period_end.getFullYear() + '年' + (period_end.getMonth() + 1) + '月' + (period_end.getDate()) + '日';
@@ -3228,30 +3189,8 @@ function displayPeriodList(period) {
             }
         }
 
-        //UPDATE ICHIRAN FROM SELECT
-        $(document).on('change', '.period-list.globalselector', function () {
-            console.log({ event: 'change .period-list.globalselector' })
-            let selectID = null
-            if (!!document.querySelector('.input-responsible.globalselector')) {
-                selectID = $('.input-responsible.globalselector').val()
-            } else {
-                selectID = $('#userID').attr('data-value')
-            }
-
-            let start = $(this).find('option:checked').attr('data-value').substring(0, $(this).find('option:checked').attr('data-value').indexOf(' -'))
-            let end = $(this).find('option:checked').attr('data-value').substring($(this).find('option:checked').attr('data-value').indexOf('-') + 1)
-            if (!!document.querySelector('#nippoichiran.current')) {
-                nippoIchiranInit(selectID, today, start, end)
-            }
-            if (!!document.querySelector('#genbaichiran.current')) {
-                genbaIchiranInit(today, start, end)
-            }
-            //genbaIchiranEdit()
-            //userLevelEdit()
-        })
         $('select.period-list').niceSelect('update')
     }
-}
 function userLevelEdit() {
     if ($('#user-level').attr('data-value') != '1') {
         if (!$('select.period-list.globalselector').find('option:checked').hasClass('current-period')) {
@@ -3372,6 +3311,12 @@ function getTotal() {
     })
 }
 function miniTools() {
+    displayPeriodList(20)
+    //UPDATE ICHIRAN FROM SELECT
+    $(document).on('change', '.period-list.globalselector', function () {
+        console.log({ event: 'change .period-list.globalselector' })
+        ichiranManage()
+    })
     setNippoView()
     $('.s-el[aria-labelledby="' + $('.nav-link.active').attr('id') + '"]').show()
 
@@ -3819,11 +3764,190 @@ function updateListGlobalSelector(el, userID) {
     })
 }
 function inputInit(callback) {
-    console.log({
-        event: 'inputInit'
-    })
     loadinput(['koushu', 'type', 'place', 'company'])
-    function loadinput(types) {
+    initGenbaInput()
+    initTimeInput()
+    if (callback) { callback() }  
+}
+function initTimeInput() {
+    if (!!document.querySelector('.input-time')) {
+        $('select.input-time').html('')
+        $('select.input-time').each(function () {
+            if ($(this).find('option').length == 0) {
+                $(this).append('<option value="1.0">1.0</option>')
+                $(this).append('<option value="0.75">0.75</option>')
+                $(this).append('<option value="0.5">0.5</option>')
+                $(this).append('<option value="0.25">0.25</option>')
+                $(this).append('<option value="0.0">0.0</option>')
+                if (!$(this).attr('value')) {
+                    $(this).val('')
+                } else {
+                    $(this).val($(this).attr('value'))
+                }
+            }
+            $(this).niceSelect('update')
+        })
+    }
+}
+
+function initGenbaInput() {
+    // Check if '.input-genba' exists in the document
+    if (!!document.querySelector('.input-genba')) {
+        let userIDs = [];
+
+        // Collect all unique user IDs from the select elements
+        $(document).find('select.input-genba').each(function () {
+            if (!$(this).hasClass('init-on')) {
+                let userID = $(this).attr('data-userid');
+                if (!userIDs.includes(userID) && userID !== undefined) {
+                    userIDs.push(userID);
+                }
+            }
+        });
+
+        // Initialize genba if no user IDs are found
+        if (userIDs.length === 0) {
+            genbaInit($(document).find('select.input-genba'));
+            return;
+        }
+
+        // Process each user ID
+        userIDs.forEach(userID => {
+            processUserID(userID, function () {
+                console.log("Completed processing for userID:", userID);
+            });
+        });
+    }
+}
+
+// Function to process each user ID
+function processUserID(userID, callback) {
+    let allSelect = $(document).find(`select.input-genba[data-userid="${userID}"]`);
+    
+    // Fetch user info
+    $.get(`/users/info/${userID}`, function (user) {
+        processDateAndGenba(user, allSelect, function() {
+            // Callback when all processing is done
+            if (typeof callback === 'function') {
+                callback();
+            }
+        });
+    });
+}
+
+// Function to process date and Genba
+function processDateAndGenba(user, allSelect, callback) {
+    let yesterday = moment(new Date($('.input-date.globalselector').data('date'))).subtract(1, 'days')._d;
+    let dd = new Date(yesterday);
+    let ct = `${dd.getMonth() + 1}/${dd.getDate()}/${dd.getFullYear()}`;
+    
+    // Fetch Genba info for yesterday
+    $.get(`/api/genba/today${user._id}?today=${ct}`, function (result) {
+        console.log({ event: 'genbaYesterday', userID: user._id, yesterday: ct, result: result });
+        localStorage.setItem(`genbaYesterday-${user._id}-${ct}`, JSON.stringify(result));
+        
+        // Retrieve and parse the string back to an object
+        const genbaYesterday = JSON.parse(localStorage.getItem(`genbaYesterday-${user._id}-${ct}`));
+      
+        // Process and populate the select options
+        populateSelectOptions(user, allSelect, genbaYesterday, result, callback);
+    });
+}
+
+// Function to populate the select options
+function populateSelectOptions(user, allSelect, genbaYesterday, result, callback) {
+    const genbaYesterdayIDs = genbaYesterday.map(obj => obj.genbaID);
+    if (user && (user.genba)) {
+        if (user.genba.length > 0) {
+            $.get("/api/genba", function (data) {
+                allSelect.each(function () {
+                    let genbaSelect = $(this)
+                    genbaSelect.html('')
+                    data = sortit(data, '工事名kana')
+                    for (let index = 0; index < data.length; index++) {
+                        let element = data[index]
+                        if (element.工事名 && (user.genba.includes(element.工事名) == true)) {
+                            if (genbaYesterdayIDs.includes(element._id)) {
+                                genbaSelect.prepend('<option value="' + element._id + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
+                            } else {
+                                genbaSelect.append('<option value="' + element._id + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
+                            }
+                        }
+                    };
+                    if (!genbaSelect.hasClass('globalselector')) {
+                        //genbaSelect.val('')
+                        if (!genbaSelect.attr('value')) {
+                            genbaSelect.val('')
+                        } else {
+                            genbaSelect.val(genbaSelect.attr('value'))
+                        }
+                    } else {
+                        if (!genbaSelect.hasClass('init-on')) {
+                            genbaSelect.addClass('init-on')
+                            let selectid = 0
+                            if (getUrlParameter('selectid') != undefined) {
+                                selectid = getUrlParameter('selectid')
+                            }
+                            if ((selectid == 0) || selectid == undefined) {
+                                genbaSelect.val(genbaSelect.find("option:first").val()).change();
+                            } else {
+                                genbaSelect.val(genbaSelect.find('option[data-id="' + selectid + '"]').val()).change();
+                            }
+                        }
+                    }
+                    genbaSelect.niceSelect('update')
+                })
+            });
+        }
+    } else {
+        genbaInit(allSelect)
+    }
+
+    // Callback when all options are populated
+    if (typeof callback === 'function') {
+        callback();
+    }
+}
+
+// Function to initialize Genba if no user IDs are found
+function genbaInit(allSelect) {
+    console.log({
+        event: 'genbaInit',
+        allSelect: allSelect
+    })
+    allSelect.each(function () {
+        let genbaSelect = $(this)
+        if (!$(this).hasClass('init-on')) {
+            $.get("/api/genba", function (data) {
+                data = sortit(data, '工事名kana')
+                for (let index = 0; index < data.length; index++) {
+                    let element = data[index]
+                    if (element.工事名) {
+                        genbaSelect.append('<option value="' + element._id+'" data-id="' + element._id+'">' + element.工事名+' </option>')
+                    }
+                };
+                if (!genbaSelect.hasClass('globalselector')) {
+                    genbaSelect.val('')
+                    if (!genbaSelect.attr('value')) {
+                        genbaSelect.val('')
+                    } else {
+                        genbaSelect.val(genbaSelect.attr('value'))
+                    }
+                    genbaSelect.niceSelect('update')
+                } else {
+                    if (!genbaSelect.hasClass('init-on')) {
+                        genbaSelect.addClass('init-on')
+                        genbaSelect.val(genbaSelect.find("option:first").val()).change();
+                    }
+                }
+            });
+        }
+    })
+}
+
+
+
+function loadinput(types) {
         for (let i = 0; i < types.length; i++) {
             let type = types[i]
             if (!!document.querySelector('select.input-' + type)) {
@@ -3850,164 +3974,7 @@ function inputInit(callback) {
                 })
             }
         }
-    }
-    if (!!document.querySelector('.input-time')) {
-        $('select.input-time').html('')
-        $('select.input-time').each(function () {
-            if ($(this).find('option').length == 0) {
-                $(this).append('<option value="1.0">1.0</option>')
-                $(this).append('<option value="0.75">0.75</option>')
-                $(this).append('<option value="0.5">0.5</option>')
-                $(this).append('<option value="0.25">0.25</option>')
-                $(this).append('<option value="0.0">0.0</option>')
-                if (!$(this).attr('value')) {
-                    $(this).val('')
-                } else {
-                    $(this).val($(this).attr('value'))
-                }
-            }
-            $(this).niceSelect('update')
-        })
-    }
-    if (!!document.querySelector('.input-genba')) {
-        let userIDs = []
-        $(document).find('select.input-genba').each(function () {
-            if (!$(this).hasClass('init-on')) {
-                let userID = $(this).attr('data-userid')
-                if ((userIDs.includes(userID) == false) && (userID != undefined)) {
-                    userIDs.push(userID)
-                }
-            }
-        })
-
-        console.log({
-            event: 'inputInit -> genba',
-            userIDs: userIDs
-        })
-
-        if (userIDs.length == 0) { genbaInit($(document).find('select.input-genba')) }
-        userIDs.forEach(userID => {
-            let allSelect = $(document).find('select.input-genba[data-userid="' + userID + '"]')
-            $.get('/users/info/' + userID, function (user) {
-                /*
-                console.log({
-                    event:'inputInit -> genba',
-                    userID:userID,
-                    user:user
-                })
-                */
-                let yesterday = moment(new Date($('.input-date.globalselector').data('date'))).subtract(1, 'days')._d
-                let dd = new Date(yesterday)
-                let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
-
-                let genbaYesterday;
-                let genbaYesterdayIDs;
-                $.get('/api/genba/today' + userID + '?today=' + ct, function (result) {
-                    console.log({
-                        event: 'genbaYesterday',
-                        userID: userID,
-                        yesterday: ct,
-                        result: result,
-                    })
-                    // Set a variable in local storage
-                    localStorage.setItem(`genbaYesterday-${userID}-${ct}`, JSON.stringify(result));
-
-                    // Retrieve and parse the string back to an object
-                    genbaYesterday = JSON.parse(localStorage.getItem(`genbaYesterday-${userID}-${ct}`));
-                    genbaYesterdayIDs = genbaYesterday.map(obj => obj.genbaID);
-
-
-                    if (user && (user.genba)) {
-                        if (user.genba.length > 0) {
-                            $.get("/api/genba", function (data) {
-                                allSelect.each(function () {
-                                    let genbaSelect = $(this)
-                                    genbaSelect.html('')
-                                    data = sortit(data, '工事名kana')
-                                    for (let index = 0; index < data.length; index++) {
-                                        let element = data[index]
-                                        if (element.工事名 && (user.genba.includes(element.工事名) == true)) {
-                                            if (genbaYesterdayIDs.includes(element._id)) {
-                                                genbaSelect.prepend('<option value="' + element._id + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
-                                            } else {
-                                                genbaSelect.append('<option value="' + element._id + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
-                                            }
-                                        }
-                                    };
-                                    if (!genbaSelect.hasClass('globalselector')) {
-                                        //genbaSelect.val('')
-                                        if (!genbaSelect.attr('value')) {
-                                            genbaSelect.val('')
-                                        } else {
-                                            genbaSelect.val(genbaSelect.attr('value'))
-                                        }
-                                    } else {
-                                        if (!genbaSelect.hasClass('init-on')) {
-                                            genbaSelect.addClass('init-on')
-                                            let selectid = 0
-                                            if (getUrlParameter('selectid') != undefined) {
-                                                selectid = getUrlParameter('selectid')
-                                            }
-                                            console.log({
-                                                event: 'inputInit -> genba',
-                                                selectid: selectid
-                                            })
-                                            if ((selectid == 0) || selectid == undefined) {
-                                                genbaSelect.val(genbaSelect.find("option:first").val()).change();
-                                            } else {
-                                                genbaSelect.val(genbaSelect.find('option[data-id="' + selectid + '"]').val()).change();
-                                            }
-                                        }
-                                    }
-                                    genbaSelect.niceSelect('update')
-                                })
-                            });
-                        }
-                    } else {
-                        genbaInit(allSelect)
-                    }
-                })
-
-
-            })
-        });
-    }
-    function genbaInit(allSelect) {
-        console.log({
-            event: 'genbaInit',
-            allSelect: allSelect
-        })
-        allSelect.each(function () {
-            let genbaSelect = $(this)
-            if (!$(this).hasClass('init-on')) {
-                $.get("/api/genba", function (data) {
-                    data = sortit(data, '工事名kana')
-                    for (let index = 0; index < data.length; index++) {
-                        let element = data[index]
-                        if (element.工事名) {
-                            genbaSelect.append('<option value="' + element._id+'" data-id="' + element._id+'">' + element.工事名+' </option>')
-                        }
-                    };
-                    if (!genbaSelect.hasClass('globalselector')) {
-                        genbaSelect.val('')
-                        if (!genbaSelect.attr('value')) {
-                            genbaSelect.val('')
-                        } else {
-                            genbaSelect.val(genbaSelect.attr('value'))
-                        }
-                        genbaSelect.niceSelect('update')
-                    } else {
-                        if (!genbaSelect.hasClass('init-on')) {
-                            genbaSelect.addClass('init-on')
-                            genbaSelect.val(genbaSelect.find("option:first").val()).change();
-                        }
-                    }
-                });
-            }
-        })
-    }
-    if (callback) { callback() }
-}
+    }    
 function initGlobalSelector() {
     if (!!document.querySelector('.input-responsible')) {
         let userID = $('#userID').attr('data-value')
@@ -4190,6 +4157,7 @@ function inputTemp(el) {
 function genbaOptionSelect() {
 
     $('body').on('change', 'select.input-genba.globalselector', function () {
+
         if ($(this).attr('data-name') == 'genbanippo') {
             let genbaVal = $(this).val()
             $(this).find('option').each(function () {
@@ -4203,12 +4171,6 @@ function genbaOptionSelect() {
                             userID = $('#userID').attr('data-value')
                         }
                         let cDate = $('.input-date.globalselector').attr('data-date')
-                        console.log({
-                            event: 'onChange .input-genba',
-                            userID: userID,
-                            cDate: cDate,
-                            genbaVal: genbaVal,
-                        })
                         resetGroupForm($('form.genbanippo'))
                         $('form.genbanippo .input-genbaID').val(genbaID)
                         $('form.genbanippo .input-genbaName').val(genbaVal)
@@ -4222,10 +4184,6 @@ function genbaOptionSelect() {
         }
 
         if (!!document.querySelector('#genbaichiran.current')) {
-            console.log({
-                event: 'onChange .input-genba',
-                action: 'genbaIchiranInit',
-            })
             genbaIchiranInit(today)
         }
     })
