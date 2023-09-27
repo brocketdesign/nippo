@@ -909,9 +909,8 @@ $(document).ready(async function () {
     
     //NIPPO FORM PAGE
     if (!!document.querySelector("#formPage")) {
-        nippoFormInit()
-        inputInit(function(){
-            displayMainContent()
+        nippoFormInit(function(){
+            
         })
         genbatoday($('#userID').attr('data-value'), today)
         $('.SelectUserID').attr('data-selectid', $('#userID').attr('data-value'))
@@ -957,7 +956,7 @@ $(document).ready(async function () {
         afterAllisDone()
     }
 
-    displayMainContent()
+
 
     //TOOLS
     updateUserInfo();
@@ -1073,7 +1072,7 @@ $(document).on('click', '.changeDay', function () {
 })
 
 $(document).on('click','#nav-nippo-tab',function() {
-    handleNippoIchiran()
+    //handleNippoIchiran()
 })
 
 function handleNippoIchiran(){
@@ -1100,288 +1099,237 @@ function nippoFormInit(callback) {
     } else {
         initFormField(userID, today, 'nippo')
     }
-
-    //initFormField(userID,today,'genbanippo')
     //ENABLE SETTINGS
     nippoFormSetting()
-    /*
-    //ADD NEW FORM
-    $('body').on('click','span.addGroupContainer',function(e){
-        addNewForm($(this).attr('data-name'))
-    })
-    */
-    /*
-    //UPDATE INPUT FIELD ON CLICK
-    $('.saveButton').on('click',function(){
-        nippoFormOrder()
-        $('input.statut').val('0')
-    })
-    $('.postButton').on('click',function(){
-        nippoFormOrder()
-        $('input.statut').val('1')
-    })
-    */
     //DISPLAY ALERT IF MORE THAN 10HOURS
     $(document).on('change', 'select.input-time', function () {
         updateTotalTime()
     })
-    /*
-    $(document).on("change",".input-type", function(){
-        let currentType = $(this).val()
-        let workerNameSelect = $(this).next('.input-workername')
-        workerNameSelect.html('')
-        $.get( "/api/koushu", function( data ) {
-            data.forEach(element => {
-                if(element!= undefined){
-                    if( element.el == currentType){
-                        element.name.forEach(element => {
-                            if( element != ""){
-                                workerNameSelect.append('<option>'+element+'</option>')
-                            }
-                        });
-                    }
-                }
+
+    autoSaveNippoForm()
+    if (callback) {callback()}
+}
+
+function nippoFormSetting() {
+
+    //ADDING GROUP
+    $('body').on('click', 'span.addGroop', function (e) {
+        addGroupForm($(this).attr('data-name'), $(this).attr('data-value'))
+    })
+    $('.enableSetting').on('click', function () {
+        $(document).find('.' + $(this).attr('data-name')).find('.settingOptions').fadeToggle(500)
+        $('.' + $(this).attr('data-name') + 'Form').find('.settingOptions').fadeToggle(500)
+        $('.' + $(this).attr('data-name') + 'Form .form-group').toggleClass('settingOn')
+
+    })
+    //ENABLE SETTING
+
+    //REMOVE GROUP FIELD
+    $('body').on('click', '.removeGroup', function () {
+        let formSelect = $(this).attr('data-name')
+        let formIndex = $(this).parent().closest('form').attr('data-value')
+        let formID = 'form.' + formSelect + '[data-value="' + formIndex + '"]'
+        if ($('body').find(formID + ' .form-container .form-group').length > 1) {
+            $(formID + ' .form-group[data-value="' + $(this).attr('data-value') + '"]').fadeOut(500, function () {
+                $(this).remove()
             });
+            let gIc = parseInt($(formID + ' .form-container .form-group').length - 1)
+            $('.totalLine.' + formSelect).attr('value', gIc)
+
+        }
+        setTimeout(() => {
+            nippoFormOrder()
+            //saveToDB(formSelect,formIndex)
+        }, 2000);
+    })
+    $('body').on('click', '.removeGroupContainer', function () {
+        let formSelect = $(this).attr('data-name')
+        let formIndex = $(this).parent().closest('form').attr('data-value')
+        let formID = 'form.' + formSelect + '[data-value="' + formIndex + '"]'
+        if ($('body').find('.' + formSelect + 'Form').length > 1) {
+            $(formID).fadeOut(500, function () {
+                $(this).remove()
             });
-    });
-    */
+            let gIc = parseInt($('.' + formSelect + 'Form').length - 1)
+            $('.totalGroupContainer.' + formSelect).attr('value', gIc)
 
-    function nippoFormSetting() {
+        }
+        setTimeout(() => {
+            nippoFormOrder()
+            //saveToDB(formSelect,formIndex)
+        }, 2000);
+    })
 
-        //ADDING GROUP
-        $('body').on('click', 'span.addGroop', function (e) {
-            addGroupForm($(this).attr('data-name'), $(this).attr('data-value'))
-        })
-        $('.enableSetting').on('click', function () {
-            $(document).find('.' + $(this).attr('data-name')).find('.settingOptions').fadeToggle(500)
-            $('.' + $(this).attr('data-name') + 'Form').find('.settingOptions').fadeToggle(500)
-            $('.' + $(this).attr('data-name') + 'Form .form-group').toggleClass('settingOn')
-
-        })
-        //ENABLE SETTING
-
-        //REMOVE GROUP FIELD
-        $('body').on('click', '.removeGroup', function () {
-            let formSelect = $(this).attr('data-name')
-            let formIndex = $(this).parent().closest('form').attr('data-value')
-            let formID = 'form.' + formSelect + '[data-value="' + formIndex + '"]'
-            if ($('body').find(formID + ' .form-container .form-group').length > 1) {
-                $(formID + ' .form-group[data-value="' + $(this).attr('data-value') + '"]').fadeOut(500, function () {
-                    $(this).remove()
-                });
-                let gIc = parseInt($(formID + ' .form-container .form-group').length - 1)
-                $('.totalLine.' + formSelect).attr('value', gIc)
-
-            }
-            setTimeout(() => {
-                nippoFormOrder()
-                //saveToDB(formSelect,formIndex)
-            }, 2000);
-        })
-        $('body').on('click', '.removeGroupContainer', function () {
-            let formSelect = $(this).attr('data-name')
-            let formIndex = $(this).parent().closest('form').attr('data-value')
-            let formID = 'form.' + formSelect + '[data-value="' + formIndex + '"]'
-            if ($('body').find('.' + formSelect + 'Form').length > 1) {
-                $(formID).fadeOut(500, function () {
-                    $(this).remove()
-                });
-                let gIc = parseInt($('.' + formSelect + 'Form').length - 1)
-                $('.totalGroupContainer.' + formSelect).attr('value', gIc)
-
-            }
-            setTimeout(() => {
-                nippoFormOrder()
-                //saveToDB(formSelect,formIndex)
-            }, 2000);
-        })
-
-    }
-    function nippoFormOrder() {
-        $.each($('form'), function () {
-            $(this).find('.form-container .form-group').each(function (index, value) {
-                index = index + 1
-                $(this).attr('data-value', index)
-                $.each($(this).find('.removeGroup'), function () {
-                    $(this).attr('data-value', index)
-                })
-                $.each($(this).find('input'), function () {
-                    if($(this).attr('name')) {
-                        let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-                        $(this).attr('name', name + index)
-                    }
-                })
-                $.each($(this).find('select'), function () {
-                    if ($(this).attr('name')) {
-                        let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-                        $(this).attr('name', name + index)
-                    } else {
-                        if($(this).attr('data-name')) {
-                            let name = $(this).attr('data-name').substring(0, $(this).attr('data-name').indexOf('-') + 1)
-                            $(this).attr('data-name', name + index)
-                        }
-                    }
-                })
-                $.each($(this).find('textarea'), function () {
-                    if ($(this).attr('name')) {
-                        let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-                        $(this).attr('name', name + index)
-                    }
-                })
-            })
-        })
-        $('body').find('.genbanippoForm').each(function (index, value) {
+}
+function nippoFormOrder() {
+    $.each($('form'), function () {
+        $(this).find('.form-container .form-group').each(function (index, value) {
             index = index + 1
             $(this).attr('data-value', index)
-            $(this).find('.removeGroupContainer').attr('data-value', index)
-        })
-    }
-    function nippoChart(data) {
-        let yData = Object.keys(data)
-        let xData = []
-        yData.forEach(element => {
-            xData.push(data[element])
-        });
-        var data = [
-            {
-                type: 'bar',
-                y: yData,
-                x: xData,
-                orientation: 'h',
-                width: 0.5
-            }
-        ];
-
-        Plotly.newPlot('nippoChart', data, {}, { staticPlot: true });
-    }
-    //AUTOSAVE FUNCTION
-    function autoSaveNippoForm() {
-        var timeoutId;
-        $('body').on('input propertychange change', 'form', function () {
-            let formSelect = $(this).attr('data-name')
-            let formIndex = $(this).attr('data-value')
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(function () {
-                if (formSelect) {
-                    //saveToDB(formSelect,formIndex);
+            $.each($(this).find('.removeGroup'), function () {
+                $(this).attr('data-value', index)
+            })
+            $.each($(this).find('input'), function () {
+                if($(this).attr('name')) {
+                    let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+                    $(this).attr('name', name + index)
                 }
-            }, 2000);
-        });
-        $('body').on('click', '.sendForm', function () {
-            $('.savingPointerHide').hide()
-            let spt1 = $(this).find('.savingPointer')
-            spt1.show()
-            if (!$('.savingPointerHide').is(':visible')) {
-                $('form').each(function () {
-                    if ($(this).is(':visible')) {
-                        let formSelect = $(this).attr('data-name')
-                        let formIndex = $(this).attr('data-value')
-                        saveToDB(formSelect, formIndex, function () {
-                            spt1.hide()
-                            $('.savingPointerHide').show()
-                            ichiranManage()
-                            /*
-                        setTimeout(() => {
-                            window.location.reload(true)
-                        }, 500);
-                        */
-                        });
+            })
+            $.each($(this).find('select'), function () {
+                if ($(this).attr('name')) {
+                    let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+                    $(this).attr('name', name + index)
+                } else {
+                    if($(this).attr('data-name')) {
+                        let name = $(this).attr('data-name').substring(0, $(this).attr('data-name').indexOf('-') + 1)
+                        $(this).attr('data-name', name + index)
                     }
-                })
-            }
-            SUA({ event: '日報入力ページ', detail: '「送信ボタン」をクリック' })
+                }
+            })
+            $.each($(this).find('textarea'), function () {
+                if ($(this).attr('name')) {
+                    let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+                    $(this).attr('name', name + index)
+                }
+            })
         })
-    }
-    function validateForm(formSelect, index) {
-        let result = []
-        let formId = 'form.' + formSelect + '[data-value="' + index + '"]'
-        $(formId).find('select').each(function () {
-            if (($(this).val() == '') || ($(this).val() == null)) {
-                //$(this).addClass('border border-danger')
-                result.push(false);
-                return false
+    })
+    $('body').find('.genbanippoForm').each(function (index, value) {
+        index = index + 1
+        $(this).attr('data-value', index)
+        $(this).find('.removeGroupContainer').attr('data-value', index)
+    })
+}
+function nippoChart(data) {
+    let yData = Object.keys(data)
+    let xData = []
+    yData.forEach(element => {
+        xData.push(data[element])
+    });
+    var data = [
+        {
+            type: 'bar',
+            y: yData,
+            x: xData,
+            orientation: 'h',
+            width: 0.5
+        }
+    ];
+
+    Plotly.newPlot('nippoChart', data, {}, { staticPlot: true });
+}
+//AUTOSAVE FUNCTION
+function autoSaveNippoForm() {
+    var timeoutId;
+    $('body').on('input propertychange change', 'form', function () {
+        let formSelect = $(this).attr('data-name')
+        let formIndex = $(this).attr('data-value')
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(function () {
+            if (formSelect) {
+                //saveToDB(formSelect,formIndex);
             }
-        })
-        $(formId).find('textarea').each(function () {
-            if (($(this).val() == '') || ($(this).val() == null)) {
-                //$(this).addClass('border border-danger')
-                result.push(false);
-                return false
-            }
-        })
-        if (result.includes(false) == false) {
-            return true
-        } else {
-            alert('入力内容をご確認ください。')
+        }, 2000);
+    });
+    $('body').on('click', '.sendForm', function () {
+        $('.savingPointerHide').hide()
+        let spt1 = $(this).find('.savingPointer')
+        spt1.show()
+        if (!$('.savingPointerHide').is(':visible')) {
+            $('form').each(function () {
+                if ($(this).is(':visible')) {
+                    let formSelect = $(this).attr('data-name')
+                    let formIndex = $(this).attr('data-value')
+                    saveToDB(formSelect, formIndex, function () {
+                        spt1.hide()
+                        $('.savingPointerHide').show()
+                        ichiranManage()
+                    });
+                }
+            })
+        }
+        SUA({ event: '日報入力ページ', detail: '「送信ボタン」をクリック' })
+    })
+}
+function validateForm(formSelect, index) {
+    let result = []
+    let formId = 'form.' + formSelect + '[data-value="' + index + '"]'
+    $(formId).find('select').each(function () {
+        if (($(this).val() == '') || ($(this).val() == null)) {
+            //$(this).addClass('border border-danger')
+            result.push(false);
             return false
         }
-
+    })
+    $(formId).find('textarea').each(function () {
+        if (($(this).val() == '') || ($(this).val() == null)) {
+            //$(this).addClass('border border-danger')
+            result.push(false);
+            return false
+        }
+    })
+    if (result.includes(false) == false) {
+        return true
+    } else {
+        alert('入力内容をご確認ください。')
+        return false
     }
-    function saveToDB(formSelect, index, callback) {
-        let formId = 'form.' + formSelect + '[data-value="' + index + '"]'
 
-        //GET TOTAL LINE
-        let totalLine = 0
-        $(formId).find('.form-group[data-name="' + formSelect + '"]').each(function () {
-            let n = $(this).attr('data-value')
-            if (formSelect == 'nippo') {
-                let genba = $(this).find('.input-genba[name="工事名-' + n + '"]').val()
-                let type = $(this).find('.input-type[name="作業名-' + n + '"]').val()
-                let time = $(this).find('.input-time[name="日-' + n + '"]').val()
-                let subject = $(this).find('.input-subject[name="作業内容-' + n + '"]').val()
-                /*
-                console.log({
-                    n:n,
-                    genba:genba,
-                    type:type,
-                    time:time,
-                    subject:subject
-                })
-                */
-                if ((genba != null) || (type != null) || (time != null) || (subject != "")) {
-                    totalLine += 1
-                }
-            } else {
-                let koushu = $(this).find('.input-koushu[name="工種-' + n + '"]').val()
-                let company = $(this).find('.input-company[name="業社名-' + n + '"]').val()
-                let personal = $(this).find('.input-personal[name="人員-' + n + '"]').val()
-                let subject = $(this).find('.input-subject[name="作業内容-' + n + '"]').val()
-                /*
-                console.log({
-                    n:n,
-                    koushu:koushu,
-                    company:company,
-                    personal:personal,
-                    subject:subject
-                })
-                */
-                if ((koushu != null) || ((company != null) && (company != "")) || ((personal != null) && (personal != "")) || (subject != "")) {
-                    totalLine += 1
-                }
+}
+function saveToDB(formSelect, index, callback) {
+    let formId = 'form.' + formSelect + '[data-value="' + index + '"]'
+
+    //GET TOTAL LINE
+    let totalLine = 0
+    $(formId).find('.form-group[data-name="' + formSelect + '"]').each(function () {
+        let n = $(this).attr('data-value')
+        if (formSelect == 'nippo') {
+            let genba = $(this).find('.input-genba[name="工事名-' + n + '"]').val()
+            let type = $(this).find('.input-type[name="作業名-' + n + '"]').val()
+            let time = $(this).find('.input-time[name="日-' + n + '"]').val()
+            let subject = $(this).find('.input-subject[name="作業内容-' + n + '"]').val()
+            /*
+            console.log({
+                n:n,
+                genba:genba,
+                type:type,
+                time:time,
+                subject:subject
+            })
+            */
+            if ((genba != null) || (type != null) || (time != null) || (subject != "")) {
+                totalLine += 1
             }
-
-        })
-        $(formId).find('.totalLine').val(totalLine)
-        //console.log({totalLine:totalLine})
-        $('.savingPointer[data-name="' + formSelect + '"]').fadeIn(500)
-        let result = {}
-        $(formId).find('input').each(function () {
-            result[$(this).attr('name')] = $(this).val()
-
-        })
-        $(formId).find('select').each(function () {
-            if (!$(this).hasClass('input-temp')) {
-                if (($(this).val() == '') || ($(this).val() == null)) {
-                    //$(this).addClass('border border-danger')
-                } else {
-                    if ($(this).hasClass('border border-danger')) {
-                        $(this).removeClass('border border-danger')
-                    }
-                    result[$(this).attr('name')] = $(this).val()
-                }
+        } else {
+            let koushu = $(this).find('.input-koushu[name="工種-' + n + '"]').val()
+            let company = $(this).find('.input-company[name="業社名-' + n + '"]').val()
+            let personal = $(this).find('.input-personal[name="人員-' + n + '"]').val()
+            let subject = $(this).find('.input-subject[name="作業内容-' + n + '"]').val()
+            /*
+            console.log({
+                n:n,
+                koushu:koushu,
+                company:company,
+                personal:personal,
+                subject:subject
+            })
+            */
+            if ((koushu != null) || ((company != null) && (company != "")) || ((personal != null) && (personal != "")) || (subject != "")) {
+                totalLine += 1
             }
-        })
-        $(formId).find('textarea').each(function () {
+        }
+
+    })
+    $(formId).find('.totalLine').val(totalLine)
+    //console.log({totalLine:totalLine})
+    $('.savingPointer[data-name="' + formSelect + '"]').fadeIn(500)
+    let result = {}
+    $(formId).find('input').each(function () {
+        result[$(this).attr('name')] = $(this).val()
+
+    })
+    $(formId).find('select').each(function () {
+        if (!$(this).hasClass('input-temp')) {
             if (($(this).val() == '') || ($(this).val() == null)) {
                 //$(this).addClass('border border-danger')
             } else {
@@ -1390,16 +1338,25 @@ function nippoFormInit(callback) {
                 }
                 result[$(this).attr('name')] = $(this).val()
             }
-        })
-        // $(formId).find('select').niceSelect('update')
-        $.post('/api/' + formSelect, result, function () {
-            setTimeout(() => {
-                $('.savingPointer[data-name="' + formSelect + '"]').fadeOut(500)
-                if (callback) { callback() }
-            }, 1000);
-        })
-    }
-    autoSaveNippoForm()
+        }
+    })
+    $(formId).find('textarea').each(function () {
+        if (($(this).val() == '') || ($(this).val() == null)) {
+            //$(this).addClass('border border-danger')
+        } else {
+            if ($(this).hasClass('border border-danger')) {
+                $(this).removeClass('border border-danger')
+            }
+            result[$(this).attr('name')] = $(this).val()
+        }
+    })
+    // $(formId).find('select').niceSelect('update')
+    $.post('/api/' + formSelect, result, function () {
+        setTimeout(() => {
+            $('.savingPointer[data-name="' + formSelect + '"]').fadeOut(500)
+            if (callback) { callback() }
+        }, 1000);
+    })
 }
 //UPDATE USERID FROM SELECT & RESET FORM & INIT ENTRIES
 $(document).on('change', '.input-responsible.globalselector', function () {
@@ -1890,7 +1847,7 @@ function genbatoday(userID, today) {
     $('.genbatoday').html('')
     $('.genbatodayloading').show()
     if (userID == undefined) { userID = $('#userID').attr('data-value') }
-    $.get('/api/genba/today' + userID + '?today=' + today, async function (result) {
+    $.get('/api/genba/today/' + userID + '?today=' + today, async function (result) {
         $('.genbatodayloading').hide()
         let genbaList = await $.get("/api/genba");
         if (result.length > 0) {
@@ -3311,6 +3268,8 @@ function getTotal() {
     })
 }
 function miniTools() {
+    inputInit()
+    displayMainContent()
     displayPeriodList(20)
     //UPDATE ICHIRAN FROM SELECT
     $(document).on('change', '.period-list.globalselector', function () {
@@ -3765,9 +3724,8 @@ function updateListGlobalSelector(el, userID) {
 }
 function inputInit(callback) {
     loadinput(['koushu', 'type', 'place', 'company'])
-    initGenbaInput()
     initTimeInput()
-    if (callback) { callback() }  
+    initGenbaInput(callback)
 }
 function initTimeInput() {
     if (!!document.querySelector('.input-time')) {
@@ -3790,7 +3748,7 @@ function initTimeInput() {
     }
 }
 
-function initGenbaInput() {
+function initGenbaInput(callback) {
     // Check if '.input-genba' exists in the document
     if (!!document.querySelector('.input-genba')) {
         let userIDs = [];
@@ -3815,6 +3773,7 @@ function initGenbaInput() {
         userIDs.forEach(userID => {
             processUserID(userID, function () {
                 console.log("Completed processing for userID:", userID);
+                if (callback) { callback() }  
             });
         });
     }
@@ -3840,9 +3799,9 @@ function processDateAndGenba(user, allSelect, callback) {
     let yesterday = moment(new Date($('.input-date.globalselector').data('date'))).subtract(1, 'days')._d;
     let dd = new Date(yesterday);
     let ct = `${dd.getMonth() + 1}/${dd.getDate()}/${dd.getFullYear()}`;
-    
+
     // Fetch Genba info for yesterday
-    $.get(`/api/genba/today${user._id}?today=${ct}`, function (result) {
+    $.get(`/api/genba/today/${user._id}?today=${ct}`, function (result) {
         console.log({ event: 'genbaYesterday', userID: user._id, yesterday: ct, result: result });
         localStorage.setItem(`genbaYesterday-${user._id}-${ct}`, JSON.stringify(result));
         
@@ -3875,7 +3834,6 @@ function populateSelectOptions(user, allSelect, genbaYesterday, result, callback
                         }
                     };
                     if (!genbaSelect.hasClass('globalselector')) {
-                        //genbaSelect.val('')
                         if (!genbaSelect.attr('value')) {
                             genbaSelect.val('')
                         } else {
@@ -3976,6 +3934,7 @@ function loadinput(types) {
         }
     }    
 function initGlobalSelector() {
+
     if (!!document.querySelector('.input-responsible')) {
         let userID = $('#userID').attr('data-value')
         if (getUrlParameter('selectid') != undefined && getUrlParameter('selectid')) {

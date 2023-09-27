@@ -158,10 +158,6 @@ router.post('/delete',urlencodedParser, (req, res) => {
 router.get('/info/:userID',urlencodedParser, (req, res) => {
 
     let userID = req.params.userID; 
-    console.log({
-        event:'user info',
-        userID:userID
-    })
     try{
         db.collection('users').findOne({'_id':new ObjectId(userID)}, (err, result) => {
             if(result){
@@ -173,7 +169,7 @@ router.get('/info/:userID',urlencodedParser, (req, res) => {
     }catch(err){
         res.send(false)
         console.log(err)
-        //console.log('Problem identifying the user')
+        console.log('Problem identifying the user')
     }
   
 });

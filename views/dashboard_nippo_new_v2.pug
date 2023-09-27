@@ -130,18 +130,15 @@ block content
                         #nippoichiran.py-3.s-el.current(aria-labelledby="nav-nippo-tab")
                             .display.view-list(style="display:none")
                                 ul.list-group.ichiran.row.bg-transparent.border-none
-                                .loading.text-center.d-none.w-100.bg-white.border.border-secondary
-                                    .spinner-border.text-secondary.m-3(role="status" data-value="0")
-                                        .sr-only ローディング...
                             .display.view-table(style="display:none")
                                 .table-responsive.border.border-secondary.rounded
                                         table.ichiran#tableIchiran.w-100.table-bordered(data-name="nippoichiran")
                                             thead.bg-primary.text-white.text-center
                                                 tr 
                                             tbody.edit-options
-                                .loading.text-center.d-none.w-100.bg-white.border.border-secondary.border-top-0
-                                    .spinner-border.text-secondary.m-3(role="status" data-value="0")
-                                        .sr-only ローディング...
+                            .loading.text-center.w-100.bg-white.border.border-secondary
+                                .spinner-border.text-secondary.m-3(role="status" data-value="0")
+                                    .sr-only ローディング...
                             p#noResult.d-none.text-center.m-3 該当する項目がありません。
             div(class="tab-pane fade" id="nav-genbanippo" role="tabpanel" aria-labelledby="nav-genbanippo-tab")
                 .row.mt-3.pt-3.border-top
@@ -249,18 +246,15 @@ block content
                         #genbaichiran.current.py-3.s-el(aria-labelledby="nav-genbanippo-tab")
                             .display.view-list(style="display:none")
                                 ul.list-group.ichiran.row.bg-transparent.border-none
-                                .loading.text-center.d-none.w-100.bg-white.border.border-secondary
-                                    .spinner-border.text-secondary.m-3(role="status" data-value="0")
-                                        .sr-only ローディング...
                             .display.view-table(style="display:none")
                                 .table-responsive.border.border-secondary.rounded
                                     table.ichiran.w-100.table-bordered(data-name="genbaichiran")
                                         thead.bg-warning.text-center
                                             tr 
                                         tbody
-                                .loading.text-center.d-none.w-100.bg-white.border.border-secondary.border-top-0
-                                    .spinner-border.text-secondary.m-3(role="status" data-value="0")
-                                        .sr-only ローディング...
+                            .loading.text-center.w-100.bg-white.border.border-secondary
+                                .spinner-border.text-secondary.m-3(role="status" data-value="0")
+                                    .sr-only ローディング...
                             p#noResult.d-none.text-center.m-3 該当する項目がありません。
             .modal.fade#myModal
                 .modal-dialog.modal-lg

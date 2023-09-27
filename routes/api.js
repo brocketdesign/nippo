@@ -10,6 +10,7 @@ const initData = require('../modules/initData');
 const genbatoday = require('../modules/genbatoday');
 const geoip = require('geoip-lite');
 const moment = require('moment');
+const genbaModule = require('../modules/genbaModule'); // Import the refactored module
 const urlencodedParser = bodyParser.urlencoded({ extended: true })
 require('dotenv').config({ path: './.env' });
 router.use(cookieParser('horiken'));
@@ -146,13 +147,6 @@ router.get('/nippoichiran', urlencodedParser, async (req, res) => {
     let myCollection = db.collection('users')
     let getDatas = new Promise((resolve, reject) => {
       let nippoCollection = db.collection(userID + '_nippo')
-      console.log({
-        event: 'nippoichiran',
-        userID: userID,
-        start_period: start_period,
-        end_period: end_period,
-        today: today,
-      })
       nippoCollection.find().sort({ 'today': -1 }).toArray((err, results) => {
         if (results.length > 0) {
           let data = count = []
@@ -215,15 +209,6 @@ router.get('/genbaichiran', urlencodedParser, async (req, res) => {
     let today = req.query.today
     let start_period = req.query.start
     let end_period = req.query.end
-
-    console.log({
-      event: 'genbaichiran',
-      genbaID: genbaID,
-      today: today,
-      start_period: start_period,
-      end_period: end_period,
-    })
-
     let myCollection = db.collection('users')
     let getDatas = new Promise((resolve, reject) => {
       let nippoCollection = db.collection(genbaID + '_genbanippo')
@@ -233,17 +218,6 @@ router.get('/genbaichiran', urlencodedParser, async (req, res) => {
           results.forEach((element, index) => {
             if ((count.includes(element.日付) == false) && (element.日付)) {
               data.push(element)
-              /*
-              if((start_period != 'false') && (end_period != 'false' )){
-                if(( new Date(element.日付) >= new Date(start_period) ) && (new Date(element.日付) <= new Date(end_period))){
-                  data.push(element)
-                  //count.push(element.日付)
-                }
-              }else{
-                data.push(element)
-                //count.push(element.日付)
-              }
-              */
             }
             if ((index + 1) >= results.length) {
               if (data.length > 0) {
@@ -399,77 +373,39 @@ router.get('/nippochart/:id', urlencodedParser, async (req, res) => {
     res.redirect('../');
   }
 });
-router.get('/genba/today:usersID', urlencodedParser, async (req, res) => {
-  const db = req.app.locals.db; let dbData = await initData(req)
-  var date = new Date();
-  var today = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
-  let ct = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
-  if (req.query.today != undefined) {
-    ct = req.query.today
+
+router.get('/genba/today/:usersID', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db;
+  let dbData = await initData(req);
+  let userID = req.params.usersID;
+  let today = moment().format('M/D/YYYY'); // Today's date
+  let ct = today; // Initialize current time (ct) to today
+
+  if (req.query.today !== undefined) {
+    ct = req.query.today; // Update ct if today query param is provided
   }
-  let weekspan = []
+
+  let weekspan = [];
+  // Generating weekspan
   for (let i = 0; i <= 7; i++) {
-    let wd = new Date(moment().subtract(i, 'days').format())
-    wd = (wd.getMonth() + 1) + '/' + wd.getDate() + '/' + wd.getFullYear();
-    weekspan.push(wd)
+    let wd = moment().subtract(i, 'days').format('M/D/YYYY');
+    weekspan.push(wd);
   }
-  //console.log(weekspan)
-  let userID = req.params.usersID
   if (dbData.isLogin) {
-    let isGenbaRes = await new Promise((resolve, reject) => {
-      db.collection('genbatoday').find({ userID: userID, today: { $in: weekspan } }).toArray(async (err, results) => {
-        if (results.length > 0) {
-          let isGenba = []; let tt = []
-          for (let i = 0; i < results.length; i++) {
-            let element = results[i]; let genbaID = element.genbaID; let genbaName = element.genbaName
-            if (tt.includes(genbaID) == false) {
-              isGenba.push({ genbaID: genbaID, genbaName: genbaName })
-              tt.push(genbaID)
-            }
-          };
-          resolve(isGenba)
-        } else {
-          if (ct != today) {
-            let genbas = await db.collection('genba').find().toArray()
-            let isGenba = []; let tt = []; let count = 0
-            for (let i = 0; i < genbas.length; i++) {
-              let genba = genbas[i]
-              await db.collection(genba._id + '_genbanippo').findOne({ userID: userID, today: ct }, (err, value) => {
-                console.log(value)
-                if (value) {
-                  value.today = ct
-                  if (tt.includes(value.genbaID) == false) {
-                    if (parseInt(value.totalLine) > 0) {
-                      isGenba.push({ genbaID: value.genbaID, genbaName: value.genbaName })
-                    }
-                    tt.push(value.genbaID)
-                    genbatoday(value, db)
-                  }
-                }
-                count++
-                if (count >= genbas.length) {
-                  resolve(isGenba)
-                }
-              })
-            }
-          } else {
-            resolve([])
-          }
-        }
-      })
-    })
-    console.log({
-      event: '/genba/today',
-      userID: userID,
-      today: today,
-      ct: ct,
-      isGenbaRes: isGenbaRes,
-    })
-    res.send(isGenbaRes)
+    let isGenbaRes;
+    // Decide which function to call based on the value of ct
+    if (ct === today) {
+      isGenbaRes = await genbaModule.getGenbaToday(db, userID, ct, weekspan);
+    } else {
+      isGenbaRes = await genbaModule.getGenbaOtherDays(db, userID, ct);
+    }
+    res.send(isGenbaRes);
   } else {
-    res.send(false)
+    res.send(false);
   }
-})
+});
+
+
 router.get('/filter', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {
