@@ -1,37 +1,61 @@
 const express = require('express');
-const app = express();
 const bodyParser = require("body-parser");
-require('dotenv').config({ path: './.env' });
 const MongoClient = require('mongodb').MongoClient;
-var index = require('./routes/index');
-var api = require('./routes/api.js');
-var dashboard = require('./routes/dashboard');
-// var new_dashboard = require('./routes/new_dashboard');
-var users = require('./routes/users.js');
-const cronjob = require('./modules/cronjob')
-app.use(express.static('public'));  
-app.use(express.static(__dirname + '/public'));
-app.set('view engine', 'pug');
+const ip = require('ip');
+const cronjob = require('./modules/cronjob');
+const index = require('./routes/index');
+const api = require('./routes/api.js');
+const dashboard = require('./routes/dashboard');
+const users = require('./routes/users.js');
+require('dotenv').config({ path: './.env' });
 
-app.use('/', index);
-app.use('/api', api);
-app.use('/dashboard', dashboard);
-// app.use('/new_dashboard', new_dashboard);
-app.use('/users', users);
+// Initialize Express app
+const app = express();
 
-app.use((req, res,next) => {
-  res.status(404).redirect('/')
-});
+// Middleware and configurations
+configureApp(app);
 
-MongoClient.connect(process.env.MONGODB_URL)
-.then(client =>{
-  const db = client.db('horiken');
-  app.locals.db = db;
-  cronjob(db)
-  console.log('DB connect successful')
-});
+// Route definitions
+setupRoutes(app);
 
-const port = process.env.PORT || 4000
-const server = app.listen(port, () => {
-  console.log(`Express running → PORT ${server.address().port}`);
-});
+// Database connection
+connectToDatabase()
+  .then(db => {
+    app.locals.db = db;
+    cronjob(db);console.log(`Successfully connected to MongoDB database: ${db.databaseName}`);
+  });
+
+// Start server
+startServer(app);
+
+function configureApp(app) {
+  app.use(express.static('public'));
+  app.set('view engine', 'pug');
+  console.log('App configured');
+}
+
+function setupRoutes(app) {
+  app.use('/', index);
+  app.use('/api', api);
+  app.use('/dashboard', dashboard);
+  app.use('/users', users);
+  app.use(handle404);
+  console.log('Routes setup');
+}
+
+function handle404(req, res, next) {
+  res.status(404).redirect('/');
+  console.log('404 error handled');
+}
+
+async function connectToDatabase() {
+  const client = await MongoClient.connect(process.env.MONGODB_URL);
+  return client.db('horiken');
+}
+
+function startServer(app) {
+  const port = process.env.PORT || 4000;
+  app.listen(port, () => {
+    console.log(`Express running → PORT http://${ip.address()}:${port}`);
+  });
+}
