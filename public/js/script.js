@@ -1414,6 +1414,7 @@ async function nippoIchiranInit(userID, today, start, end) {
     }
     if (!$('#nippoichiran').hasClass('ongoing')) {
         $('#nippoichiran').addClass('ongoing')
+
         $('#nippoichiran .ichiran tbody').html('')
         $('#nippoichiran ul.ichiran').html('')
         $('#totalDays').html('')
