@@ -191,7 +191,7 @@ router.get('/nippoichiran', urlencodedParser, async (req, res) => {
     })
     await getDatas.then((data) => {
       data = data.sort((a, b) => {
-        return new Date(a.date) - new Date(b.date);
+        return new Date(b.date) - new Date(a.date);
       });
       //console.log(data)
       res.send(data)

@@ -1434,7 +1434,7 @@ async function nippoIchiranInit(userID, today, start, end) {
             $('#nippoichiran .ichiran thead tr').html('')
             $('#nippoichiran').show()
             //SET HEADINGS
-            $('#nippoichiran .ichiran thead tr').prepend('<th scope="col" class="pl-2 py-2" onclick="sortTableByDate(tableIchiran, 0)">日付<i id="arrow-up" style="width: 20px; height: 20px; margin-left: 5px" data-feather="arrow-up"></i><i id="arrow-down" style="width: 20px; height: 20px; margin-left: 5px" data-feather="arrow-down"></i></th><th scope="col" class="pl-2 py-2">現場名</th><th scope="col" class="pl-2 py-2">作業名</th><th scope="col" class="pl-2 py-2">日数</th><th scope="col" class="pl-2 py-2">作業内容</th><th scope="col" class="pl-2 py-2 d-none"></th>')            
+            $('#nippoichiran .ichiran thead tr').prepend('<th scope="col" class="pl-2 py-2" style="cursor:pointer" onclick="sortTableByDate(\'tableIchiran\', 0, \'nippo-arrow-up\', \'nippo-arrow-down\')">日付<i id="nippo-arrow-up" style="width: 20px; height: 20px; margin-left: 5px; display:none;" data-feather="arrow-up"></i><i id="nippo-arrow-down" style="width: 20px; height: 20px; margin-left: 5px" data-feather="arrow-down"></i></th><th scope="col" class="pl-2 py-2">現場名</th><th scope="col" class="pl-2 py-2">作業名</th><th scope="col" class="pl-2 py-2">日数</th><th scope="col" class="pl-2 py-2">作業内容</th><th scope="col" class="pl-2 py-2 d-none"></th>')            
             if (result) {
                 let genbaList = await $.get("/api/genba");
                 let info = { event: 'nippo-shukei', totalDays: 0 }
@@ -1998,7 +1998,7 @@ async function genbaIchiranInit(today, start, end) {
                 $('#genbaichiran .ichiran thead tr').html('')
                 $('#genbaichiran').show()
                 //SET HEADINGS TABLE
-                $('#genbaichiran .ichiran thead tr').prepend('<th scope="col" class="pl-2 py-2">日付</th><th scope="col" class="pl-2 py-2">工種</th><th scope="col" class="pl-2 py-2">業社名</th><th scope="col" class="pl-2 py-2">人員</th><th scope="col" class="pl-2 py-2">作業内容</th><th scope="col" class="pl-2 py-2">入力者名</th><th scope="col" class="d-none pl-2 py-2"></th>')
+                $('#genbaichiran .ichiran thead tr').prepend('<th scope="col" class="pl-2 py-2" style="cursor:pointer" onclick="sortTableByDate(\'genbaIchiran\', 0, \'genba-arrow-up\', \'genba-arrow-down\')">日付<i id="genba-arrow-up" style="width: 20px; height: 20px; margin-left: 5px;display:none;" data-feather="arrow-up"></i><i id="genba-arrow-down" style="width: 20px; height: 20px; margin-left: 5px;" data-feather="arrow-down"></i></th><th scope="col" class="pl-2 py-2">工種</th><th scope="col" class="pl-2 py-2">業社名</th><th scope="col" class="pl-2 py-2">人員</th><th scope="col" class="pl-2 py-2">作業内容</th><th scope="col" class="pl-2 py-2">入力者名</th><th scope="col" class="d-none pl-2 py-2"></th>')
                 //SHUKEI INFO
                 $('.card.info').show()
                 $('.info.savingPointer').show()
@@ -4307,47 +4307,56 @@ function westernDate(item){
     //     return days[date.getDay()];
     // }
 }
+function sortTableByDate(tableId, columnIndex, arrowUpId, arrowDownId) {
+    const table = document.getElementById(tableId);
 
-let flag = true;
-function sortTableByDate(tableId, columnIndex) {
-    const table = document.getElementById('tableIchiran');
+    if (!table) return; // Exit if table not found
+    
     const rows = Array.from(table.getElementsByTagName('tr'));
-  
-    function compareDates(a, b) {
-      let aa = a.cells[columnIndex].innerText;
-      let bb = b.cells[columnIndex].innerText;
-        var dateA = new Date(aa.replace(/月/, '/').replace(/日/, ''));
-        var dateB = new Date(bb.replace(/月/, '/').replace(/日/, ''));
+    if (rows.length <= 1) return; // Exit if not enough rows to sort
 
-            // Custom sort function to compare dates
-                // compare the dates
-                if (dateA < dateB) {
-                    return 1;
-                }
-                if (dateA > dateB) {
-                    return -1;
-                }
-                return 0;
+    function compareDates(a, b) {
+        let dateStringA = a.cells[columnIndex].innerText.split('(')[0];
+        let dateStringB = b.cells[columnIndex].innerText.split('(')[0];
+        
+        let dateA = new Date(dateStringA);
+        let dateB = new Date(dateStringB);
+        
+        if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+            console.error("Failed to parse dates:", dateStringA, dateStringB);
+            return 0;
+        }
+        
+        return dateA - dateB;
     }
-  
-    let sortedRows = [];
-    let arrowUp = document.getElementById('arrow-up');
-    let arrowDown = document.getElementById('arrow-down');
-    // Sort the rows
-    if (flag) {
-         sortedRows = rows.slice(1).sort(compareDates); // excluding the header row
-         arrowUp.style.display = 'inline';
-         arrowDown.style.display = 'none'
-        flag = false;
+
+    // Default sortOrder to 'desc' if not set
+    let sortOrder = table.dataset.sortOrder || 'desc';
+    const sortedRows = rows.slice(1).sort(compareDates);
+    
+    if (sortOrder === 'asc') {
+        sortedRows.reverse();
+        sortOrder = 'desc';
     } else {
-         sortedRows = rows.slice(1).sort(compareDates).reverse(); // excluding the header row
-         arrowUp.style.display = 'none';
-         arrowDown.style.display = 'inline'
-        flag = true;
+        sortOrder = 'asc';
     }
-    // Re-append the sorted rows back into the table
-    sortedRows.forEach(row => table.appendChild(row));
+    
+    // Update sortOrder for the next click
+    table.dataset.sortOrder = sortOrder;
+    // Assuming your table structure includes a tbody element
+    const tbody = table.getElementsByTagName('tbody')[0];
+
+    // Re-append the sorted rows back into the tbody
+    sortedRows.forEach(row => tbody.appendChild(row));
+    
+    // Update arrow display
+    const arrowUp = document.getElementById(arrowUpId);
+    const arrowDown = document.getElementById(arrowDownId);
+    if (arrowUp) arrowUp.style.display = sortOrder === 'desc' ? 'none' : 'inline';
+    if (arrowDown) arrowDown.style.display = sortOrder === 'desc' ? 'inline' : 'none';
 }
+
+
 
 // New Dashboard Page Init
 function newDashboardCalendarInit(userID, today, start, end) {

@@ -41,7 +41,8 @@ html
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css')
     link(rel='stylesheet', href='/css/bootstrap-timepicker.css')
     link(rel='stylesheet', href='/css/nice-select.css')
-    
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css")
+
     script(src='https://code.jquery.com/jquery-3.6.0.min.js' integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous")
     script(src="https://code.jquery.com/ui/1.10.0/jquery-ui.js")
     script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous")
@@ -89,31 +90,62 @@ html
                   span.ml-1.ico-sm(data-feather="log-out")
       div.d-lg-flex.d-block
         .collapse.navbar-collapse.d-lg-block.col-12.col-lg-3.col-xl-2.sticky-top.bg-success.p-0.pt-4#sidebarSupportedContent
-            a.new_dashboard-nav-page-title.mb-1(href="/dashboard/" data-value="nippo") ダッシュボード 
+            
+            a.new_dashboard-nav-link.mb-1(href="/dashboard/" data-value="nippo")
+              span.link-title
+                i.fas.fa-tachometer-alt.mr-2 
+                | ダッシュボード 
             a.new_dashboard-nav-link.mb-1(href="/dashboard/input_nippo/" data-value="nippo")
-              .link-title 日報入力画面
+              span.link-title
+                i.fas.fa-pencil-alt.mr-2 
+                | 日報入力画面
             a.new_dashboard-nav-link.mb-1(href="/dashboard/ichiran?type=nippo" data-value="nippo")
-              .link-title 業務日報一覧 
+              span.link-title
+                i.fas.fa-list-alt.mr-2   
+                | 業務日報一覧 
             a.new_dashboard-nav-link.mb-1(href="/dashboard/ichiran?type=genbanippo" data-value="nippo")
-              .link-title 現場日報一覧 
+              span.link-title
+                i.fas.fa-tools.mr-2  
+                | 現場日報一覧 
             a.new_dashboard-nav-link.mb-1.adminOnly(href="/dashboard/nippoichiranevery" data-value="nippo" style="display:none")
-              .link-title CSV作成
+              span.link-title
+                i.fas.fa-file-csv.mr-2   
+                | CSV作成
             a.new_dashboard-nav-link.mb-1.adminOnly(href="/dashboard/nipposhukei" data-value="nippo" style="display:none")
-              .link-title 日報集計 
+              span.link-title
+                i.fas.fa-calculator.mr-2   
+                | 日報集計 
             a.new_dashboard-nav-link.mb-1(href='/dashboard/settings/genba' data-value="nippo" )
-              .link-title 現場情報編集 
+              span.link-title
+                i.fas.fa-edit.mr-2  
+                | 現場情報編集 
             a.new_dashboard-nav-link.mb-1(href=`/dashboard/settings/company` data-value='receip')
-              .link-title 業者情報編集 
+              span.link-title
+                i.fas.fa-building.mr-2   
+                | 業者情報編集 
+
+            
             a.new_dashboard-nav-link.mb-1.adminOnly(style="display:none" href="/dashboard/settings/users" data-value='receip')
-              .link-title ユーザ管理
-            a.new_dashboard-nav-link.mb-1.adminOnly(style="display:none" href="/dashboard/settings/nippo" data-value='receip' )
-              .link-title 日報設定
-            a.new_dashboard-nav-link.mb-1.adminOnly(style="display:none" href="/dashboard/settings/genbastructure" data-value="nippo" )
-              .link-title 現場設定
-            a.new_dashboard-nav-link.mb-1.adminOnly( style="display:none" href="/dashboard/settings/global" data-value='receip' )
-              .link-title 基本設定
-            a.new_dashboard-nav-link.mb-1.adminOnly( style="display:none" href="/dashboard/settings/holiday" data-value='receip' )
-              .link-title カレンダー設定
+              span.link-title
+                i.fas.fa-users.mr-2
+                | ユーザ管理
+            a.new_dashboard-nav-link.mb-1.adminOnly(style="display:none" href="/dashboard/settings/nippo" data-value='receip')
+              span.link-title 
+                i.fas.fa-clipboard.mr-2
+                | 日報設定
+            a.new_dashboard-nav-link.mb-1.adminOnly(style="display:none" href="/dashboard/settings/genbastructure" data-value="nippo")
+              span.link-title
+                i.fas.fa-cogs.mr-2
+                | 現場設定
+            a.new_dashboard-nav-link.mb-1.adminOnly(style="display:none" href="/dashboard/settings/global" data-value='receip')
+              span.link-title
+                i.fas.fa-globe.mr-2
+                | 基本設定
+            a.new_dashboard-nav-link.mb-1.adminOnly(style="display:none" href="/dashboard/settings/holiday" data-value='receip')
+              span.link-title
+                i.fas.fa-calendar-alt.mr-2
+                | カレンダー設定
+                
         #preloader.position-fixed.bg-white.col-12.col-lg-9.col-xl-10(style="top: 0;bottom: 0;left: auto;right: 0;z-index: 999;padding-top:45vh;")
             .d-flex.justify-content-center
               .spinner-border(role="status")

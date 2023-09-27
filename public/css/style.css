@@ -367,7 +367,6 @@ input:disabled {
   color: #fff;
   word-wrap: break-word;
   background-clip: border-box;
-  border: 1px solid rgba(0, 0, 0, .125);
   border-radius: 0.25rem;
   text-decoration: none;
 }
@@ -397,12 +396,12 @@ input:disabled {
 .new_dashboard-nav-link>.link-title {
   padding: 0.75rem 1.25rem;
   margin-bottom: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, .125);
 }
 
 .new_dashboard-nav-link:hover {
-  background-color: #3acf5d;
-  color: #333;
+  background-color:#14ff0045;
+  color: #fff;
+  font-weight: 600;
   text-decoration: none;
 }
 /*
