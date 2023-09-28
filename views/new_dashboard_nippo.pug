@@ -6,8 +6,14 @@ block content
         .row 
             .col-12.col-md-7
                 .d-flex.justify-content-between
-                    a.btn.btn-primary.rounded-0.my-3.me-3.p-3(href="/dashboard/input_nippo/?nippoview=nav-nippo-tab") 社員入力画面
-                    a.btn.btn-warning.rounded-0.my-3.p-3(href="/dashboard/input_nippo/?nippoview=nav-genbanippo-tab") 現場日報入力画面
+                    a.btn.btn-primary.rounded-0.my-3.p-3.w-100(href="/dashboard/input_nippo/?nippoview=nav-nippo-tab" style="font-size: 2em;")
+                        span
+                            i.fas.fa-pencil-alt.mr-2 
+                            | 社員日報
+                    a.btn.btn-warning.rounded-0.my-3.p-3.w-100(href="/dashboard/input_nippo/?nippoview=nav-genbanippo-tab" style="font-size: 2em;") 
+                        span
+                            i.fas.fa-pencil-alt.mr-2 
+                            | 現場日報
                 .card.border-secondary.mb-3(style="width:100%")
                     .card-body.px-0.py-0
                         h5.px-2.py-1 業務日報カレンダー
