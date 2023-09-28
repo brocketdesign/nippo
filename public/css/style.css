@@ -370,7 +370,10 @@ input:disabled {
   border-radius: 0.25rem;
   text-decoration: none;
 }
-
+.text-muted {
+  font-size: 13px;
+  font-weight: bold;
+}
 .new_dashboard-nav-page-title {
   position: relative;
   display: -ms-flexbox;

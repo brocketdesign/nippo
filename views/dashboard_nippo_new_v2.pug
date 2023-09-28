@@ -4,8 +4,8 @@ block content
         h3.d-block.title.font-weight-light.mb-2.pb-2.border-bottom #{title}
         nav#nippoview
             div(class="nav nav-tabs d-flex" id="nav-tab" role="tablist")
-                button(class="nav-link active col btn btn-outline-primary" id="nav-nippo-tab" data-toggle="tab" data-target="#nav-nippo" type="button" role="tab" aria-controls="nav-nippo" aria-selected="true" onclick="setLocalStorageItem('nippoview','nav-nippo-tab');" data-sua-event="日報入力ページ" data-sua-detail="「社員日報」のTABをクリック") 
-                    span(style="font-size: 21px; font-weight: bold;") 社員日報
+                button(class="nav-link active col btn btn-outline-primary" id="nav-nippo-tab" data-toggle="tab" data-target="#nav-nippo" type="button" role="tab" aria-controls="nav-nippo" aria-selected="true" onclick="setLocalStorageItem('nippoview','nav-nippo-tab');" data-sua-event="日報入力ページ" data-sua-detail="「業務日報」のTABをクリック") 
+                    span(style="font-size: 21px; font-weight: bold;") 業務日報
                 button(class="nav-link btn col btn-outline-warning" id="nav-genbanippo-tab" data-toggle="tab" data-target="#nav-genbanippo" type="button" role="tab" aria-controls="nav-genbanippo" aria-selected="false" onclick="setLocalStorageItem('nippoview','nav-genbanippo-tab');" data-sua-event="日報入力ページ" data-sua-detail="「現場日報」のTABをクリック") 
                     span(style="font-size: 21px; font-weight: bold;") 現場日報
         div(class="tab-content" id="nav-tabContent")
@@ -13,8 +13,8 @@ block content
                 .col-12.col-lg
                     .row    
                         .col-auto.d-flex
-                            a.btn.btn-outline-primary.border.border-primary.SelectUserID.py-2.rounded.s-el(aria-labelledby="nav-nippo-tab" data-base="/dashboard/ichiran?type=nippo" onclick="genLinkandGo(this)" data-sua-event="日報入力ページ" data-sua-detail="「社員日報」アイコンをクリック" style="cursor:pointer;display:none") 
-                                span(data-feather="list") 社員日報
+                            a.btn.btn-outline-primary.border.border-primary.SelectUserID.py-2.rounded.s-el(aria-labelledby="nav-nippo-tab" data-base="/dashboard/ichiran?type=nippo" onclick="genLinkandGo(this)" data-sua-event="日報入力ページ" data-sua-detail="「業務日報」アイコンをクリック" style="cursor:pointer;display:none") 
+                                span(data-feather="list") 業務日報
                             a.btn.btn-outline-warning.border.border-warning.SelectGenbaID.py-2.rounded.s-el(aria-labelledby="nav-genbanippo-tab" data-base="/dashboard/ichiran?type=genbanippo" onclick="genLinkandGo(this)" data-sua-event="日報入力ページ「現場日報」アイコンをクリック" style="cursor:pointer;display:none") 
                                 span(data-feather="list") 現場日報
                             input.input-date.globalselector.text-center.w-auto.py-2(type="text" name="currentDay" data-name="nippo")
@@ -46,8 +46,8 @@ block content
                     .card-header.py-1.bg-primary.text-white.font-weight-bold
                         .row
                             .col-6.text-left
-                                a.SelectUserID.text-white(data-base="/dashboard/ichiran?type=nippo" onclick="genLinkandGo(this)" data-sua-event="日報入力ページ" data-sua-detail="「社員日報」をクリック" style="cursor:pointer;") 
-                                    span.pt-1 社員日報
+                                a.SelectUserID.text-white(data-base="/dashboard/ichiran?type=nippo" onclick="genLinkandGo(this)" data-sua-event="日報入力ページ" data-sua-detail="「業務日報」をクリック" style="cursor:pointer;") 
+                                    span.pt-1 業務日報
                             .col-6.text-right
                                 .savingPointer.spinner-border.text-white.spinner-border-sm.mr-1(style="display:none" role="status" data-name="nippo" data-value="1")
                                     .sr-only ローディング...
