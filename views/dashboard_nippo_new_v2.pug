@@ -4,9 +4,9 @@ block content
         h3.d-block.title.font-weight-light.mb-2.pb-2.border-bottom #{title}
         nav#nippoview
             div(class="nav nav-tabs d-flex" id="nav-tab" role="tablist")
-                button(class="nav-link active col btn btn-outline-primary" id="nav-nippo-tab" data-toggle="tab" data-target="#nav-nippo" type="button" role="tab" aria-controls="nav-nippo" aria-selected="true" onclick="setCookie('nippoview','nav-nippo-tab');" data-sua-event="日報入力ページ" data-sua-detail="「社員日報」のTABをクリック") 
+                button(class="nav-link active col btn btn-outline-primary" id="nav-nippo-tab" data-toggle="tab" data-target="#nav-nippo" type="button" role="tab" aria-controls="nav-nippo" aria-selected="true" onclick="setLocalStorageItem('nippoview','nav-nippo-tab');" data-sua-event="日報入力ページ" data-sua-detail="「社員日報」のTABをクリック") 
                     span(style="font-size: 21px; font-weight: bold;") 社員日報
-                button(class="nav-link btn col btn-outline-warning" id="nav-genbanippo-tab" data-toggle="tab" data-target="#nav-genbanippo" type="button" role="tab" aria-controls="nav-genbanippo" aria-selected="false" onclick="setCookie('nippoview','nav-genbanippo-tab');" data-sua-event="日報入力ページ" data-sua-detail="「現場日報」のTABをクリック") 
+                button(class="nav-link btn col btn-outline-warning" id="nav-genbanippo-tab" data-toggle="tab" data-target="#nav-genbanippo" type="button" role="tab" aria-controls="nav-genbanippo" aria-selected="false" onclick="setLocalStorageItem('nippoview','nav-genbanippo-tab');" data-sua-event="日報入力ページ" data-sua-detail="「現場日報」のTABをクリック") 
                     span(style="font-size: 21px; font-weight: bold;") 現場日報
         div(class="tab-content" id="nav-tabContent")
             .row.mt-3

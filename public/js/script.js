@@ -1967,7 +1967,7 @@ async function genbaIchiranInit(today, start, end) {
         start = period[0].period_start
         end = period[0].period_end
     }
-    let genbaID = $('.input-genba.globalselector[data-select="genba"]').find('option:checked').attr('data-id')
+    let genbaID =  $('.input-genba.globalselector[data-select="genba"]').find('option:checked').attr('data-id')
     let genbaName = $('.input-genba.globalselector[data-select="genba"]').find('option:checked').attr('value')
     console.log({
         event: 'genbaIchiranInit',
@@ -3844,8 +3844,8 @@ function populateSelectOptions(user, allSelect, genbaYesterday, result, callback
                         if (!genbaSelect.hasClass('init-on')) {
                             genbaSelect.addClass('init-on')
                             let selectid = 0
-                            if (getUrlParameter('selectid') != undefined) {
-                                selectid = getUrlParameter('selectid')
+                            if (getUrlParameter('genbaID') != undefined) {
+                                selectid = getUrlParameter('genbaID')
                             }
                             if ((selectid == 0) || selectid == undefined) {
                                 genbaSelect.val(genbaSelect.find("option:first").val()).change();
@@ -4277,11 +4277,39 @@ function setCookie(c_name, c_val) {
     info.detail = $('#' + c_val).attr('data-sua-detail') || '-'
     SUA(info)
 }
-function setNippoView() {
-    if ($.cookie('nippoview') != undefined) {
-        $('#nippoview').find('#' + $.cookie('nippoview')).click()
-    }
+function setLocalStorageItem(c_name, c_val) {
+    // Store the value in local storage
+    localStorage.setItem(c_name, c_val);
+
+    // Log the storage event for debugging
+    console.log(`Stored in Local Storage: ${c_name} = ${c_val}`);
+
+    // Create an info object based on data attributes
+    let info = {};
+    info.event = $('#' + c_val).attr('data-sua-event');
+    info.detail = $('#' + c_val).attr('data-sua-detail') || '-';
+
+    // Log the info object for debugging
+    console.log('Info object:', info);
+
+    // Call the SUA function with the info object
+    SUA(info);
 }
+
+function setNippoView() {
+    // Check if 'nippoview' is stored in local storage
+    const nippoViewValue = getUrlParameter('nippoview') || localStorage.getItem('nippoview');
+    
+    // Log the value retrieved from local storage for debugging
+    console.log('NippoView :', nippoViewValue);
+  
+    // If the 'nippoview' value exists in local storage
+    if (nippoViewValue !== null) {
+      // Trigger a click event on the element with the ID stored in 'nippoview'
+      $('#nippoview').find('#' + nippoViewValue).click();
+    }
+  }
+  
 
 function westernDate(item){
     const date = new Date(item);
@@ -4605,7 +4633,9 @@ function newDashboardChartInit(genbaIDs, chartNo, genba, start, end) {
         $('.chart-date.end[chart-no="'+chartNo+'"]').attr('data-date', end);
         $('.chart-date.start[chart-no="'+chartNo+'"]').datepicker('update');
         $('.chart-date.end[chart-no="'+chartNo+'"]').datepicker('update');
-        $("#genbaichart" + chartNo).text(genba.工事名);
+        $("#genbaichart" + chartNo).text(genba.工事名)
+        $("#genbaichart" + chartNo).attr('data-id',genbaID);
+        $("#genbaichart" + chartNo).attr('href',`/dashboard/input_nippo/?nippoview=nav-genbanippo-tab&genbaID=${genbaID}` )
     }
     let preData = {};
     let labels = [];

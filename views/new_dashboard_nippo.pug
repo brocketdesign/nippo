@@ -5,6 +5,9 @@ block content
         button.btn.btn-outline-secondary#genba-select-modal-toggle(style="position: absolute;right:1rem;top:1rem;") 編集
         .row 
             .col-12.col-md-7
+                .d-flex.justify-content-between
+                    a.btn.btn-primary.rounded-0.my-3.me-3.p-3(href="/dashboard/input_nippo/?nippoview=nav-nippo-tab") 社員入力画面
+                    a.btn.btn-warning.rounded-0.my-3.p-3(href="/dashboard/input_nippo/?nippoview=nav-genbanippo-tab") 現場日報入力画面
                 .card.border-secondary.mb-3(style="width:100%")
                     .card-body.px-0.py-0
                         h5.px-2.py-1 業務日報カレンダー
@@ -24,39 +27,19 @@ block content
                                 .spinner-border(role="status")
                                     .sr-only ローディング...
             .col-12.col-md-5#chart-card-group
-                .card.border-secondary.mb-3#new_dashboard_charts_group0(style="width:100%")
-                    .card-body.px-0.py-0
-                        span.d-flex
-                            h5.px-2.py-1#genbaichart0(style="width: -webkit-fill-available;") ハンズトレーディング
-                            span.d-flex.py-2.justify-content-end.mr-1(style="width: -webkit-fill-available;")
-                                input.chart-date.start.text-center(type="text" chart-no="0" name="startDate" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
-                                span.px-2(style="padding-top:2px;padding-bottom:2px;") ~
-                                input.chart-date.end.text-center(type="text" name="endDate" chart-no="0" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
-                                button.close.chart-close-btn(chart-no="0")
-                                    span(aria-hidden="true") &times;
-                        canvas#chart_group_item_0
-                .card.border-secondary.mb-3#new_dashboard_charts_group1(style="width:100%")
-                    .card-body.px-0.py-0
-                        span.d-flex
-                            h5.px-2.py-1#genbaichart1(style="width: -webkit-fill-available;") （仮称）ワタワン計画
-                            span.d-flex.py-2.justify-content-end.mr-1(style="width: -webkit-fill-available;")
-                                input.chart-date.start.text-center(type="text" chart-no="1" name="startDate" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
-                                span.px-2(style="padding-top:2px;padding-bottom:2px;") ~
-                                input.chart-date.end.text-center(type="text" name="endDate" chart-no="1" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
-                                button.close.chart-close-btn(chart-no="1")
-                                    span(aria-hidden="true") &times;
-                        canvas#chart_group_item_1
-                .card.border-secondary.mb-3#new_dashboard_charts_group2(style="width:100%")
-                    .card-body.px-0.py-0
-                        span.d-flex
-                            h5.px-2.py-1.mt-2#genbaichart2(style="width: -webkit-fill-available;font-size:1.1rem;") つどい保育園3階改修工事
-                            span.d-flex.py-2.justify-content-end.mr-1(style="width: -webkit-fill-available;")
-                                input.chart-date.start.text-center(type="text" chart-no="2" name="startDate" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
-                                span.px-2(style="padding-top:2px;padding-bottom:2px;") ~
-                                input.chart-date.end.text-center(type="text" name="endDate" chart-no="2" data-name="nippo" style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
-                                button.close.chart-close-btn(chart-no="2")
-                                    span(aria-hidden="true") &times;
-                        canvas#chart_group_item_2
+                for index in [0, 1, 2]
+                    .card.border-secondary.mb-3(id=`new_dashboard_charts_group${index}` style="width:100%")
+                        .card-body.px-0.py-0
+                            span.d-flex.justify-content-between
+                                a.h5.px-2.py-1(id=`genbaichart${index}` style="width: -webkit-fill-available;") ハンズトレーディング
+                                span.d-flex.py-2.justify-content-end.mr-1(style="width: -webkit-fill-available;")
+                                    // Adding chart-no attribute dynamically based on loop index
+                                    input.chart-date.start.text-center(type="text" name="startDate" data-name="nippo" chart-no=`${index}` style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
+                                    span.px-2(style="padding-top:2px;padding-bottom:2px;") ~
+                                    input.chart-date.end.text-center(type="text" name="endDate" data-name="nippo" chart-no=`${index}` style="height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;background-color:#00bbff5e;")
+                                    button.close.chart-close-btn.mx-2(chart-no=`${index}`)
+                                        span(aria-hidden="true") &times;
+                            canvas(id=`chart_group_item_${index}`)
         #genbaSelectModal.modal.fade.bd-example-modal-lg(tabindex="-1" role="dialog")
             .modal-dialog.modal-dialog-centered(role="document" style="max-width: 70%;")
                 .modal-content
