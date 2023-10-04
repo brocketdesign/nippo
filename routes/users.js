@@ -128,7 +128,6 @@ router.post('/edit',urlencodedParser, async (req, res) => {
     if(req.query.userID){
       let update = req.body
       update.genba = await handleGenbaIds(update.genba)
-      console.log(update)
       let myCollection = db.collection('users')
       myCollection.updateOne({ '_id': new ObjectId(req.query.userID) }, { $set: update }, (err, result) => { 
         res.redirect('back')

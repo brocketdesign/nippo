@@ -3797,13 +3797,14 @@ function populateSelectOptions(user, allSelect, genbaYesterday, result, callback
                     data = sortit(data, '工事名kana')
                     for (let index = 0; index < data.length; index++) {
                         let element = data[index]
-                        if (element.工事名 && (user.genba.includes(element.工事名) == true)) {
+                        if (element.工事名 && user.genba.some(genba => genba.name === element.工事名)) {
                             if (genbaYesterdayIDs.includes(element._id)) {
-                                genbaSelect.prepend('<option value="' + element._id + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
+                                genbaSelect.prepend(`<option value="${element._id}" data-id="${element._id}">${element.工事名}</option>`);
                             } else {
-                                genbaSelect.append('<option value="' + element._id + '" data-id="' + element._id + '">' + element.工事名 + '</option>')
+                                genbaSelect.append(`<option value="${element._id}" data-id="${element._id}">${element.工事名}</option>`);
                             }
                         }
+                        
                     };
                     if (!genbaSelect.hasClass('globalselector')) {
                         if (!genbaSelect.attr('value')) {
