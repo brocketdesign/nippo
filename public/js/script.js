@@ -293,7 +293,6 @@ $(document).ready(async function () {
             }
         }
         const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + start + '&end=' + today + '&userID=' + userID);
-        console.log({genbaList})
         let allPeopleNum=0;
         for (let i = 0; i < genbaList.length; i++) {
             const res = await processingDataForNewDashboardAdmin(genbaList[i], Before10, today, i);
@@ -303,56 +302,63 @@ $(document).ready(async function () {
         }
         await drawChartForNewAdminDashboard(labels, dataSets, allPeopleNum)
 
-        $('.chart-date.start').datepicker({
-            language: "ja",
-            format: 'yyyy/m/d',
-            autoclose: true,
-            endDate: new Date(),
-            todayHighlight: true,
-        }).on('changeDate', async function (e) {
-            const chartNo = Number($(this).attr("chart-no"));
-            let dd = new Date(e.date);
-            if ($('.chart-date.end[chart-no="' + chartNo + '"').datepicker('getStartDate') < dd) {
-                $('.chart-date.end[chart-no="' + chartNo + '"').datepicker('setStartDate', dd);
-            }
-            let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
-            $('.chart-date.start[chart-no="' + chartNo + '"').attr('data-date', ct);
-            const changeDataSet1 = [];
-            const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + ct + '&end=' + $('.chart-date.end').attr('data-date'));
-            allPeopleNum = 0;
+        function configureDatepicker(selector, changeCallback) {
+            $(selector).datepicker({
+                language: "ja",
+                format: 'yyyy/m/d',
+                autoclose: true,
+                todayHighlight: true,
+                endDate: new Date(),
+            }).on('changeDate', changeCallback);
+        }
+        
+        async function processDataAndDrawChart(chartNo, startSelector, endSelector) {
+            const startDate = $(startSelector).attr('data-date');
+            const endDate = $(endSelector).attr('data-date');
+            const genbaList = await $.get(`/api/genbaStatistic?today=${today}&start=${startDate}&end=${endDate}&userID=${userID}`);
+            console.log(genbaList)
+            const changeDataSet = [];
+            let allPeopleNum = 0;
+            
             for (let i = 0; i < genbaList.length; i++) {
-                const res = await processingDataForNewDashboardAdmin(genbaList[i], ct, $('.chart-date.end').attr('data-date'), i);
-                changeDataSet1.push(res.dataset);
+                const res = await processingDataForNewDashboardAdmin(genbaList[i], startDate, endDate, i);
+                console.log({res})
+                changeDataSet.push(res.dataset);
                 labels = res.labels;
                 allPeopleNum += res.allPeopleNum;
             }
-            await drawChartForNewAdminDashboard(labels, changeDataSet1, allPeopleNum);
-        })
-        $('.chart-date.end').datepicker({
-            language: "ja",
-            format: 'yyyy/m/d',
-            autoclose: true,
-            todayHighlight: true,
-            endDate: new Date(),
-        }).on('changeDate', async function (e) {
-            let dd = new Date(e.date);
+            
+            await drawChartForNewAdminDashboard(labels, changeDataSet, allPeopleNum);
+        }
+        
+        configureDatepicker('.chart-date.start', async function (e) {
             const chartNo = Number($(this).attr("chart-no"));
-            if ($('.chart-date.start[chart-no="' + chartNo + '"').datepicker('getEndDate') > dd) {
-                $('.chart-date.start[chart-no="' + chartNo + '"').datepicker('setEndDate', dd);
+            const date = new Date(e.date);
+            
+            if ($(`.chart-date.end[chart-no="${chartNo}"]`).datepicker('getStartDate') < date) {
+                $(`.chart-date.end[chart-no="${chartNo}"]`).datepicker('setStartDate', date);
             }
-            let ct = (dd.getMonth() + 1) + '/' + dd.getDate() + '/' + dd.getFullYear();
-            $('.chart-date.end[chart-no="' + chartNo + '"').attr('data-date', ct);
-            const changeDataSet2 = [];
-            const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + $('.chart-date.start').attr('data-date') + '&end=' + ct);
-            allPeopleNum = 0;
-            for (let i = 0; i < genbaList.length; i++) {
-                const res = await processingDataForNewDashboardAdmin(genbaList[i], $('.chart-date.start').attr('data-date'), ct, i);
-                changeDataSet2.push(res.dataset);
-                labels = res.labels;
-                allPeopleNum += res.allPeopleNum;
+            
+            const formattedDate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+            $(`.chart-date.start[chart-no="${chartNo}"]`).attr('data-date', formattedDate);
+            
+            await processDataAndDrawChart(chartNo, `.chart-date.start[chart-no="${chartNo}"]`, '.chart-date.end');
+        });
+        
+        configureDatepicker('.chart-date.end', async function (e) {
+            const chartNo = Number($(this).attr("chart-no"));
+            const date = new Date(e.date);
+            
+            if ($(`.chart-date.start[chart-no="${chartNo}"]`).datepicker('getEndDate') > date) {
+                $(`.chart-date.start[chart-no="${chartNo}"]`).datepicker('setEndDate', date);
             }
-            await drawChartForNewAdminDashboard(labels, changeDataSet2, allPeopleNum);
-        })
+            
+            const formattedDate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+            $(`.chart-date.end[chart-no="${chartNo}"]`).attr('data-date', formattedDate);
+            
+            await processDataAndDrawChart(chartNo, '.chart-date.start', `.chart-date.end[chart-no="${chartNo}"]`);
+        });
+        
         const startVal = prevDate.getFullYear() + '/' + (prevDate.getMonth() + 1) + '/' + prevDate.getDate();
         const endVal = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
         let prevDateCt = (prevDate.getMonth() + 1) + '/' + prevDate.getDate() + '/' + prevDate.getFullYear();
@@ -5312,6 +5318,7 @@ function drawCalendarTableForNewAdminDashboard(data, start, end) {
 }
 
 function drawChartForNewAdminDashboard(labels, cData, allPeopleNum) {
+    console.log({labels, cData, allPeopleNum})
     const data = {
         labels: labels,
         datasets: cData,

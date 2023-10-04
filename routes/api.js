@@ -16,64 +16,58 @@ require('dotenv').config({ path: './.env' });
 router.use(cookieParser('horiken'));
 
 // GET CALENDAR DATA ON ADMIN DASHBOARD PAGE
+const getGenbaList = async (db, userGenba) => {
+  const genbaCollection = db.collection('genba');
+  return await genbaCollection.find({'_id': { $in: userGenba } }).sort({'updatedAt': 1}).limit(10).toArray();
+};
+
+const getNippoList = async (db, genbaId) => {
+  const nippoCollection = db.collection(genbaId + '_genbanippo');
+  return await nippoCollection.find().sort({'today': -1}).toArray();
+};
+
+const filterNippoByDate = (nippoList, start_period, end_period) => {
+  if (start_period !== 'false' && end_period !== 'false') {
+      return nippoList.filter(element => new Date(element.today) >= new Date(start_period) && new Date(element.today) <= new Date(end_period));
+  }
+  return nippoList;
+};
+
 router.get('/genbaStatistic', urlencodedParser, async (req, res) => {
-  const db = req.app.locals.db; let dbData = await initData(req);
-  if (dbData.isLogin) {
-    let today = req.query.today;
-    let userID = req.query.userID;
-    let dbName = "genba";
-    let start_period = req.query.start;
-    let end_period = req.query.end;
-    let genbaCollection = db.collection(dbName);
-    let userData = await db.collection('users').findOne({'_id':new ObjectId(userID)})
-    let userGenba = getUserGenbaIds(userData);
-    genbaCollection.find({ '_id': { $in: userGenba } }).sort({ 'updatedAt': 1 }).limit(10).toArray()
-        .then(async (genbaList10) => {
-        //工事名 is in userGenba
-        let result = [];
-        if (genbaList10.length) {
-          for (let i = 0; i < genbaList10.length; i++) {
-            let data = [];
-            let nippoCollection = db.collection(genbaList10[i]._id + '_genbanippo');
-            let genbaNippoList = await nippoCollection.find().sort({ 'today': -1 }).toArray();
-    
-            if (genbaNippoList.length > 0) {
-              genbaNippoList.forEach((element, index) => {
-                if ((start_period != 'false') && (end_period != 'false')) {
-                  if ((new Date(element.today) >= new Date(start_period)) && (new Date(element.today) <= new Date(end_period))) {
-                    data.push(element);
-                  }
-                } 
-                if ((index + 1) >= genbaNippoList.length) {
-                  result.push({
-                    label: genbaList10[i].工事名,
-                    data
-                  });
-                }
-              });
-            } else {
-              result.push({
-                label: genbaList10[i].工事名,
-                data: []
-              });
-            }
-    
-            if (i + 1 >= genbaList10.length) {
-              res.send(result);
-            }
-          }
-        } else {
-          res.send([]);
-        }
-      })
-      .catch(error => {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-      });
-  } else {
-    res.sendStatus(403);
+  try {
+      const db = req.app.locals.db;
+      const dbData = await initData(req);
+      
+      if (!dbData.isLogin) {
+          return res.sendStatus(403);
+      }
+
+      const { today, userID, start, end } = req.query;
+      const userData = await db.collection('users').findOne({'_id': new ObjectId(userID)});
+      const userGenba = getUserGenbaIds(userData);
+      const genbaList10 = await getGenbaList(db, userGenba);
+      
+      if (!genbaList10.length) {
+          return res.send([]);
+      }
+
+      const result = await Promise.all(genbaList10.map(async genba => {
+          const nippoList = await getNippoList(db, genba._id);
+          const filteredNippo = filterNippoByDate(nippoList, start, end);
+          return {
+              label: genba.工事名,
+              data: filteredNippo
+          };
+      }));
+
+      res.send(result);
+
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
   }
 });
+
 
 function getUserGenbaIds(userData) {
     if (!userData || !userData.genba) {
