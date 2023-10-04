@@ -252,75 +252,70 @@ router.get('/genbaichiran', urlencodedParser, async (req, res) => {
     res.redirect('../');
   }
 });
+const fetchGenbaData = async (db, genbaID) => {
+  const nippoCollection = db.collection(genbaID + '_genbanippo');
+  return nippoCollection.find().sort({ 'today': -1 }).toArray();
+};
+const isDateWithinRange = (date, startPeriod, endPeriod) => {
+  const [startMonth, startDate, startYear] = startPeriod.split('/').map(Number);
+  const [endMonth, endDate, endYear] = endPeriod.split('/').map(Number);
+
+  const startDateObj = new Date(startYear, startMonth - 1, startDate);  // Months are 0-indexed in JavaScript
+  const endDateObj = new Date(endYear, endMonth - 1, endDate);
+  const dateObj = new Date(date);
+
+  return dateObj >= startDateObj && dateObj <= endDateObj;
+};
+
+
 router.get('/genbaichiranDateRange', urlencodedParser, async (req, res) => {
-  const db = req.app.locals.db; let dbData = await initData(req)
-  if (dbData.isLogin) {
-    let genbaID = req.query.genbaID
-    let today = req.query.today
-    let start_period = req.query.start
-    let end_period = req.query.end
+  const db = req.app.locals.db;
+  const dbData = await initData(req);
 
-    console.log({
+  if (!dbData.isLogin) {
+      return res.redirect('../');
+  }
+
+  const { genbaID, today, start: start_period, end: end_period } = req.query;
+
+  console.log({
       event: 'genbaichiran',
-      genbaID: genbaID,
-      today: today,
-      start_period: start_period,
-      end_period: end_period,
-    })
+      genbaID,
+      today,
+      start_period,
+      end_period
+  });
 
-    let myCollection = db.collection('users')
-    let getDatas = new Promise((resolve, reject) => {
-      let nippoCollection = db.collection(genbaID + '_genbanippo')
-      nippoCollection.find().sort({ 'today': -1 }).toArray((err, results) => {
-        if (results.length > 0) {
-          let data = count = []
-          results.forEach((element, index) => {
-            if ((count.includes(element.日付) == false) && (element.日付)) {
-              if((start_period != 'false') && (end_period != 'false' )){
-                const end_full_date = end_period.split('/');
-                const end_month = parseInt(end_full_date[0]) - 1;
-                const end_date = parseInt(end_full_date[1]);
-                const end_year = parseInt(end_full_date[2]);
-                if ((new Date(element.日付).getFullYear() == new Date(start_period).getFullYear() && new Date(element.日付).getMonth() >= new Date(start_period).getMonth() && new Date(element.日付).getDate() >= new Date(start_period).getDate())
-                && (new Date(element.日付).getFullYear() == end_year && new Date(element.日付).getMonth() <= end_month && new Date(element.日付).getDate() <= end_date)) {
-                  data.push(element)
-                  //count.push(element.日付)
-                }
-              }
-            }
-            if ((index + 1) >= results.length) {
-              if (data.length > 0) {
-                resolve(data)
-              } else {
-                console.log({
-                  event: 'genbaichiran',
-                  res: 'Nothing for today',
-                })
-                reject()
-              }
-            }
-          });
-        } else {
+  try {
+      const results = await fetchGenbaData(db, genbaID);
+
+      if (results.length === 0) {
           console.log({
-            event: 'genbaichiran',
-            res: 'Nothing at all',
-          })
-          reject()
-        }
-      });
-    })
-    await getDatas.then((data) => {
-      data = data.sort((a, b) => {
-        return new Date(b.date) - new Date(a.date);
-      });
-      res.send(data)
-    }).catch((e) => {
-      res.send(false)
-    })
-  } else {
-    res.redirect('../');
+              event: 'genbaichiran',
+              res: 'Nothing at all'
+          });
+          return res.send(false);
+      }
+
+      const data = results.filter(element => element.日付 && isDateWithinRange(element.日付, start_period, end_period));
+
+      if (data.length === 0) {
+          console.log({
+              event: 'genbaichiran',
+              res: 'Nothing for today'
+          });
+          return res.send(false);
+      }
+
+      data.sort((a, b) => new Date(b.date) - new Date(a.date));
+      res.send(data);
+
+  } catch (err) {
+      console.error('Error fetching data:', err);
+      res.send(false);
   }
 });
+
 router.get('/nippochart/:id', urlencodedParser, async (req, res) => {
 
   const db = req.app.locals.db; let dbData = await initData(req)
