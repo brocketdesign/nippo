@@ -54,7 +54,7 @@ async function connectToDatabase() {
 }
 
 function startServer(app) {
-  const port = process.env.PORT || 4000;
+  const port = process.env.PORT || 3000;
   app.listen(port, () => {
     console.log(`Express running → PORT http://${ip.address()}:${port}`);
   });
