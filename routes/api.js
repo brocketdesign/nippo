@@ -26,11 +26,12 @@ router.get('/genbaStatistic', urlencodedParser, async (req, res) => {
     let end_period = req.query.end;
     let genbaCollection = db.collection(dbName);
     let userData = await db.collection('users').findOne({'_id':new ObjectId(userID)})
-    let userGenba = userData.genba || []
-    genbaCollection.find({ '工事名': { $in: userGenba } }).sort({ 'updatedAt': 1 }).limit(10).toArray()
+    let userGenba = getUserGenbaIds(userData);
+    genbaCollection.find({ '_id': { $in: userGenba } }).sort({ 'updatedAt': 1 }).limit(10).toArray()
         .then(async (genbaList10) => {
         //工事名 is in userGenba
         let result = [];
+        console.log(genbaList10.length)
         if (genbaList10.length) {
           for (let i = 0; i < genbaList10.length; i++) {
             let data = [];
@@ -74,6 +75,27 @@ router.get('/genbaStatistic', urlencodedParser, async (req, res) => {
     res.sendStatus(403);
   }
 });
+
+function getUserGenbaIds(userData) {
+    if (!userData || !userData.genba) {
+        console.log("userData or userData.genba is not defined or is falsy.");
+        return [];
+    }
+
+    // Filter out empty or whitespace-only strings
+    let validStrings = userData.genba.filter(item => item.trim() !== '');
+
+    return validStrings.map(id => {
+        // Validate if id can be converted to ObjectId
+        if (id.length !== 24 || !(/^[0-9a-fA-F]{24}$/).test(id)) {
+            console.error(`Invalid id found: "${id}"`);
+            return null; // placeholder for invalid ids
+        }
+        return new ObjectId(id);
+    }).filter(id => id !== null);  // remove null placeholders
+}
+
+
 
 // GET USERS' NIPPO DATA
 router.get('/userStatistic', urlencodedParser, async (req, res) => {

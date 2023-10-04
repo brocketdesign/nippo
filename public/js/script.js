@@ -2699,7 +2699,7 @@ function SettingsCompnayInit() {
         $.get("/api/koushu", function (data) {
             data.forEach((element, index) => {
                 if (element.el) {
-                    $('#koushuCheckList').append('<div class="form-check col-3" ><input class="form-check-input" type="checkbox" name="sub" id="chckbox_' + element._id + '" value="' + element.el + '" data-id="' + element._id + '"><label class="form-check-label" for="chckbox_' + element._id + '">' + element.el + '</label></div>')
+                    $('#koushuCheckList').append('<div class="form-check col-3" ><input class="form-check-input" type="checkbox" name="sub" id="checkbox_' + element._id + '" value="' + element._id + '" data-id="' + element._id + '"><label class="form-check-label" for="checkbox_' + element._id + '">' + element.el + '</label></div>')
                 }
             });
             if (companyID != 0) {
@@ -2835,7 +2835,7 @@ function SettingsUsersInit() {
                         $.get("/api/genba", function (data) {
                             data.forEach((element, index) => {
                                 if (element.工事名) {
-                                    $('#genbaCheckList').append('<div class="form-check col-3" ><input class="form-check-input" type="checkbox" name="genba" id="chckbox_' + element._id + '" value="' + element.工事名 + '" data-id="' + element._id + '"><label class="form-check-label" for="chckbox_' + element._id + '">' + element.工事名 + '</label></div>')
+                                    $('#genbaCheckList').append('<div class="form-check col-3" ><input class="form-check-input" type="checkbox" name="genba" id="checkbox_' + element._id + '" value="' + element._id + '" data-id="' + element._id + '"><label class="form-check-label" for="checkbox_' + element._id + '">' + element.工事名 + '</label></div>')
                                 }
                             });
                             $('#genbaCheckList').addClass('done')
@@ -2948,7 +2948,7 @@ function SettingsUsersInit() {
                     $.get("/api/genba", function (data) {
                         data.forEach((element, index) => {
                             if (element.工事名) {
-                                $('#genbaCheckList').append('<div class="form-check col-3" ><input class="form-check-input" type="checkbox" name="genba" id="chckbox_' + element._id + '" value="' + element.工事名 + '" data-id="' + element._id + '"><label class="form-check-label" for="chckbox_' + element._id + '">' + element.工事名 + '</label></div>')
+                                $('#genbaCheckList').append('<div class="form-check col-3" ><input class="form-check-input" type="checkbox" name="genba" id="checkbox_' + element._id + '" value="' + element._id + '" data-id="' + element._id + '"><label class="form-check-label" for="checkbox_' + element._id + '">' + element.工事名 + '</label></div>')
                             }
                         });
                         $('#genbaCheckList').addClass('done')
