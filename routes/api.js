@@ -223,19 +223,11 @@ router.get('/genbaichiran', urlencodedParser, async (req, res) => {
               if (data.length > 0) {
                 resolve(data)
               } else {
-                console.log({
-                  event: 'genbaichiran',
-                  res: 'Nothing for today',
-                })
                 reject()
               }
             }
           });
         } else {
-          console.log({
-            event: 'genbaichiran',
-            res: 'Nothing at all',
-          })
           reject()
         }
       });
@@ -277,14 +269,6 @@ router.get('/genbaichiranDateRange', urlencodedParser, async (req, res) => {
   }
 
   const { genbaID, today, start: start_period, end: end_period } = req.query;
-
-  console.log({
-      event: 'genbaichiran',
-      genbaID,
-      today,
-      start_period,
-      end_period
-  });
 
   try {
       const results = await fetchGenbaData(db, genbaID);
