@@ -721,6 +721,16 @@ input:disabled {
 
 /* #sidebarSupportedContent Style */
 #sidebarSupportedContent {
+  width: auto;
+  max-width: 100%; 
+  flex: 0 0 auto; /* This ensures that it doesn't grow or shrink but remains auto based on its content. */
+}
+
+#mainContainer {
+  flex-grow: 1; /* This makes the main content grow to take up the remaining space in the flex container. */
+}
+
+#sidebarSupportedContent {
   height: calc(100vh - 40px);
   overflow-y: auto;
   top: 40px;

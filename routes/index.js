@@ -15,7 +15,7 @@ router.get('/',urlencodedParser, async(req, res) => {
   if((dbData.isLogin == true )){
     res.redirect('/dashboard')
   }else{
-    res.render('login', {title:'堀健データベース',version:currVersion,error: false});
+    res.render('login', {title:'株式会社堀健',version:currVersion,error: false});
   }
 });
 router.get('/forgot-password',urlencodedParser, async(req, res) => {
@@ -24,7 +24,7 @@ router.get('/forgot-password',urlencodedParser, async(req, res) => {
   if((dbData.isLogin == true )){
     res.redirect('/dashboard')
   }else{
-    res.render('forgot_password', {title:'堀健データベース',version:currVersion,error: false});
+    res.render('forgot_password', {title:'株式会社堀健',version:currVersion,error: false});
   }
 });
 router.get('/reset-password',urlencodedParser, async (req, res) => {

@@ -4,14 +4,17 @@ block content
     section#loginForm.pt-5
         .container.mt-4
             form(class="form-signin" method="POST" action="/users/login")
-                h2.text-center.mb-0
-                    a.text-success(href="/") #{title}
+                h1.text-center.fw-bold.mb-0
+                    a.text-success(href="/") 
+                        span 株式会社堀健
+                .text-center.w-100 
+                    span 業務管理システム
                 if error
                     #error.text-center.col-12.mt-2.mb-4.px-3.py-2.c-alert
                         p.alert.font-size-sm メールアドレスまたはパスワードが正しくありません。
                 else
                     .text-center.col-12.my-2.px-3.py-2.c-alert.bg-white
-                        p.text-sm.text-center.mb-5.text-success V.#{version}
+                        p.text-sm.text-center.mb-5.text-muted V.#{version}
                 label( for="inputEmail" class="sr-only") メールアドレス
                 input(type="email" name="email" id="inputEmail" class="form-control" placeholder="例: xxx@horiken.cm" required autofocus)
                 label(for="inputPassword" class="sr-only") パスワード

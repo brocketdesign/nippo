@@ -18,7 +18,10 @@ block content
                 .card.border-secondary.mb-3(style="width:100%")
                     .card-body.px-0.py-0
                         h5.px-2.pt-1.mb-0 業務日報カレンダー
-                        span.px-2.text-muted 業務日報を更新すると業務日報カレンダーに表示されます。
+                        .px-2.text-muted 
+                            span 業務日報を更新すると業務日報カレンダーに表示されます。				
+                            br 
+                            span 日付をクリックすると、指定の日報入力画面へアクセスすることができます。				
                         div.px-2.d-xl-flex.d-block.mt-2
                             span.d-flex.mr-1
                                 span.py-2.mr-1.work-days 出動 : 7.5日 
@@ -35,10 +38,12 @@ block content
                                 .spinner-border(role="status")
                                     .sr-only ローディング...
             .col-12.col-md-5#chart-card-group
-                span.text-muted
-                    | 指定した参照期間の現場日報を更新するとグラフで確認することができます。
-                    br 
-                    | 編集ボタンからは表示させる現場を選ぶことができます。 
+                .text-muted
+                    span 指定した参照期間の現場日報を更新するとグラフで確認することができます。
+                    br
+                    span 編集ボタンからは表示させる現場を選ぶことができます。
+                    br
+                    span 現場名をクリックすると指定の現場入力画面へアクセスすることができます。"				
                 for index in [0, 1, 2]
                     .card.border-secondary.mb-3(id=`new_dashboard_charts_group${index}` style="width:100%")
                         .card-body.px-0.py-0

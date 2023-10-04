@@ -1779,40 +1779,38 @@ function addGroupForm(formSelect, formIndex) {
     let formID = 'form.' + formSelect + '[data-value="' + formIndex + '"]'
     let group = $(formID + ' .form-container .form-group').last().clone()
     let currVal = parseInt(group.attr('data-value')) + 1
-    if (currVal > 10) {
-        alert('Maximum entry is 10')
-    } else {
-        group.find('.input-temp').remove()
-        group.attr('data-value', currVal)
-        let gIc = parseInt($(formID + ' .form-container .form-group').length + 1)
-        $('.totalLine.' + formSelect).attr('value', gIc)
-        group.find('.removeGroup').attr('data-value', currVal)
-        group.find('label').remove()
-        $(formID + ' .form-container').append(group).fadeIn(500);
-        $.each(group.find('input'), function () {
-            if($(this).attr('name')) {
-                let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-                $(this).attr('name', name + currVal)
-                $(this).val('').change()
-                $(this).attr('value', '');
-            }
-        })
-        $.each(group.find('select'), function () {
-            if($(this).attr('name')) {
-                let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-                $(this).attr('name', name + currVal)
-                $(this).val('').change()
-                $(this).niceSelect('update')
-            }
-        })
-        $.each(group.find('textarea'), function () {
-            if($(this).attr('name')) {
-                let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
-                $(this).attr('name', name + currVal)
-                $(this).val('').change()
-            }
-        })
-    }
+
+    group.find('.input-temp').remove()
+    group.attr('data-value', currVal)
+    let gIc = parseInt($(formID + ' .form-container .form-group').length + 1)
+    $('.totalLine.' + formSelect).attr('value', gIc)
+    group.find('.removeGroup').attr('data-value', currVal)
+    group.find('label').remove()
+    $(formID + ' .form-container').append(group).fadeIn(500);
+    $.each(group.find('input'), function () {
+        if($(this).attr('name')) {
+            let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+            $(this).attr('name', name + currVal)
+            $(this).val('').change()
+            $(this).attr('value', '');
+        }
+    })
+    $.each(group.find('select'), function () {
+        if($(this).attr('name')) {
+            let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+            $(this).attr('name', name + currVal)
+            $(this).val('').change()
+            $(this).niceSelect('update')
+        }
+    })
+    $.each(group.find('textarea'), function () {
+        if($(this).attr('name')) {
+            let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
+            $(this).attr('name', name + currVal)
+            $(this).val('').change()
+        }
+    })
+    
 
 }
 function resetSetting() {
@@ -4199,9 +4197,6 @@ $(document).on('keyup', '.decimal', function () {
     if ((val.split('.').length > 1) && (val.split('.')[1].length > 1)) {
         console.log(val.split('.'))
         val = parseFloat(val).toFixed(1);
-    }
-    if (val > 20) {
-        alert('人員が20人を超えました。')
     }
     $(this).val(val).change();
 });
