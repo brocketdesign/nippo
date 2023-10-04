@@ -7,7 +7,7 @@ const bodyParser = require("body-parser");
 var urlencodedParser = bodyParser.urlencoded({ extended: false })  
 const initData = require('../modules/initData')
 
-const currVersion = '8.0'
+const currVersion = '1.0'
 
 router.get('/',urlencodedParser, async(req, res) => {
   const db = req.app.locals.db;
