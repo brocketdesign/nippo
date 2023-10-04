@@ -44,7 +44,7 @@ router.get('/genbaStatistic', urlencodedParser, async (req, res) => {
 
       const { today, userID, start, end } = req.query;
       const userData = await db.collection('users').findOne({'_id': new ObjectId(userID)});
-      const userGenba = getUserGenbaIds(userData);
+      const userGenba = getUserGenbaIds(userData.genba);
       const genbaList10 = await getGenbaList(db, userGenba);
       
       if (!genbaList10.length) {
@@ -70,22 +70,25 @@ router.get('/genbaStatistic', urlencodedParser, async (req, res) => {
 
 
 function getUserGenbaIds(userData) {
-    if (!userData || !userData.genba) {
-        console.log("userData or userData.genba is not defined or is falsy.");
-        return [];
-    }
+  if (!Array.isArray(userData)) {
+      console.log("userData is not defined, is not an array, or is empty.");
+      return [];
+  }
 
-    // Filter out empty or whitespace-only strings
-    let validStrings = userData.genba.filter(item => item.trim() !== '');
+  // Extract all ids
+  let ids = userData.map(user => user.id);
 
-    return validStrings.map(id => {
-        // Validate if id can be converted to ObjectId
-        if (id.length !== 24 || !(/^[0-9a-fA-F]{24}$/).test(id)) {
-            console.error(`Invalid id found: "${id}"`);
-            return null; // placeholder for invalid ids
-        }
-        return new ObjectId(id);
-    }).filter(id => id !== null);  // remove null placeholders
+  // Filter out empty or whitespace-only strings
+  let validStrings = ids.filter(id => id && id.trim() !== '');
+
+  return validStrings.map(id => {
+      // Validate if id can be converted to ObjectId
+      if (id.length !== 24 || !(/^[0-9a-fA-F]{24}$/).test(id)) {
+          console.error(`Invalid id found: "${id}"`);
+          return null; // placeholder for invalid ids
+      }
+      return new ObjectId(id);
+  }).filter(id => id !== null);  // remove null placeholders
 }
 
 

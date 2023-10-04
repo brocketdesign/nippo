@@ -122,14 +122,15 @@ router.post('/register', urlencodedParser, function (req, res, next) {
       res.redirect('/dashboard/settings/users')
      });
 });
-router.post('/edit',urlencodedParser, (req, res) => {  
+router.post('/edit',urlencodedParser, async (req, res) => {  
     var date = new Date();
     var today = (date.getMonth() + 1) + '/' + date.getDate() + '/' +  date.getFullYear();
     if(req.query.userID){
-      console.log(req.query.userID)
-      console.log(req.body)
+      let update = req.body
+      update.genba = await handleGenbaIds(update.genba)
+      console.log(update)
       let myCollection = db.collection('users')
-      myCollection.updateOne({ '_id': new ObjectId(req.query.userID) }, { $set: req.body }, (err, result) => { 
+      myCollection.updateOne({ '_id': new ObjectId(req.query.userID) }, { $set: update }, (err, result) => { 
         res.redirect('back')
        });
     }else{
@@ -138,6 +139,36 @@ router.post('/edit',urlencodedParser, (req, res) => {
     }
 
 });
+async function handleGenbaIds(genbaIds) {
+    try {
+        // Filter out any empty genbaId values
+        const validGenbaIds = genbaIds.filter(genbaId => genbaId.trim() !== "");
+
+        // Map over each valid genbaId
+        const genbaObjects = await Promise.all(validGenbaIds.map(async (genbaId) => {
+            // Fetch the name for the current genbaId
+            const name = await getGenbaName(genbaId);
+            
+            // Return an object with id and name fields
+            return {
+                id: genbaId,
+                name: name
+            };
+        }));
+
+        return genbaObjects;
+    } catch (error) {
+        console.error("Error in handleGenbaIds:", error);
+        throw error;  // or handle the error in some other appropriate way
+    }
+}
+
+// Example function to fetch the genba name for a given ID from the database
+async function getGenbaName(genbaId) {
+    const genbaDocument = await db.collection('genba').findOne({ _id: new ObjectId(genbaId) });
+    return genbaDocument ? genbaDocument.工事名 : null;  // Assuming each genba document has a name field
+}
+
 router.post('/delete',urlencodedParser, (req, res) => {
     
     var date = new Date();

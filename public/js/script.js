@@ -110,9 +110,6 @@ $(document).ready(async function () {
             $.get('/api/users?elID=' + userID, function (result) {
                 if (data) {
                     allGenbaList = data;
-                    if (!Array.isArray(result.genba)) {
-                        result.genba = result.genba.split(' ')
-                    }
                     let realGenba = [];
                     if (localStorage.getItem(userID + "genba0") || localStorage.getItem(userID + "genba1") || localStorage.getItem(userID + "genba2")) {
                         let genbaModalList = '';
@@ -130,8 +127,8 @@ $(document).ready(async function () {
                         }
 
                         result.genba.forEach(function (genba) {
-                            if (genba && realGenba.filter(item => item == genba).length === 0) {
-                                genbaModalList += '<a class="genba-list-item">' + genba + '</a>';
+                            if (genba && realGenba.filter(item => item == genba.id).length === 0) {
+                                genbaModalList += '<a class="genba-list-item">' + genba.name + '</a>';
                             }
                         });
                         $(".sort-genba-list").html(genbaModalList);
@@ -140,9 +137,9 @@ $(document).ready(async function () {
                         let iiii = 0;
                         result.genba.forEach(function (genba) {
                             if (genba) {
-                                realGenba.push(genba);
+                                realGenba.push(genba.name);
                                 if (iiii > 2) {
-                                    genbaModalList += '<a class="genba-list-item">' + genba + '</a>';
+                                    genbaModalList += '<a class="genba-list-item">' + genba.name + '</a>';
                                 }
                                 iiii++;
                             }
@@ -2822,43 +2819,7 @@ function SettingsUsersInit() {
                     }
                 })
                 //genbaCheckList
-                if (!!document.querySelector('#genbaCheckList')) {
-                    if ($('#genbaCheckList').hasClass('done')) {
-                        $('#genbaCheckList').find('.form-check input').each(function () {
-                            $(this).attr('checked', false)
-                        })
-                        if (result) {
-                            if (result.genba) {
-                                if (!Array.isArray(result.genba)) {
-                                    result.genba = result.genba.split(' ')
-                                }
-                                result.genba.forEach(function (genba) {
-                                    $('#genbaCheckList').find('.form-check input[value="' + genba + '"]').attr('checked', true)
-                                })
-                            }
-                        }
-                    } else {
-                        $.get("/api/genba", function (data) {
-                            data.forEach((element, index) => {
-                                if (element.工事名) {
-                                    $('#genbaCheckList').append('<div class="form-check col-3" ><input class="form-check-input" type="checkbox" name="genba" id="checkbox_' + element._id + '" value="' + element._id + '" data-id="' + element._id + '"><label class="form-check-label" for="checkbox_' + element._id + '">' + element.工事名 + '</label></div>')
-                                }
-                            });
-                            $('#genbaCheckList').addClass('done')
-                            if (result) {
-                                if (result.genba) {
-                                    if (!Array.isArray(result.genba)) {
-                                        result.genba = result.genba.split(' ')
-                                    }
-                                    result.genba.forEach(function (genba) {
-                                        $('#genbaCheckList').find('.form-check input[value="' + genba + '"]').attr('checked', true)
-                                    })
-                                }
-                            }
-                        })
-
-                    }
-                }
+                updateGenbaCheckList(result)
                 //Delete button
                 if (!!document.querySelector('#usersDelete')) {
                     $('#usersDelete').attr('action', '/users/delete?userID=' + userID)
@@ -2935,43 +2896,7 @@ function SettingsUsersInit() {
                 }
             })
             //genbaCheckList
-            if (!!document.querySelector('#genbaCheckList')) {
-                if ($('#genbaCheckList').hasClass('done')) {
-                    $('#genbaCheckList').find('.form-check input').each(function () {
-                        $(this).attr('checked', false)
-                    })
-                    if (result) {
-                        if (result.genba) {
-                            if (!Array.isArray(result.genba)) {
-                                result.genba = result.genba.split(' ')
-                            }
-                            result.genba.forEach(function (genba) {
-                                $('#genbaCheckList').find('.form-check input[value="' + genba + '"]').attr('checked', true)
-                            })
-                        }
-                    }
-                } else {
-                    $.get("/api/genba", function (data) {
-                        data.forEach((element, index) => {
-                            if (element.工事名) {
-                                $('#genbaCheckList').append('<div class="form-check col-3" ><input class="form-check-input" type="checkbox" name="genba" id="checkbox_' + element._id + '" value="' + element._id + '" data-id="' + element._id + '"><label class="form-check-label" for="checkbox_' + element._id + '">' + element.工事名 + '</label></div>')
-                            }
-                        });
-                        $('#genbaCheckList').addClass('done')
-                        if (result) {
-                            if (result.genba) {
-                                if (!Array.isArray(result.genba)) {
-                                    result.genba = result.genba.split(' ')
-                                }
-                                result.genba.forEach(function (genba) {
-                                    $('#genbaCheckList').find('.form-check input[value="' + genba + '"]').attr('checked', true)
-                                })
-                            }
-                        }
-                    })
-
-                }
-            }
+            updateGenbaCheckList(result)
             //Delete button
             if (!!document.querySelector('#usersDelete')) {
                 $('#usersDelete').attr('action', '/users/delete?userID=' + userID)
@@ -2982,6 +2907,48 @@ function SettingsUsersInit() {
         })
     }
 }
+function updateGenbaCheckList(result) {
+    const genbaCheckList = $('#genbaCheckList');
+
+    if (!genbaCheckList.length) return;
+
+    if (genbaCheckList.hasClass('done')) {
+        resetCheckList(genbaCheckList);
+        checkSelectedGenba(result, genbaCheckList);
+    } else {
+        fetchAndPopulateGenba(genbaCheckList, result);
+    }
+}
+
+function resetCheckList(checkList) {
+    checkList.find('.form-check input').prop('checked', false);
+}
+
+function checkSelectedGenba(result, checkList) {
+    if (result && result.genba) {
+        result.genba.forEach(genba => {
+            checkList.find(`.form-check input[value="${genba.id}"]`).prop('checked', true);
+        });
+    }
+}
+
+function fetchAndPopulateGenba(checkList, result) {
+    $.get("/api/genba", function (data) {
+        data.forEach((element) => {
+            if (element.工事名) {
+                const checkItem = `
+                    <div class="form-check col-3">
+                        <input class="form-check-input" type="checkbox" name="genba" id="checkbox_${element._id}" value="${element._id}" data-id="${element._id}">
+                        <label class="form-check-label" for="checkbox_${element._id}">${element.工事名}</label>
+                    </div>`;
+                checkList.append(checkItem);
+            }
+        });
+        checkList.addClass('done');
+        checkSelectedGenba(result, checkList);
+    });
+}
+
 //SETTING UPDATE
 function SettingsUpdate() {
     $('.sortable').each(function () {
@@ -4621,6 +4588,7 @@ function newDashboardCalendarInit(userID, today, start, end) {
 }
 
 function newDashboardChartInit(genbaIDs, chartNo, genba, start, end) {
+    console.log({genbaIDs, chartNo, genba, start, end})
     let userID = $('#userID').attr('data-value');
     const genbaID = genba._id;
     const stateDate = new Date(start);
