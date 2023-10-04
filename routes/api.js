@@ -31,7 +31,6 @@ router.get('/genbaStatistic', urlencodedParser, async (req, res) => {
         .then(async (genbaList10) => {
         //工事名 is in userGenba
         let result = [];
-        console.log(genbaList10.length)
         if (genbaList10.length) {
           for (let i = 0; i < genbaList10.length; i++) {
             let data = [];
