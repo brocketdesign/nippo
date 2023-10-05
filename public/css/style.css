@@ -92,6 +92,7 @@ table {
 
 #preloader{
   opacity:0.5;
+  display: none;
 }
 
 .editThisId:hover {
