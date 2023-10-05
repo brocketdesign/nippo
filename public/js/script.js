@@ -912,9 +912,7 @@ $(document).ready(async function () {
     
     //NIPPO FORM PAGE
     if (!!document.querySelector("#formPage")) {
-        nippoFormInit(function(){
-            
-        })
+        nippoFormInit()
         genbatoday($('#userID').attr('data-value'), today)
         $('.SelectUserID').attr('data-selectid', $('#userID').attr('data-value'))
         SUA({ event: '日報入力ページ' });
@@ -1415,6 +1413,7 @@ async function nippoIchiranInit(userID, today, start, end) {
         start = $('#start-period').attr('data-value')
         end = $('#end-period').attr('data-value')
     }
+    console.log(`nippoIchiranInit`,{userID, today, start, end})
     if (!$('#nippoichiran').hasClass('ongoing')) {
         $('#nippoichiran').addClass('ongoing')
 
@@ -1845,23 +1844,117 @@ function resetSetting() {
     })
 
 }
-function genbatoday(userID, today) {
-    $('.genbatoday').html('')
-    $('.genbatodayloading').show()
-    if (userID == undefined) { userID = $('#userID').attr('data-value') }
-    $.get('/api/genba/today/' + userID + '?today=' + today, async function (result) {
-        $('.genbatodayloading').hide()
-        let genbaList = await $.get("/api/genba");
-        if (result.length > 0) {
-            result.forEach(element => {
-                let preGenba = genbaList.filter(genba => genba._id === element.genbaID);
-                $('.genbatoday').append('<button class="btn btn-success btn-sm mx-2" data-id="' + element.genbaID + '" data-name="' + element.genbaName + '">' + preGenba[0].工事名 + '</button>')
-            });
-        } else {
-            $('.genbatoday').append('<span class="text-secondary" style="font-size:12px">データがございません。</span>')
-        }
-    })
+
+function getGenbaTodayData(userID, today) {
+    let storageKey = `genbaToday-${userID}-${today}`;
+    let data = JSON.parse(localStorage.getItem(storageKey));
+
+    if (data) {
+        return Promise.resolve(data);
+    }
+
+    return $.get('/api/genba/today/' + userID + '?today=' + today).then(result => {
+        localStorage.setItem(storageKey, JSON.stringify(result));
+        return result;
+    });
 }
+
+function updateGenbaData(userID) {
+    // Fetch fresh data for user's genba list and global genba list
+    let userGenbaPromise = $.get(`/users/info/${userID}`).then(result => {
+        let genbaData = result.genba;
+        localStorage.setItem(`userGenbaList-${userID}`, JSON.stringify(genbaData));
+        return genbaData;
+    });
+
+    let globalGenbaPromise = $.get("/api/genba").then(result => {
+        localStorage.setItem('genbaList', JSON.stringify(result));
+        return result;
+    });
+
+    // Return a promise that resolves when both updates are completed
+    return $.when(userGenbaPromise, globalGenbaPromise);
+}
+
+function getUserGenbaList(userID) {
+    // Define the storage key for caching
+    let storageKey = `userGenbaList-${userID}`;
+    
+    // Check if data is available in local storage
+    let cachedData = JSON.parse(localStorage.getItem(storageKey));
+
+    if (cachedData) {
+        console.log('use cachedData : getUserGenbaList')
+        // Return the cached data as a resolved promise
+        return Promise.resolve(cachedData);
+    }
+
+    // If not found in local storage, fetch from the API
+    return $.get(`/users/info/${userID}`)
+        .then(result => {
+            // Extract the genba data from the result
+            let genbaData = result.genba;
+
+            // Cache the genba data in local storage for future use
+            localStorage.setItem(storageKey, JSON.stringify(genbaData));
+            return genbaData;
+        })
+        .catch(error => {
+            console.error("Error fetching user's genba list:", error);
+            throw error;  // Propagate the error so it can be handled by the caller
+        });
+}
+
+function getGenbaList() {
+    let storageKey = 'genbaList';
+    let data = JSON.parse(localStorage.getItem(storageKey));
+
+    if (data) {
+        console.log('use cachedData : getGenbaList')
+        return Promise.resolve(data);
+    }
+
+    return $.get("/api/genba").then(result => {
+        localStorage.setItem(storageKey, JSON.stringify(result));
+        return result;
+    });
+}
+
+function appendGenbaData(result, genbaList) {
+    if (result.length > 0) {
+        result.forEach(element => {
+            let preGenba = genbaList.filter(genba => genba._id === element.genbaID);
+            $('.genbatoday').append(`
+                <button class="btn btn-success btn-sm mx-2" data-id="${element.genbaID}" data-name="${element.genbaName}">
+                    ${preGenba[0].工事名}
+                </button>
+            `);
+        });
+    } else {
+        $('.genbatoday').append('<span class="text-secondary" style="font-size:12px">データがございません。</span>');
+    }
+}
+
+function genbatoday(userID, today) {
+    $('.genbatoday').html('');
+    $('.genbatodayloading').show();
+
+    if (userID === undefined) { 
+        userID = $('#userID').attr('data-value'); 
+    }
+
+    $.when(getGenbaTodayData(userID, today), getGenbaList())
+        .done(function(genbaTodayData, genbaListData) {
+            $('.genbatodayloading').hide();
+            appendGenbaData(genbaTodayData, genbaListData);
+        })
+        .catch(function() {
+            $('.genbatodayloading').hide();
+            // Optionally, add error handling/display logic here
+            console.error("Failed to fetch genba data.");
+        });
+}
+
 
 $(document).on('click', '.genbatoday button', function () {
     let genbaID = $(this).attr('data-id')
@@ -1993,7 +2086,6 @@ async function genbaIchiranInit(today, start, end) {
             $('.info.savingPointer').show()
         }
 
-
         $.get('/api/genbaichiran?genbaID='+genbaID+'&today='+today+'&start='+start+'&end='+end, async function(result){
             if (result) {
                 $('#genbaichiran .ichiran thead tr').html('')
@@ -2002,7 +2094,6 @@ async function genbaIchiranInit(today, start, end) {
                 $('#genbaichiran .ichiran thead tr').prepend('<th scope="col" class="pl-2 py-2" style="cursor:pointer" onclick="sortTableByDate(\'genbaIchiran\', 0, \'genba-arrow-up\', \'genba-arrow-down\')">日付<i id="genba-arrow-up" style="width: 20px; height: 20px; margin-left: 5px;display:none;" data-feather="arrow-up"></i><i id="genba-arrow-down" style="width: 20px; height: 20px; margin-left: 5px;" data-feather="arrow-down"></i></th><th scope="col" class="pl-2 py-2">工種</th><th scope="col" class="pl-2 py-2">業社名</th><th scope="col" class="pl-2 py-2">人員</th><th scope="col" class="pl-2 py-2">作業内容</th><th scope="col" class="pl-2 py-2">入力者名</th><th scope="col" class="d-none pl-2 py-2"></th>')
                 //SHUKEI INFO
                 $('.card.info').show()
-                $('.info.savingPointer').show()
                 $('.nice-select.input-genba.globalselector').addClass('disabled')
                 $('select.input-genba.globalselector').prop('disabled', true)
                 $('#info.genba').html('')
@@ -2905,6 +2996,9 @@ function SettingsUsersInit() {
             $('#editUsers .loading').hide()
             $('#editUsers .card-body').show()
         })
+
+        updateGenbaData(userID)
+
     }
 }
 function updateGenbaCheckList(result) {
@@ -3240,6 +3334,7 @@ function getTotal() {
     })
 }
 function miniTools() {
+    genbaOptionSelect()
     inputInit()
     displayMainContent()
     displayPeriodList(20)
@@ -3278,7 +3373,6 @@ function miniTools() {
     }
     datecontrol()
     getTotal()
-    genbaOptionSelect()
     $(document).on('click', '#genbaichiran .locked', function () {
         let cUserName = $('#lname').text() + ' ' + $('#fname').text()
         let xUserName = $(document).find('.removeThisIdHide[data-id="' + $(this).attr('data-id') + '"][data-value="' + $(this).attr('data-value') + '"]').find('span[data-name="userName"]').text()
@@ -3734,7 +3828,6 @@ function initGenbaInput(callback) {
                 }
             }
         });
-
         // Initialize genba if no user IDs are found
         if (userIDs.length === 0) {
             genbaInit($(document).find('select.input-genba'));
@@ -3744,7 +3837,6 @@ function initGenbaInput(callback) {
         // Process each user ID
         userIDs.forEach(userID => {
             processUserID(userID, function () {
-                console.log("Completed processing for userID:", userID);
                 if (callback) { callback() }  
             });
         });
@@ -3755,88 +3847,103 @@ function initGenbaInput(callback) {
 function processUserID(userID, callback) {
     let allSelect = $(document).find(`select.input-genba[data-userid="${userID}"]`);
     
-    // Fetch user info
-    $.get(`/users/info/${userID}`, function (user) {
-        processDateAndGenba(user, allSelect, function() {
-            // Callback when all processing is done
-            if (typeof callback === 'function') {
-                callback();
-            }
+    getUserGenbaList(userID)
+        .then(userGenbaList => {
+            processDateAndGenba(userID, userGenbaList, allSelect, function() {
+                // Callback when all processing is done
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            });
+        })
+        .catch(error => {
+            console.error("Failed to get user's genba list:", error);
+            // Handle any error-specific logic here, if necessary
         });
-    });
+}
+
+
+// Function to get the formatted date for "yesterday"
+function getYesterdayFormatted(dateInput) {
+    let yesterday = moment(dateInput).subtract(1, 'days');
+    return `${yesterday.month() + 1}/${yesterday.date()}/${yesterday.year()}`;
 }
 
 // Function to process date and Genba
-function processDateAndGenba(user, allSelect, callback) {
-    let yesterday = moment(new Date($('.input-date.globalselector').data('date'))).subtract(1, 'days')._d;
-    let dd = new Date(yesterday);
-    let ct = `${dd.getMonth() + 1}/${dd.getDate()}/${dd.getFullYear()}`;
+function processDateAndGenba(userID, userGenbaList, allSelect, callback) {
+    let dateInput = new Date($('.input-date.globalselector').data('date'));
+    let ct = getYesterdayFormatted(dateInput);
 
-    // Fetch Genba info for yesterday
-    $.get(`/api/genba/today/${user._id}?today=${ct}`, function (result) {
-        console.log({ event: 'genbaYesterday', userID: user._id, yesterday: ct, result: result });
-        localStorage.setItem(`genbaYesterday-${user._id}-${ct}`, JSON.stringify(result));
-        
-        // Retrieve and parse the string back to an object
-        const genbaYesterday = JSON.parse(localStorage.getItem(`genbaYesterday-${user._id}-${ct}`));
-      
-        // Process and populate the select options
-        populateSelectOptions(user, allSelect, genbaYesterday, result, callback);
-    });
+    // Retrieve and parse the string back to an object
+    let genbaLocalStorageKey = `genbaYesterday-${userID}-${ct}`;
+    let genbaYesterday = JSON.parse(localStorage.getItem(genbaLocalStorageKey)) || null;
+    
+    if (genbaYesterday) {
+        populateSelectOptions(userGenbaList, allSelect, genbaYesterday, callback);
+    } else {
+        // Fetch Genba info for yesterday
+        $.get(`/api/genba/today/${userID}?today=${ct}`, function (result) {
+            localStorage.setItem(genbaLocalStorageKey, JSON.stringify(result));
+            populateSelectOptions(userGenbaList, allSelect, result, callback);
+        });
+    }
 }
-
 // Function to populate the select options
-function populateSelectOptions(user, allSelect, genbaYesterday, result, callback) {
+function populateSelectOptions(userGenbaList, allSelect, genbaYesterday, callback) {
     const genbaYesterdayIDs = genbaYesterday.map(obj => obj.genbaID);
-    if (user && (user.genba)) {
-        if (user.genba.length > 0) {
-            $.get("/api/genba", function (data) {
-                allSelect.each(function () {
-                    let genbaSelect = $(this)
-                    genbaSelect.html('')
-                    data = sortit(data, '工事名kana')
-                    for (let index = 0; index < data.length; index++) {
-                        let element = data[index]
-                        if (element.工事名 && user.genba.some(genba => genba.name === element.工事名)) {
-                            if (genbaYesterdayIDs.includes(element._id)) {
-                                genbaSelect.prepend(`<option value="${element._id}" data-id="${element._id}">${element.工事名}</option>`);
-                            } else {
-                                genbaSelect.append(`<option value="${element._id}" data-id="${element._id}">${element.工事名}</option>`);
-                            }
-                        }
-                        
-                    };
-                    if (!genbaSelect.hasClass('globalselector')) {
-                        if (!genbaSelect.attr('value')) {
-                            genbaSelect.val('')
+
+    if (userGenbaList.length > 0) {
+        getGenbaList().then(data => {
+            allSelect.each(function() {
+                let genbaSelect = $(this)
+                genbaSelect.html('')
+                data = sortit(data, '工事名kana')
+
+                for (let index = 0; index < data.length; index++) {
+                    let element = data[index];
+                    if (element.工事名 && userGenbaList.some(genba => genba.name === element.工事名)) {
+                        if (genbaYesterdayIDs.includes(element._id)) {
+                            genbaSelect.prepend(`<option value="${element._id}" data-id="${element._id}">${element.工事名}</option>`);
                         } else {
-                            genbaSelect.val(genbaSelect.attr('value'))
-                        }
-                    } else {
-                        if (!genbaSelect.hasClass('init-on')) {
-                            genbaSelect.addClass('init-on')
-                            let selectid = 0
-                            if (getUrlParameter('genbaID') != undefined) {
-                                selectid = getUrlParameter('genbaID')
-                            }
-                            if ((selectid == 0) || selectid == undefined) {
-                                genbaSelect.val(genbaSelect.find("option:first").val()).change();
-                            } else {
-                                genbaSelect.val(genbaSelect.find('option[data-id="' + selectid + '"]').val()).change();
-                            }
+                            genbaSelect.append(`<option value="${element._id}" data-id="${element._id}">${element.工事名}</option>`);
                         }
                     }
-                    genbaSelect.niceSelect('update')
-                })
+                }
+
+                if (!genbaSelect.hasClass('globalselector')) {
+                    if (!genbaSelect.attr('value')) {
+                        genbaSelect.val('')
+                    } else {
+                        genbaSelect.val(genbaSelect.attr('value'))
+                    }
+                } else {
+                    if (!genbaSelect.hasClass('init-on')) {
+                        genbaSelect.addClass('init-on')
+                        let selectid = 0
+                        if (getUrlParameter('genbaID') != undefined) {
+                            selectid = getUrlParameter('genbaID')
+                        }
+                        if ((selectid == 0) || selectid == undefined) {
+                            genbaSelect.val(genbaSelect.find("option:first").val()).change();
+                        } else {
+                            genbaSelect.val(genbaSelect.find('option[data-id="' + selectid + '"]').val()).change();
+                        }
+                    }
+                }
+
+                genbaSelect.niceSelect('update')
             });
-        }
+
+            // Callback when all options are populated
+            if (typeof callback === 'function') {
+                callback();
+            }
+        }).catch(error => {
+            console.error("Error fetching genba list:", error);
+            genbaInit(allSelect); // Assuming you want to call genbaInit on error
+        });
     } else {
         genbaInit(allSelect)
-    }
-
-    // Callback when all options are populated
-    if (typeof callback === 'function') {
-        callback();
     }
 }
 
@@ -3845,35 +3952,42 @@ function genbaInit(allSelect) {
     console.log({
         event: 'genbaInit',
         allSelect: allSelect
-    })
+    });
+    
     allSelect.each(function () {
-        let genbaSelect = $(this)
+        let genbaSelect = $(this);
         if (!$(this).hasClass('init-on')) {
-            $.get("/api/genba", function (data) {
-                data = sortit(data, '工事名kana')
-                for (let index = 0; index < data.length; index++) {
-                    let element = data[index]
-                    if (element.工事名) {
-                        genbaSelect.append('<option value="' + element._id+'" data-id="' + element._id+'">' + element.工事名+' </option>')
+            getGenbaList()
+                .then(data => {
+                    data = sortit(data, '工事名kana');
+                    for (let index = 0; index < data.length; index++) {
+                        let element = data[index];
+                        if (element.工事名) {
+                            genbaSelect.append(`<option value="${element._id}" data-id="${element._id}">${element.工事名}</option>`);
+                        }
                     }
-                };
-                if (!genbaSelect.hasClass('globalselector')) {
-                    genbaSelect.val('')
-                    if (!genbaSelect.attr('value')) {
-                        genbaSelect.val('')
+                    
+                    if (!genbaSelect.hasClass('globalselector')) {
+                        genbaSelect.val('');
+                        if (!genbaSelect.attr('value')) {
+                            genbaSelect.val('');
+                        } else {
+                            genbaSelect.val(genbaSelect.attr('value'));
+                        }
+                        genbaSelect.niceSelect('update');
                     } else {
-                        genbaSelect.val(genbaSelect.attr('value'))
+                        if (!genbaSelect.hasClass('init-on')) {
+                            genbaSelect.addClass('init-on');
+                            genbaSelect.val(genbaSelect.find("option:first").val()).change();
+                        }
                     }
-                    genbaSelect.niceSelect('update')
-                } else {
-                    if (!genbaSelect.hasClass('init-on')) {
-                        genbaSelect.addClass('init-on')
-                        genbaSelect.val(genbaSelect.find("option:first").val()).change();
-                    }
-                }
-            });
+                })
+                .catch(error => {
+                    console.error("Failed to get genba list:", error);
+                    // Handle any error-specific logic here, if necessary
+                });
         }
-    })
+    });
 }
 
 
@@ -4250,16 +4364,10 @@ function setLocalStorageItem(c_name, c_val) {
     // Store the value in local storage
     localStorage.setItem(c_name, c_val);
 
-    // Log the storage event for debugging
-    console.log(`Stored in Local Storage: ${c_name} = ${c_val}`);
-
     // Create an info object based on data attributes
     let info = {};
     info.event = $('#' + c_val).attr('data-sua-event');
     info.detail = $('#' + c_val).attr('data-sua-detail') || '-';
-
-    // Log the info object for debugging
-    console.log('Info object:', info);
 
     // Call the SUA function with the info object
     SUA(info);
@@ -4268,10 +4376,6 @@ function setLocalStorageItem(c_name, c_val) {
 function setNippoView() {
     // Check if 'nippoview' is stored in local storage
     const nippoViewValue = getUrlParameter('nippoview') || localStorage.getItem('nippoview');
-    
-    // Log the value retrieved from local storage for debugging
-    console.log('NippoView :', nippoViewValue);
-  
     // If the 'nippoview' value exists in local storage
     if (nippoViewValue !== null) {
       // Trigger a click event on the element with the ID stored in 'nippoview'

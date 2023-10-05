@@ -23,10 +23,11 @@ connectToDatabase()
   .then(db => {
     app.locals.db = db;
     cronjob(db);console.log(`Successfully connected to MongoDB database: ${db.databaseName}`);
+    // Start server
+    startServer(app);
   });
 
-// Start server
-startServer(app);
+
 
 function configureApp(app) {
   app.use(express.static('public'));
