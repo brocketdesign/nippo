@@ -1023,8 +1023,11 @@ function datecontrol() {
         let ctoday = $('.input-date.globalselector').attr('data-date')
         let sPeriod = $('#start-period').attr('data-value')
         let ePeriod = $('#end-period').attr('data-value')
-        var pDay = moment(ctoday).subtract(1, 'days')._d
-        var nDay = moment(ctoday).add(1, 'days')._d
+
+        // Use explicit format with moment.js
+        var pDay = moment(ctoday, "MM/DD/YYYY").subtract(1, 'days').toDate();
+        var nDay = moment(ctoday, "MM/DD/YYYY").add(1, 'days').toDate();
+
         if (((pDay >= new Date(sPeriod)) && (pDay <= new Date(ePeriod))) || (isAdmin == true)) {
             $('.changeDay.prev').prop('disabled', false)
             $('.changeDay.prev').attr('data-value', pDay.toLocaleDateString('ja-JP'))
@@ -1862,6 +1865,35 @@ function getGenbaTodayData(userID, today) {
     });
 }
 
+function deleteLocalStorageForType(type) {
+    try {
+        localStorage.removeItem(`input-${type}`);
+        console.log(`Successfully deleted local storage variable for type: ${type}`);
+    } catch (err) {
+        console.error(`Error deleting local storage variable for type ${type}:`, err);
+    }
+}
+
+function updateLocalStorageForType(type) {
+    console.log(`updateLocalStorageForType : ${type}`)
+    return new Promise((resolve, reject) => {
+        // Fetch fresh data for the given type from the API
+        $.get(`/api/${type}`, function(data) {
+            try {
+                // Store the data in local storage
+                localStorage.setItem(`input-${type}`, JSON.stringify(data));
+                resolve(data);  // Resolve with fetched data
+            } catch (err) {
+                console.error(`Error updating local storage for type ${type}:`, err);
+                reject(err);  // Reject with the error
+            }
+        }).fail((jqXHR, textStatus, errorThrown) => {
+            console.error(`Error fetching data for type ${type}:`, errorThrown);
+            reject(errorThrown);  // Reject with the error from the AJAX call
+        });
+    });
+}
+
 function updateGenbaData(userID) {
     // Fetch fresh data for user's genba list and global genba list
     let userGenbaPromise = $.get(`/users/info/${userID}`).then(result => {
@@ -1919,6 +1951,15 @@ function getGenbaList() {
         localStorage.setItem(storageKey, JSON.stringify(result));
         return result;
     });
+}
+function deleteGenbaListFromLocalStorage() {
+    let storageKey = 'genbaList';
+    try {
+        localStorage.removeItem(storageKey);
+        console.log(`Successfully deleted local storage variable: ${storageKey}`);
+    } catch (err) {
+        console.error(`Error deleting local storage variable: ${storageKey}`, err);
+    }
 }
 
 function appendGenbaData(result, genbaList) {
@@ -2709,6 +2750,7 @@ function SettingsGenbaInit() {
     //UPDATE FORM FIELD
     setTimeout(() => {
         if (!!document.querySelector('#formGenba')) {
+            deleteGenbaListFromLocalStorage();
             let genbaID = getUrlParameter('genbaID')
             if (genbaID != 0) {
                 $('#submit_genba').attr('data-action', '/api/edit/genba?elementTypeID=' + genbaID)
@@ -3064,6 +3106,7 @@ function SettingsUpdate() {
         let myId = $(this).attr('data-id')
         $('#' + myId + ' .addItemToggle').hide()
         $('#' + myId + ' .addItem').fadeIn(500)
+        deleteLocalStorageForType($(this).attr('data-type'));
     })
     /*
     $('.enableSetting').on('click',function(){
@@ -3991,36 +4034,55 @@ function genbaInit(allSelect) {
     });
 }
 
+function fetchAndCache(type) {
+    let storageKey = `inputTypeData-${type}`;
+    let cachedData = JSON.parse(localStorage.getItem(storageKey));
 
+    if (cachedData) {
+        return Promise.resolve(cachedData);
+    }
+
+    return $.get(`/api/${type}`).then(result => {
+        localStorage.setItem(storageKey, JSON.stringify(result));
+        return result;
+    });
+}
 
 function loadinput(types) {
-        for (let i = 0; i < types.length; i++) {
-            let type = types[i]
-            if (!!document.querySelector('select.input-' + type)) {
-                $(document).find('select.input-' + type).each(function () {
-                    let sl = $(this)
-                    $.get("/api/" + type, function (data) {
-                        sl.html('')
+    for (let i = 0; i < types.length; i++) {
+        let type = types[i];
+        if (!!document.querySelector(`select.input-${type}`)) {
+            $(document).find(`select.input-${type}`).each(function() {
+                let sl = $(this);
+
+                fetchAndCache(type)
+                    .then(data => {
+                        sl.html('');
                         if (data.length > 0) {
-                            data = sortit(data)
+                            data = sortit(data);
                             data.forEach(element => {
-                                sl.append('<option value="' + element.el + '">' + element.el + '</option>')
+                                sl.append(`<option value="${element.el}">${element.el}</option>`);
                             });
                             if (!sl.attr('value')) {
-                                sl.val('')
+                                sl.val('');
                             } else {
-                                sl.val(sl.attr('value'))
+                                sl.val(sl.attr('value'));
                             }
-                            let nc = sl.find('option[value="その他"]')
-                            sl.append(nc.clone())
-                            nc.remove()
+                            let nc = sl.find('option[value="その他"]');
+                            sl.append(nc.clone());
+                            nc.remove();
                         }
-                        sl.niceSelect('update')
+                        sl.niceSelect('update');
+                    })
+                    .catch(error => {
+                        console.error("Failed to load input data:", error);
                     });
-                })
-            }
+            });
         }
-    }    
+    }
+}
+ 
+
 function initGlobalSelector() {
 
     if (!!document.querySelector('.input-responsible')) {
