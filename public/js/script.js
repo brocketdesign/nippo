@@ -2159,7 +2159,7 @@ async function genbaIchiranInit(today, start, end) {
                             let content = ''
                             let list_content_item = ''
                             if (!((col1 == '-') && (col2 == '-') && ((col3 == '-') || (col3 == 0)) && (col4 == '-'))) {
-                                if (!document.querySelector('.list-group-item[data-value="' + data['todayJP'] + '"]')) {
+                                if (!document.querySelector('#genbaichiran .list-group-item[data-value="' + data['todayJP'] + '"]')) {
                                     let header_content = ''
                                     header_content += '<li class="list-group-item bg-transparent border-0 p-0 mb-2" data-id="' + data._id + '" data-value="' + data['todayJP'] + '">'
                                     header_content += '<div class="col-12 rounded-0 p-3 isweekend-' + data['todayJP'].substring(data['todayJP'].indexOf('(')).replace('(', '').replace(')', '') + '" style="font-size: 31px;">' + data['todayJP'] + '</div>'                            //content += '<td><select style="display:none" data-type="input-koushu" data-field="工種-'+n+'" data-name="'+genbaID+'_genbanippo" data-id="'+data._id+'" data-userid="'+data.userID+'" class="editor input-koushu px-2 bg-white border border-secondary rounded" placeholder="'+col1+'" value="'+col1+'" name="工種-'+n+'" onchange="updateField(this)"></select></td>'
