@@ -1678,7 +1678,6 @@ function doForm(formID, element, day, editForm) {
             $(this).val('').change()
         })
     }
-    inputInit()
 }
 function updateTotalTime() {
     let count = 0
