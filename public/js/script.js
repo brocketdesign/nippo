@@ -954,7 +954,7 @@ $(document).ready(async function () {
         || (!!document.querySelector('#SettingsGlobal'))
         || (!!document.querySelector('#SettingsUpdate'))
     ) {
-        afterAllisDone()
+        //afterAllisDone()
     }
 
 
@@ -965,6 +965,8 @@ $(document).ready(async function () {
     navigationActive();
     updateDate();
     miniTools();
+
+    inputInit();
 
 });
 $(document).ajaxStop(function () {
@@ -1559,7 +1561,7 @@ function initFormField(userID, day, editForm) {
         })
     } else {
         let genbaID = $('.input-genba[data-name="genbanippo"]').find('option:checked').attr('data-id')
-        if(false){console.log({
+        if(true){console.log({
             event: 'initFormField',
             editForm: editForm,
             userID: userID,
@@ -1682,6 +1684,7 @@ function doForm(formID, element, day, editForm) {
             $(this).val('').change()
         })
     }
+    inputInit()
 }
 function updateTotalTime() {
     let count = 0
@@ -1884,7 +1887,6 @@ function getUserGenbaList(userID) {
     let cachedData = JSON.parse(localStorage.getItem(storageKey));
 
     if (cachedData) {
-        console.log('use cachedData : getUserGenbaList')
         // Return the cached data as a resolved promise
         return Promise.resolve(cachedData);
     }
@@ -1910,7 +1912,6 @@ function getGenbaList() {
     let data = JSON.parse(localStorage.getItem(storageKey));
 
     if (data) {
-        console.log('use cachedData : getGenbaList')
         return Promise.resolve(data);
     }
 
@@ -3335,7 +3336,7 @@ function getTotal() {
 }
 function miniTools() {
     genbaOptionSelect()
-    inputInit()
+    
     displayMainContent()
     displayPeriodList(20)
     //UPDATE ICHIRAN FROM SELECT

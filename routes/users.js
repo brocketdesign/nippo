@@ -138,8 +138,14 @@ router.post('/edit',urlencodedParser, async (req, res) => {
     }
 
 });
+
 async function handleGenbaIds(genbaIds) {
     try {
+        // If genbaIds is a single string, convert it to an array
+        if (typeof genbaIds === 'string') {
+            genbaIds = [genbaIds];
+        }
+
         // Filter out any empty genbaId values
         const validGenbaIds = genbaIds.filter(genbaId => genbaId.trim() !== "");
 
@@ -161,6 +167,7 @@ async function handleGenbaIds(genbaIds) {
         throw error;  // or handle the error in some other appropriate way
     }
 }
+
 
 // Example function to fetch the genba name for a given ID from the database
 async function getGenbaName(genbaId) {
