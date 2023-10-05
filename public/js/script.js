@@ -1418,7 +1418,6 @@ async function nippoIchiranInit(userID, today, start, end) {
         start = $('#start-period').attr('data-value')
         end = $('#end-period').attr('data-value')
     }
-    console.log(`nippoIchiranInit`,{userID, today, start, end})
     if (!$('#nippoichiran').hasClass('ongoing')) {
         $('#nippoichiran').addClass('ongoing')
 
@@ -1564,7 +1563,7 @@ function initFormField(userID, day, editForm) {
         })
     } else {
         let genbaID = $('.input-genba[data-name="genbanippo"]').find('option:checked').attr('data-id')
-        if(true){console.log({
+        if(false){console.log({
             event: 'initFormField',
             editForm: editForm,
             userID: userID,
@@ -1671,14 +1670,6 @@ function doForm(formID, element, day, editForm) {
             $('form.' + editForm).find('.input-genbaID').val(genbaID)
             $('form.' + editForm).find('.input-genbaName').val(genbaName)
         }
-        console.log({
-            event: 'doForm -> default form init',
-            formSelect: formSelect,
-            userName, userName,
-            GuserID: GuserID,
-            genbaID: genbaID,
-            genbaName: genbaName,
-        })
         $.each(formID.find('select'), function () {
             $(this).val('').change()
             $(this).niceSelect('update')
@@ -1715,11 +1706,6 @@ function resetGroupForm(formSelectQuery) {
         let $this = formSelectQuery
         let formSelect = $this.attr('data-name')
         let formIndex = $this.attr('data-value')
-        console.log({
-            event: 'resetGroupForm',
-            form: formSelect
-        })
-
         let formID = 'form.' + formSelect + '[data-value="' + formIndex + '"]'
         if ($(formID + ' .form-group-container').length > 0) {
             let groupContainer = $(formID + ' .form-group-container').first().clone()
@@ -2105,14 +2091,16 @@ async function genbaIchiranInit(today, start, end) {
     }
     let genbaID =  $('.input-genba.globalselector[data-select="genba"]').find('option:checked').attr('data-id')
     let genbaName = $('.input-genba.globalselector[data-select="genba"]').find('option:checked').attr('value')
-    console.log({
-        event: 'genbaIchiranInit',
-        genbaID: genbaID,
-        genbaName: genbaName,
-        today: today,
-        start: start,
-        end: end,
-    })
+    if (false) {
+        console.log({
+            event: 'genbaIchiranInit',
+            genbaID: genbaID,
+            genbaName: genbaName,
+            today: today,
+            start: start,
+            end: end,
+        })
+    }
     if (genbaID != undefined) {
         $('.alert-genba').hide()
         $('#genbaichiran .ichiran tbody').html('')
@@ -2288,12 +2276,14 @@ async function genbaIchiranInit(today, start, end) {
                     info['現場監督'] = {total:parseFloat(dTotal),detail:dDetail}
                     info.工種合計 += parseFloat(dTotal)
                     info.工種合計= info.工種合計.toFixed(2)
-                    console.log({
-                        event:'shukei',
-                        genbaName:genbaName,
-                        info:info,
-                        today:today,
-                    })
+                   if (false) {
+                     console.log({
+                         event:'shukei',
+                         genbaName:genbaName,
+                         info:info,
+                         today:today,
+                     })
+                   }
                     $('.shukei_todayJP').html(' '+ctodayJP)
                     $('#info.genba').append('<ul class="list-group"><li class="list-group-item ms-design showall" data-ms-base="ms-genbanippo" >工種合計 : '+info['工種合計']+'</li></ul>')
                     Object.keys(info).forEach(k => {
@@ -3584,46 +3574,48 @@ function miniTools() {
         }
     })
     if (!!document.querySelector('.switchview')) {
-        let switchview = $.cookie('switchview');
-        if (switchview == undefined) {
-            $.cookie('switchview', $('.switchview .switcher.on').attr('data-value'), { expires: 7 });
-            $('.' + $('.switchview .switcher.on').attr('data-value')).show()
+        let switchview = localStorage.getItem('switchview');
+        
+        if (switchview === null) {
+            localStorage.setItem('switchview', $('.switchview .switcher.on').attr('data-value'));
+            $('.' + $('.switchview .switcher.on').attr('data-value')).show();
         } else {
             $('.switchview .switcher').each(function () {
-                $(this).removeClass('on')
-            })
-            $('.switchview .switcher[data-value="' + switchview + '"]').addClass('on')
+                $(this).removeClass('on');
+            });
+            $('.switchview .switcher[data-value="' + switchview + '"]').addClass('on');
             $('.switchview .switcher').each(function () {
                 if ($(this).hasClass('on')) {
-                    $(this).show()
-                    $('.' + $(this).attr('data-value')).show()
-                    $.cookie('switchview', $(this).attr('data-value'), { expires: 7 });
+                    $(this).show();
+                    $('.' + $(this).attr('data-value')).show();
+                    localStorage.setItem('switchview', $(this).attr('data-value'));
                 } else {
-                    $(this).hide()
+                    $(this).hide();
                 }
-            })
+            });
         }
         $('.switchview').on('click', function () {
-            $('.display').hide()
+            $('.display').hide();
             $('.switchview .switcher').each(function () {
-                $(this).toggleClass('on')
+                $(this).toggleClass('on');
                 if ($(this).hasClass('on')) {
-                    $(this).show()
-                    $('.' + $(this).attr('data-value')).show()
-                    $.cookie('switchview', $(this).attr('data-value'), { expires: 7 });
-                    let view = $(this).attr('data-value')
-                    if (view == 'view-list') {
-                        view = 'リスト表示に'
+                    $(this).show();
+                    $('.' + $(this).attr('data-value')).show();
+                    localStorage.setItem('switchview', $(this).attr('data-value'));
+                    let view = $(this).attr('data-value');
+                    if (view === 'view-list') {
+                        view = 'リスト表示に';
                     } else {
-                        view = '日付表示に'
+                        view = '日付表示に';
                     }
-                    SUA({ event: '表示切り替え', detail: view })
+                    SUA({ event: '表示切り替え', detail: view });
                 } else {
-                    $(this).hide()
+                    $(this).hide();
                 }
-            })
-        })
+            });
+        });
     }
+    
 }
 
 function updateField(el) {
