@@ -156,8 +156,8 @@ block content
                             .sr-only ローディング...
                     .col-12.alert-genba(style="display:none")
                         .row 
-                            .col-12.text-start.text-danger
-                                span 現場を選択してください
+                            .col-12.text-start
+                                a.text-danger(href=`/dashboard/settings/users/edit/${userID}`) 現場を選択してください
                 .card.border-secondary.my-3(style="width:100%")
                     .card-header.py-1.bg-warning.font-weight-bold.text-white
                         .row
@@ -227,8 +227,8 @@ block content
                                 span.mx-1.d-none.d-sm-inline(style="font-size: 12px;") 全て
                 .alert(style="display:none")
                     .row 
-                        .col-12.text-start.text-danger     
-                            span 現場を選択してください
+                        .col-12.text-start
+                            a.text-danger(href=`/dashboard/settings/users/edit/${userID}`) 現場を選択してください
                 .row 
                     .col-12.col-sm-4
                         .card.info.border-secondary.my-3(style="width:100%;")
