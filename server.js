@@ -32,6 +32,12 @@ connectToDatabase()
 function configureApp(app) {
   app.use(express.static('public'));
   app.set('view engine', 'pug');
+  app.use((req, res, next) => {
+    if (req.headers.host === 'nippov100.herokuapp.com') {
+      return res.redirect(301, 'https://horiken.nippodx.com' + req.originalUrl);
+    }
+    next();
+  });
   console.log('App configured');
 }
 
