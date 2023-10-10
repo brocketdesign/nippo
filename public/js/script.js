@@ -4693,7 +4693,7 @@ function newDashboardCalendarInit(userID, today, start, end) {
                     month === realEndDate.getMonth() && d <= realEndDate.getDate()
                 )
             ) {
-                day.setAttribute("href", `/dashboard/input_nippo?y=${year}&m=${month + 1}&d=${d}`);
+                day.setAttribute("href", `/dashboard/input_nippo?nippoview=nav-nippo-tab&y=${year}&m=${month + 1}&d=${d}`);
 
                 if (!currentWorkData.length) {
                     mainContent = ["日報未入力"];
