@@ -2328,6 +2328,12 @@ async function genbaIchiranInit(today, start, end) {
         })
     } else {
         $('.alert-genba').show()
+        if (!$('#genbaichiran .loading').hasClass('d-none')) {
+            $('#genbaichiran .loading').addClass('d-none')
+        }
+        //SHUKEI INFO
+        $('.info.savingPointer').hide()
+        $('.nice-select.input-genba.globalselector').removeClass('disabled')
     }
 
 }
