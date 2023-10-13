@@ -141,6 +141,11 @@ router.post('/edit',urlencodedParser, async (req, res) => {
 
 async function handleGenbaIds(genbaIds) {
     try {
+        if (!genbaIds) {
+           console.log('genbaIds is not defined');
+           return; [];
+        }
+        
         // If genbaIds is a single string, convert it to an array
         if (typeof genbaIds === 'string') {
             genbaIds = [genbaIds];
@@ -164,7 +169,7 @@ async function handleGenbaIds(genbaIds) {
         return genbaObjects;
     } catch (error) {
         console.error("Error in handleGenbaIds:", error);
-        throw error;  // or handle the error in some other appropriate way
+        return [];  // or handle the error in some other appropriate way
     }
 }
 
