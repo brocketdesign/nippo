@@ -2928,11 +2928,6 @@ function SettingsUsersInit() {
             $('#userActivity .loading').show()
             let userID = $(this).attr('data-value')
             $.get('/api/users?elID=' + userID, function (result) {
-                console.log({
-                    event: 'click .user-select ',
-                    userID: userID,
-                    result: result
-                })
                 $('#editUsers form').attr('action', '/users/edit?userID=' + userID)
                 $('#editUsers form input').each(function () {
                     if (result[$(this).attr('name')]) {
@@ -3007,7 +3002,7 @@ function SettingsUsersInit() {
             })
         })
     }
-    if (!!document.querySelector('#editUsers')) {
+    if (!document.querySelector('#userActivity') && !!document.querySelector('#editUsers')) {
         let userID = $('#userID').attr('data-value')
         $.get('/api/users?elID=' + userID, function (result) {
             $('#editUsers form').attr('action', '/users/edit?userID=' + userID)
@@ -3024,7 +3019,6 @@ function SettingsUsersInit() {
                     $(this).niceSelect('update')
                 }
             })
-            //genbaCheckList
             updateGenbaCheckList(result)
             //Delete button
             if (!!document.querySelector('#usersDelete')) {
