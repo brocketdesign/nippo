@@ -42,7 +42,7 @@ block content
                                 .savingPointer.spinner-border.text-dark.spinner-border-sm.ml-2(style="display:none" role="status" data-value="0")
                                     .sr-only ローディング...
             div(class="tab-pane fade show active" id="nav-nippo" role="tabpanel" aria-labelledby="nav-nippo-tab")
-                .card.border-secondary.my-3(style="width:100%")
+                .card.border-secondary.my-3.w-100
                     .card-header.py-1.bg-primary.text-white.font-weight-bold
                         .row
                             .col-6.text-left
@@ -171,12 +171,12 @@ block content
                     .card-body(data-name="genbanippo" data-value="1")
                         form.genbanippo(data-name="genbanippo" data-value="1" autocomplete="off")
                             .form-container
-                                input.input-userID.form-control.form-control-sm(type="hidden" value=`${userID}` name="userID")
-                                input.input-userName.form-control.form-control-sm(type="hidden" value=`${userName}` name="userName")
-                                input.input-date.form-control.form-control-sm(type="hidden" placeholder="日付" name="日付" value=`${today}`)
-                                input.input-genbaID.form-control.form-control-sm(type="hidden" name="genbaID")
-                                input.input-genbaName.form-control.form-control-sm(type="hidden" name="genbaName")
-                                input.totalLine.genbanippo.form-control.form-control-sm(type="hidden" value="1" name="totalLine")
+                                input.input-userID(type="hidden" value=`${userID}` name="userID")
+                                input.input-userName(type="hidden" value=`${userName}` name="userName")
+                                input.input-date(type="hidden" placeholder="日付" name="日付" value=`${today}`)
+                                input.input-genbaID(type="hidden" name="genbaID")
+                                input.input-genbaName(type="hidden" name="genbaName")
+                                input.totalLine.genbanippo(type="hidden" value="1" name="totalLine")
                                 .form-row.label-group.d-none.d-sm-flex
                                     .col-12.col-sm-2.text-center
                                         label.control-label(for="工種") 工種

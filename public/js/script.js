@@ -937,6 +937,49 @@ $(document).ready(async function () {
     if (!!document.querySelector('#SettingsCompany') || !!document.querySelector('#editCompany')) {
         SettingsCompnayInit()
     }
+
+    // new[monkey]
+    //DAITYOU Page
+    // TODO
+    if (!!document.querySelector('#daityouPage')) {
+        SUA({ event: '工事台帳ページ' });
+    }
+
+    if (!!document.querySelector('#daityouGenba')) {
+        daityouGenbaInit()
+        SUA({ event: '現場まとめページ' });
+    }
+
+    if (!!document.querySelector('#daityouSiharaIchiran')) {
+        daityouSiharaIchiran()
+        SUA({ event: '支払一覧ページ' });
+    }
+
+    if (!!document.querySelector('#daityouGenbaIchiran')) {
+        let userID = $('#userID').attr('data-value')
+        inputInit(function () {
+            $.get("/api/globalsetting", function (data) {
+                shimebi = parseInt(data[0].period)
+                displayPeriodList(shimebi)
+                if (!!document.querySelector('#nippoichiran.current')) {
+                    let selectid = userID
+                    if (getUrlParameter('selectid') != undefined) {
+                        selectid = getUrlParameter('selectid')
+                    }
+                    console.log({
+                        event: 'nippoIchiranInit -> selectid',
+                        selectid: selectid
+                    })
+                    nippoIchiranInit(selectid, today)
+                }
+                if (!!document.querySelector('#genbaichiran.current')) {
+                    //genbaIchiranInit(today)
+                }
+            })
+        });
+        SUA({ event: '現場日報ページ' })
+    }
+
     if (!!document.querySelector('#SettingsUsers') || !!document.querySelector('#editUsers')) {
         SettingsUsersInit()
         SUA({ event: 'プロファイルページ' })
@@ -2644,7 +2687,7 @@ function SettingsGenbaInit() {
     if (!!document.querySelector(".table#genba")) {
         SUA({ event: '現場一覧ページ' })
         let genbaSelect = $('.table#genba')
-        $.get("/api/genba", function (data) {
+        $.get("/api/genba", function (data) { // api.js : router.get('/:dbName')
             data = sortit(data, '工事名kana')
             for (let index = 0; index < data.length; index++) {
                 let element = data[index]
@@ -3451,7 +3494,7 @@ function miniTools() {
             $(this).find('.removeThisId').hide()
         }
     }, '.removeThisIdHide')
-    //
+    // new[monkey] - need comment
     $(document).find('.input-genba-key').prev('.ipk.nice-select').find('.current').text('')
     //RESET SPECIFIC SELECT
     if (!!document.querySelector('#nippoEvery')) {
@@ -3488,6 +3531,12 @@ function miniTools() {
     })
     */
     $('body').on('click', '.clickable', function () {
+        if ($(this).attr('data-link')) {
+            window.location = new URL(window.location.origin + $(this).attr('data-link'))
+        }
+    })
+    // new[monkey]
+    $('body').on('click', '.clickable-no-hover', function () {
         if ($(this).attr('data-link')) {
             window.location = new URL(window.location.origin + $(this).attr('data-link'))
         }
@@ -5495,3 +5544,220 @@ function drawChartForNewAdminDashboard(labels, cData, allPeopleNum) {
     new Chart(ctx, config);
 }
 //  End New Dashboard For Admin Page Init
+
+// new[monkey]
+// DAITYOU PAGE
+function daityouGenbaInit() {
+    // console.log({
+    //     event: 'daityouGenbaInit'
+    // })
+    // 作業時間 to 日
+    // $.get('/api/shukei', function (data) {
+    //     data = data[0]
+    //     let genbas = Object.keys(data)
+    //     genbas.forEach(genba => {
+    //         let shukei = data[genba]
+    //         if (typeof shukei === 'object') {
+    //             let content = '<tr>'
+    //             content += '<td>' + genba + '</td>'
+    //             content += '<td class="responsible-name">' + shukei.作業者 + '</td>'
+    //             content += '<td>' + shukei.作業時間 + ' 日</td>'
+    //             content += '</tr>'
+    //             $('table.table.shukei tbody').append(content)
+
+
+    //             let detail = shukei.detail
+    //             let names = Object.keys(detail)
+    //             names.forEach(name => {
+    //                 let content = '<tr>'
+    //                 content += '<td class="responsible">' + name + '</td>'
+    //                 content += '<td>' + genba + '</td>'
+    //                 content += '<td>' + detail[name] + ' 日</td>'
+    //                 content += '</tr>'
+    //                 $('table.table.genba tbody').append(content)
+    //             });
+    //         }
+    //     });
+    //     updateUserInfo()
+    //     nipposhukeiChart(data)
+    //     displayShukeiPeriodList()
+    //     //EXPORT CSV
+    //     $('.export-shukei').on('click', function () {
+    //         let win = window.open('/api/csv/shukeiCSV')
+    //     })
+    //     $('.export-genba').on('click', function () {
+    //         let win = window.open('/api/csv/genbasCSV')
+    //     })
+    // })
+    var data = null;
+    daityouGenbaChart(data);
+}
+
+function daityouGenbaChart(data) {
+    let hasDrawnChart1 = false;
+    let hasDrawnChart2 = false;
+    let hasDrawnChart3 = false;
+    $("#daityouGenbaChartBar1").resize(() => {
+        if ($("#daityouGenbaChartBar1").width() == 0 || $("#daityouGenbaChartBar1").height() == 0)
+            return;
+
+        if (hasDrawnChart1)
+            return;
+        
+        hasDrawnChart1 = true;
+        var d1 = [["売上", 40000000],["原価", 80000000],["粗利益", 120000000]];
+        $.plot(
+            "#daityouGenbaChartBar1", [{
+                data: d1,
+                color: "#00b0f0"
+            }], 
+            {
+                series: {
+                    bars: {
+                        align: "center",
+                        lineWidth: 0,
+                        show: !0,
+                        barWidth: .8,
+                        fill: .9
+                    }
+                },
+                grid: {
+                    borderColor: "#ddd",
+                    borderWidth: 1,
+                    hoverable: !0
+                },
+                
+                tooltip: true,
+                tooltipOpts: {
+                    content: '%y'
+                },
+            
+                xaxis: {
+                    tickColor: "#ddd",
+                    mode: "categories"
+                },
+                yaxis: {
+                    tickColor: "#ddd"
+                },
+                shadowSize: 0
+            }
+        );
+    });
+
+    $("#daityouGenbaChartBar2").resize(() => {
+        if ($("#daityouGenbaChartBar2").width() == 0 || $("#daityouGenbaChartBar2").height() == 0)
+            return;
+
+        if (hasDrawnChart2)
+            return;
+        
+        hasDrawnChart2 = true;
+        var d1 = [["シマダタイル", 60000000],["㈱ビルド伸", 16000000],["SPEC合同会社", 14000000],
+                ["日添ブリキ店", 12000000],["(有)寿石油店", 11000000],["(有)木岡建材店", 9000000],
+                ["(有)平野ブリキ店", 8000000],["(有)徳重工業", 6000000],["(有)杉原組", 5800000],
+                ["(有)杉本電機", 4000000],["(有)浜田鉄筋工業", 3000000],["(有)アクアテック", 2000000],
+                ["横河システム建築", 2000000],["㈱大萬", 1800000],["昇和㈱", 1500000],
+                ["㈱ハマキャスト", 1200000],["㈱今木鉄工", 1000000],["佐々木工業", 90000]];
+        // var d1 = [];
+        // var i;
+        // for (i = 0; i < 20; i++) {
+        //     // d1.push([i, "" + i]);
+        //     d1.push(["シマダタ" + i, i]);
+        // }
+
+        $.plot(
+            "#daityouGenbaChartBar2", [{
+                data: d1,
+                color: "#00b0f0"
+            }], 
+            {
+                series: {
+                    bars: {
+                        align: "center",
+                        lineWidth: 0,
+                        show: !0,
+                        barWidth: .8,
+                        fill: .9
+                    }
+                },
+                grid: {
+                    borderColor: "#ddd",
+                    borderWidth: 1,
+                    hoverable: !0
+                },
+                
+                tooltip: true,
+                tooltipOpts: {
+                    content: '%x: %y'
+                },
+            
+                xaxis: {
+                    tickColor: "#ddd",
+                    mode: "categories"
+                },
+                yaxis: {
+                    tickColor: "#ddd"
+                },
+                shadowSize: 0
+            }
+        );
+    });
+
+    $("#daityouGenbaChartBar3").resize(() => {
+        if ($("#daityouGenbaChartBar3").width() == 0 || $("#daityouGenbaChartBar3").height() == 0)
+            return;
+
+        if (hasDrawnChart3)
+            return;
+        
+        hasDrawnChart3 = true;
+
+        var s1 = [["2021年 9月", 0],["10月", 0],["11月", 0],["12月", 1000000],["2021年 1月", 3000000],["2月", 12700000],["3月", 37450000],["4月", 37500000],["5月", 20000000],["6月", 14000000],["7月", 5000],["8月", 0]];
+
+        var s2 = [["2021年 9月", 0],["10月", 0],["11月", 0],["12月", 1000],["2021年 1月", 8000000],["2月", 800000],["3月", 0],["4月", 50000000],["5月", 0],["6月", 0],["7月", 14000000],["8月", 0]];
+
+        $.plot("#daityouGenbaChartBar3", [{
+            data: s1,
+            label: "原価合計",
+            color: "#0093fb"
+        },{
+            data: s2,
+            label: "売上合計",
+            color: "#3cd133"
+        }], {
+            series: {
+                lines: {
+                    show: !0,
+                    lineWidth: 2
+                },
+                points: {
+                    show: !0,
+                    radius: 4,
+                    fill: !0,
+                    fillColor: "#ffffff"
+                }
+            },
+            grid: {
+                borderColor: "#ddd",
+                borderWidth: 1,
+                hoverable: !0
+            },
+            tooltip: !0,
+            tooltipOpts: {
+                content: "%y"
+            },
+            xaxis: {
+                tickColor: "#ddd",
+                mode: "categories"
+            },
+            yaxis: {
+                tickColor: "#ddd"
+            },
+            shadowSize: 0
+        });
+    });
+
+}
+
+function daityouSiharaIchiran() {
+}
