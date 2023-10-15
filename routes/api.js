@@ -697,6 +697,124 @@ router.post('/saveYearCalendar', urlencodedParser, async (req, res) => {
     res.sendStatus(403);
   }
 });
+
+// new[monkey]
+//save inoutcome
+router.post('/inoutcome/daityou', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    let kouza = req.body.口座
+    let torihiki = req.body.取引先
+    let date = req.body.日付
+    let items = req.body.data
+    
+    items.forEach(item => {
+      item.口座 = kouza
+      item.取引先 = torihiki
+      item.日付 = date
+
+      db.collection('inoutcomeDaityou').insert(item)
+    })
+    res.sendStatus(200)
+    
+  } else {
+    res.sendStatus(403);
+  }
+});
+
+// Filter inoutcomeDaityou
+router.post('/inoutcome/filter', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+
+    let body = req.body
+
+    let type = body.type
+    let kanjoukamoku = body.勘定科目
+    let dateFrom = body.dateFrom
+    let dateTo = body.dateTo
+    let kouza = body.口座
+    let torihiki = body.取引先
+    let genba = body.現場名
+    let bikou = body.備考
+    let priceFrom = body.priceFrom
+    let priceTo = body.priceTo
+
+    let criteria = {}
+
+    if (type) {
+      criteria.type = type
+    }
+
+    if (kanjoukamoku) {
+      criteria.勘定科目 = kanjoukamoku
+    }
+
+    // if (dateFrom) {
+    //   if (dateTo) {
+    //     criteria.日付 = {$gte:new Date(dateFrom), $lte:new Date(dateTo)}
+    //   } else {
+    //     criteria.日付 = {$gte:new Date(dateFrom)}
+    //   }
+    // } else {
+    //   if (dateTo) {
+    //     criteria.日付 = {$lte:new Date(dateTo)}
+    //   }
+    // }
+    if (dateFrom) {
+      if (dateTo) {
+        criteria.日付 = {$gte:dateFrom, $lte:dateTo}
+      } else {
+        criteria.日付 = {$gte:dateFrom}
+      }
+    } else {
+      if (dateTo) {
+        criteria.日付 = {$lte:dateTo}
+      }
+    }
+
+    if (kouza) {
+      criteria.口座 = kouza
+    }
+
+    if (torihiki) {
+      criteria.取引先 = torihiki
+    }
+
+    if (genba) {
+      criteria.現場名 = genba
+    }
+
+    if (bikou) {
+      criteria.備考 = bikou
+    }
+
+    //////////////////////////////////////////////////////////////
+    // TODO - rate * price
+    //////////////////////////////////////////////////////////////
+    if (priceFrom) {
+      if (priceTo) {
+        criteria.査定金額 = {$gte:priceFrom, $lte:priceTo}
+      } else {
+        criteria.査定金額 = {$gte:priceFrom}
+      }
+    } else {
+      if (priceTo) {
+        criteria.査定金額 = {$lte:priceTo}
+      }
+    }
+
+    // res.send(JSON.stringify(criteria))
+    db.collection('inoutcomeDaityou').find(criteria).sort({日付: -1}).toArray((err, results) => {
+      // res.send(JSON.stringify(criteria))
+      res.send(results)
+    })
+
+  } else {
+    res.sendStatus(403)
+  }
+});
+
 router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {
@@ -839,6 +957,7 @@ router.get('/update/:dbName', urlencodedParser, async (req, res) => {
     res.sendStatus(403);
   }
 });
+
 router.get('/:dbName', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {
@@ -1004,6 +1123,47 @@ router.get('/', urlencodedParser, (req, res) => {
     });
   */
 
+});
+
+// new[monkey]
+//GET kanjoukamoku
+router.get('/kanjoukamoku', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    let type = req.query.type
+    db.collection('kanjoukamoku').find({ 'type': type }).toArray((err, results) => {
+      res.send(results);
+    });
+    
+  } else {
+    res.sendStatus(403);
+  }
+});
+
+//GET hattyu
+router.get('/daityou/hattyu', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    db.collection('genba').find({ '発注者': /.+/ }).toArray((err, results) => {
+      res.send(results);
+    });
+    
+  } else {
+    res.sendStatus(403);
+  }
+});
+
+//GET company
+router.get('/daityou/company', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    db.collection('company').find({ 'el': /.+/ }).toArray((err, results) => {
+      res.send(results);
+    });
+    
+  } else {
+    res.sendStatus(403);
+  }
 });
 
 //DB UTILIZATION

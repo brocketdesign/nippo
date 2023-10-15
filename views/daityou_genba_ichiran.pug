@@ -1,0 +1,68 @@
+extends new_dashboard
+
+block content
+    #daityouGenbaIchiran.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
+        .d-flex.flex-wrap
+            a(href="/dashboard/daityou").d-inline.pt-1.px-3.pr-4.mr-1
+                span(data-feather='chevron-left' style="height: 30px;")
+                span 工事台帳に戻る
+            h3.d-block.title #{title}
+    
+        .nav.my-3(style="border-bottom:1px solid #000")
+            a.nav-link-ex(href="/dashboard/daityou/genba?genbaID=1") 現場まとめ
+            a.nav-link-ex(href="/dashboard/daityou/sihara_ichiran?genbaID=1") 支払管理
+            a.nav-link-ex.active 現場日報
+            a.nav-link-ex(href="/dashboard/daityou/yotin?genbaID=1") 実行予算
+
+        div(class="tab-pane fade show active" id="nav-genba" role="tabpanel" aria-labelledby="nav-genba-tab")
+            .row.my-2
+                .col-6.d-flex
+                    select.input-genba.globalselector.text-center.mw-150(data-userid=`${userID}` data-select="genba" data-selectid=`${selectid}`)
+                    .text-left.pt-2.px-0.info.savingPointer
+                        .spinner-border.text-secondary.spinner-border-sm.ml-2(role="status" data-value="0")
+                            .sr-only ローディング...
+                .col-6.text-right
+                    span.d-none(style="font-size: 12px;") 表示形式
+                    .d-flex.justify-content-end
+                        .switchview 
+                            button.switcher.btn.btn-outline-secondary.rounded-0.mx-1(data-value="view-table" style="display:none")
+                                span(data-feather="columns")
+                            button.switcher.btn.rounded-0.btn-outline-secondary.on.mx-1(data-value="view-list")
+                                span(data-feather="list")
+                            span.mx-1.d-none.d-sm-inline(style="font-size: 12px;") 表示切り替え
+                        .ms-toggle
+                            button.btn.btn-outline-secondary.rounded-0.showall.mx-1(data-ms-base="ms-genbanippo")
+                                span(data-feather="eye")
+                            span.mx-1.d-none.d-sm-inline(style="font-size: 12px;") 全て
+            .alert(style="display:none")
+                .row 
+                    .col-12.text-center     
+                        span 現場を選択してください
+            .row 
+                .col-12.col-sm-4
+                    .card.info.border-secondary.my-3(style="width:100%;")
+                        .card-header.bg-warning.py-1.font-weight-bold
+                            span 現場状況
+                            span.shukei_todayJP 
+                        .card-body.px-0.py-0
+                                #info.genba
+                                .col-12.p-3.text-center.info.savingPointer.w-100
+                                    .spinner-border.text-secondary.spinner-border-sm.ml-2(role="status" data-value="0" style="width: 30px;height: 30px;")
+                                        .sr-only ローディング...
+                .col-12.col-sm-8
+                    #genbaichiran.py-3.current
+                        .display.view-list(style="display:none")
+                            ul.list-group.ichiran.row.bg-transparent.border-none
+                            .loading.text-center.d-none.w-100.bg-white.border.border-secondary
+                                .spinner-border.text-secondary.m-3(role="status" data-value="0")
+                                    .sr-only ローディング...
+                        .display.view-table(style="display:none")
+                            .table-responsive.border.border-secondary.rounded
+                                table.ichiran.w-100.table-bordered(data-name="genbaichiran")
+                                    thead.bg-warning.text-center
+                                        tr 
+                                    tbody
+                            .loading.text-center.d-none.w-100.bg-white.border.border-secondary.border-top-0
+                                .spinner-border.text-secondary.m-3(role="status" data-value="0")
+                                    .sr-only ローディング...
+                        p#noResult.d-none.text-center.m-3 該当する項目がありません。

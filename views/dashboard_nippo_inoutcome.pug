@@ -1,0 +1,334 @@
+extends new_dashboard
+block content
+    script(src='/js/dashboard-inoutcome.js')
+    #inoutcomePage.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
+        h3.d-block.title.font-weight-light.mb-2.pb-2.border-bottom #{title}
+        #inoutcomeview
+            .nav#nav-tab.mt-3(role="tablist")
+                a#nav-income-tab.nav-link-inoutcome.active(data-toggle="tab" data-target="#nav-income" type="button" role="tab" aria-controls="nav-income" aria-selected="true" onclick="setCookie('inoutcomeview','nav-income-tab');" data-sua-event="入出金管理ページ" data-sua-detail="「収入」のTABをクリック") 収入
+                a#nav-outcome-tab.nav-link-inoutcome(data-toggle="tab" data-target="#nav-outcome" type="button" role="tab" aria-controls="nav-outcome" aria-selected="false" onclick="setCookie('inoutcomeview','nav-outcome-tab');" data-sua-event="入出金管理ページ" data-sua-detail="「支出」のTABをクリック") 支出
+                #saving-progress.col.text-right.pt-2(style="display:none" role="status")
+                    .spinner-border.spinner-border-sm.mr-1
+                    span.mx-1 保存しています...
+        div(class="tab-content")
+            div(class="tab-pane fade show active" id="nav-income" role="tabpanel" aria-labelledby="nav-income-tab")
+                .card.inoutcome.border-secondary.w-100(style="border-top-left-radius:0")
+                    .card-body
+                        .form-container.income(data-name="income" autocomplete="off")
+                            .form-group.pb-2
+                                .form-row
+                                    div.mr-3.mb-2(style="width:200px")
+                                        label.control-label.pl-3(for="口座") 口座
+                                        select.input-kouza.w-100(name="口座")
+                                    div.mr-3.mb-2
+                                        label.control-label.pl-3(for="日付") 日付
+                                        div
+                                            input.input-date-inoutcome.text-center.border.rounded.w-auto.py-2(type="text" name="currentDay")
+                                    div.mr-5.mb-2(style="width:300px")
+                                        label.control-label.pl-3(for="発注者名") 取引先
+                                        select.input-hattyu.w-100(name="発注者名")
+
+                                    div.col.pr-xl-5.text-right(style="width:200px;padding-top:2.5rem")
+                                        span.font-weight-bold 合計 (税込):
+                                        span.label-totalprice.font-weight-bold.pl-3 0 円
+                        
+                            .form-group.elements
+                                input.totalLine.income(type="hidden" value="1" name="totalLine")
+
+                                .form-row.label-group.d-none-custom.d-xxl-flex
+                                    .col-12.col-md-6.col-xl-4.col-xxl-2
+                                        label.control-label.pl-2(for="勘定科目") 勘定科目
+                                    .col-12.col-md-6.col-xl-4.col-xxl-2
+                                        label.control-label.pl-2(for="現場名") 現場名
+                                    .col-6.col-xl-4.col-xxl-2
+                                        //- label.control-label.pl-2(for="備考") 備考
+                                    .col-6.col-xl-5.col-xxl-2
+                                        //- label.control-label.pl-2(for="査定金額") 査定金額 (税込)
+                                    .col-6.col-xl-3.col-xxl-1
+                                        label.control-label.pl-2(for="税率") 税率
+
+                                .form-row.element(data-name="income" data-value="1")
+                                    .col-12.col-md-6.col-xl-4.col-xxl-2.text-center.pb-2
+                                        select.input-kanjoukamoku.text-center.w-100(name="勘定科目-1", data-name='収入')
+                                    .col-12.col-md-6.col-xl-4.col-xxl-2.text-center.pb-2
+                                        select.input-genba-daityou.text-center.w-100(name="現場名-1")
+                                    .col-6.col-xl-4.col-xxl-2.text-center.pb-2
+                                        input.input-bikou.border.rounded.py-2.px-2.w-100(placeholder="備考" name="備考-1")
+                                    .col-6.col-xl-5.col-xxl-2.text-center
+                                        input.input-sateiprice.border.rounded.py-2.px-2.w-100(placeholder="査定金額 (税込)" name="査定金額-1")
+                                    .col-6.col-xl-3.col-xxl-1.text-center
+                                        select.input-zeiritu.text-center.w-100(name="税率-1")
+                                    .col-5.col-xl-3.col-xxl-2.text-right.pt-2
+                                        label.label-subtotal(name="小計-1" data-value="0")
+                                    .col-1.col-xl-1.col-xxl-1.text-right.pt-2.d-sm-block.d-none
+                                        .settingOptions
+                                            .removeGroup(style="cursor:pointer;" data-value="1" data-name="income")
+                                                span.ml-2.mr-2(data-feather='trash' style="width: 15px;height: 15px;")
+
+                            .form-row.ml-2.mt-4.pt-2
+                                .col-12.col-sm-8.pb-3
+                                    span.addGroup.mt-1(style="cursor:pointer" data-name="income")
+                                        span.text-white.bg-secondary.rounded-circle(data-feather='plus-circle')
+                                    span.addGroupMinus.ml-4.pb-3(style="cursor:pointer" data-name="income")
+                                        .btn.btn-outline-secondary.rounded
+                                            span.pb-1(data-feather='plus-circle')
+                                            span.pl-2 控除・マイナス行を追加
+                                .col-12.col-sm-4.text-right
+                                    button.saveBtn.btn.btn-success.rounded(data-name="income") 支出を登録する
+                
+            div(class="tab-pane fade" id="nav-outcome" role="tabpanel" aria-labelledby="nav-outcome-tab")
+                .card.inoutcome.border-secondary.w-100
+                    .card-body
+                        .form-container.outcome(data-name="outcome" autocomplete="off")
+                            .form-group.pb-2
+                                .form-row
+                                    div.mr-3.mb-2(style="width:200px")
+                                        label.control-label.pl-3(for="口座") 口座
+                                        select.input-kouza.w-100(name="口座")
+                                    div.mr-3.mb-2
+                                        label.control-label.pl-3(for="日付") 日付
+                                        div
+                                            input.input-date-inoutcome.text-center.border.rounded.w-auto.py-2(type="text" name="currentDay")
+                                    div.mr-5.mb-2(style="width:300px")
+                                        label.control-label.pl-3(for="業者名") 取引先
+                                        select.input-gyousha.w-100(name="業者名")
+
+                                    div.col.pr-xl-5.text-right(style="width:200px;padding-top:2.5rem")
+                                        span.font-weight-bold 合計 (税込):
+                                        span.label-totalprice.font-weight-bold.pl-3 0 円
+                        
+                            .form-group.elements
+                                input.totalLine.outcome(type="hidden" value="1" name="totalLine")
+
+                                .form-row.label-group.d-none-custom.d-xxl-flex
+                                    .col-12.col-md-6.col-xl-4.col-xxl-2
+                                        label.control-label.pl-2(for="勘定科目") 勘定科目
+                                    .col-12.col-md-6.col-xl-4.col-xxl-2
+                                        label.control-label.pl-2(for="現場名") 現場名
+                                    .col-6.col-xl-4.col-xxl-2
+                                        //- label.control-label.pl-2(for="備考") 備考
+                                    .col-6.col-xl-5.col-xxl-2
+                                        //- label.control-label.pl-2(for="査定金額") 査定金額 (税込)
+                                    .col-6.col-xl-3.col-xxl-1
+                                        label.control-label.pl-2(for="税率") 税率
+
+                                .form-row.element(data-name="outcome" data-value="1")
+                                    .col-12.col-md-6.col-xl-4.col-xxl-2.text-center.pb-2
+                                        select.input-kanjoukamoku.text-center.w-100(name="勘定科目-1", data-name='収入')
+                                    .col-12.col-md-6.col-xl-4.col-xxl-2.text-center.pb-2
+                                        select.input-genba-daityou.text-center.w-100(name="現場名-1")
+                                    .col-6.col-xl-4.col-xxl-2.text-center.pb-2
+                                        input.input-bikou.border.rounded.py-2.px-2.w-100(placeholder="備考" name="備考-1")
+                                    .col-6.col-xl-5.col-xxl-2.text-center
+                                        input.input-sateiprice.border.rounded.py-2.px-2.w-100(placeholder="査定金額 (税込)" name="査定金額-1")
+                                    .col-6.col-xl-3.col-xxl-1.text-center
+                                        select.input-zeiritu.text-center.w-100(name="税率-1")
+                                    .col-5.col-xl-3.col-xxl-2.text-right.pt-2
+                                        label.label-subtotal(name="小計-1" data-value="0")
+                                    .col-1.col-xl-1.col-xxl-1.text-right.pt-2.d-sm-block.d-none
+                                        .settingOptions
+                                            .removeGroup(style="cursor:pointer;" data-value="1" data-name="outcome")
+                                                span.ml-2.mr-2(data-feather='trash' style="width: 15px;height: 15px;")
+
+                            .form-row.ml-2.mt-4.pt-2
+                                .col-12.col-sm-8.pb-3
+                                    span.addGroup.mt-1(style="cursor:pointer" data-name="outcome")
+                                        span.text-white.bg-secondary.rounded-circle(data-feather='plus-circle')
+                                    span.addGroupMinus.ml-4.pb-3(style="cursor:pointer" data-name="outcome")
+                                        .btn.btn-outline-secondary.rounded
+                                            span.pb-1(data-feather='plus-circle')
+                                            span.pl-2 控除・マイナス行を追加
+                                .col-12.col-sm-4.text-right
+                                    button.saveBtn.btn.btn-success.rounded(data-name="outcome") 支出を登録する
+                
+            .pt-5
+                button#filterBtn.btn.btn-outline-secondary ー括削除
+                button.btn.btn-secondary.ml-4.collapsed(id="toggle-filter" data-toggle="collapse" data-target="#filter-panel" aria-expanded="false" aria-controls="filter-panel" style="cursor:pointer") 条件で検案
+                    span.pr-1.float-left.off.d-inline(data-feather="chevron-down")
+                    span.pr-1.float-left.on.d-none(data-feather="chevron-up")
+                //- #searching-progress.col.text-right.pt-2(style="display:none" role="status")
+                //-     .savingPointer.spinner-border.spinner-border-sm.mr-1
+                //-     span.mx-1 保存しています...
+
+            .pt-3.collapse(id="filter-panel" aria-labelledby="toggle-filter")
+                .card#filter-condition.border-secondary.w-100(autocomplete="off")
+                    .card-body
+                        .form-container.filter(data-name="filter" autocomplete="off")
+                            .form-group.category-group.pb-2
+                                .form-row
+                                    #filter-nav-tab.nav.nav-tabs(role="tablist").mr-5.mb-2
+                                        a#filter-all-tab.nav-link-inoutcome-filter.active(data-toggle="tab" data-target="#filter-all" type="button" role="tab" aria-controls="filter-all" aria-selected="true" style="margin-right:-1px" data-name="all").small すべて
+                                        a#filter-income-tab.nav-link-inoutcome-filter(data-toggle="tab" data-target="#filter-income" type="button" role="tab" aria-controls="filter-income" aria-selected="false" style="margin-right:-1px" data-name="in").small 収入
+                                        a#filter-outcome-tab.nav-link-inoutcome-filter(data-toggle="tab" data-target="#filter-outcome" type="button" role="tab" aria-controls="filter-outcome" aria-selected="false" style="margin-right:-1px" data-name="out").small 支出
+                                    
+                                    div(class="tab-content")
+                                        div(class="tab-pane fade show active" id="filter-all" role="tabpanel" aria-labelledby="filter-all-tab")
+                                            .btn-group-toggle
+                                                .btn-group(data-toggle="buttons")
+                                                    label.btn.nav-link-inoutcome-sub-filter.active
+                                                        input.toggle(type='radio', value='', checked='true')
+                                                        | すべて
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='売上')
+                                                        | 売上
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='雑収入')
+                                                        | 雑収入
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='原材料費')
+                                                        | 原材料費
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='外注加工費')
+                                                        | 外注加工費
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='労務費')
+                                                        | 労務費
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='工事雑費')
+                                                        | 工事雑費
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='一般管理費')
+                                                        | 一般管理費
+                                                
+                                            
+                                        div(class="tab-pane fade" id="filter-income" role="tabpanel" aria-labelledby="filter-income-tab")
+                                            .btn-group-toggle
+                                                .btn-group(data-toggle="buttons")
+                                                    label.btn.nav-link-inoutcome-sub-filter.active
+                                                        input.toggle(type='radio', value='', checked='true')
+                                                        | すべて
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='売上')
+                                                        | 売上
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='雑収入')
+                                                        | 雑収入
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='工事雑費')
+                                                        | 工事雑費
+                                                
+                                        div(class="tab-pane fade" id="filter-outcome" role="tabpanel" aria-labelledby="filter-outcome-tab")
+                                            .btn-group-toggle
+                                                .btn-group(data-toggle="buttons")
+                                                    label.btn.nav-link-inoutcome-sub-filter.active
+                                                        input.toggle(type='radio', value='', checked='true')
+                                                        | すべて
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='原材料費')
+                                                        | 原材料費
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='外注加工費')
+                                                        | 外注加工費
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='労務費')
+                                                        | 労務費
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='工事雑費')
+                                                        | 工事雑費
+                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                        input.toggle(type="radio", value='一般管理費')
+                                                        | 一般管理費
+
+                            .form-group.input-group.mb-0
+                                .form-row
+                                    div.mr-3.mb-3.d-flex
+                                        div
+                                            label.control-label.pl-3(for="日付") 日付
+                                            div
+                                                input#date-from.input-date-filter.text-center.border.rounded.py-2.mb-2(type="text" name="currentDay")
+                                                span.mx-2.pt-4.mt-3 〜
+                                                input#date-to.input-date-filter.text-center.border.rounded.py-2(type="text" name="currentDay")
+                                    div.mr-3.mb-3(style="width:200px")
+                                        label.control-label.pl-3(for="決済口座") 決済口座
+                                        select#input-filter-kouza.input-kouza.w-100(name="決済口座")
+                                    div.mb-2(style="width:300px")
+                                        label.control-label.pl-3 取引先
+                                        select#input-filter-hattyu.input-hattyu.d-none.w-100
+                                        select#input-filter-gyousha.input-gyousha.d-none.w-100
+                                        select#input-filter-torihiki.input-torihiki.w-100
+                                
+                                .form-row
+                                    div.mr-5.mb-3.d-flex
+                                        div
+                                            label.control-label.pl-3(for="現場名") 現場名
+                                            div
+                                                div(style="width:200px").mr-3.mb-2.float-left
+                                                    select#input-filter-genba.input-genba-daityou.w-100(name="現場名")
+                                                input#input-filter-bikou.border.rounded.py-2.px-2(placeholder="備考" style="width:200px")
+                                    div.mb-3.d-flex
+                                        div
+                                            label.control-label.pl-3(for="取引の金額") 取引の金額
+                                            div
+                                                input#input-filter-price-from.border.rounded.py-2.px-2.mb-2(style="width:150px")
+                                                span.mx-2.pt-4.mt-3 〜
+                                                input#input-filter-price-to.border.rounded.py-2.px-2(style="width:150px")
+
+                                .col-12.text-right
+                                    button#clearFilterBtn.btn.btn-outline-primary.rounded 絞り込む
+            .row.mx-lg-n4.px-0
+                .card.border-secondary.my-4.w-100
+                    .card-body.p-0
+                        table#table-inoutcome.w-100.small.table-bordered
+                            thead.bg-secondary.text-center.text-white
+                                tr
+                                    th
+                                    th.py-2 日付
+                                    th 業社名
+                                    th 勘定科目
+                                    th 現場名
+                                    th 備考
+                                    th 金額 (税抜)
+                                    th 消費税
+                                    th 合計
+                            tbody#inoutcome-filtered-data.text-right
+                                //- tr
+                                //-     td.py-2.pl-1.text-left(style="color:#00b0f0") 収入
+                                //-     td.pr-1 2023/10/09
+                                //-     td.pr-1 三菱電機ビルテクノサービス㈱
+                                //-     td.pr-1 外注加工費
+                                //-     td.pr-1 舞作業所グループホーム改修工事
+                                //-     td.pr-1 [RC]鉄筋ｺﾝｸﾘｰﾄ造
+                                //-     td.pr-1 12,000,000
+                                //-     td.pr-1 1,200,000
+                                //-     td.pr-1 13,200,000
+                                //- tr
+                                //-     td.py-2.pl-1.text-left(style="color:#00b0f0") 収入
+                                //-     td.pr-1 2023/10/09
+                                //-     td.pr-1 三菱電機ビルテクノサービス㈱
+                                //-     td.pr-1 外注加工費
+                                //-     td.pr-1 舞作業所グループホーム改修工事
+                                //-     td.pr-1 [RC]鉄筋ｺﾝｸﾘｰﾄ造
+                                //-     td.pr-1 12,000,000
+                                //-     td.pr-1 1,200,000
+                                //-     td.pr-1 13,200,000
+                                //- tr
+                                //-     td.py-2.pl-1.text-left(style="color:#ea4335") 支出
+                                //-     td.pr-1 2023/10/09
+                                //-     td.pr-1 三菱電機ビルテクノサービス㈱
+                                //-     td.pr-1 外注加工費
+                                //-     td.pr-1 舞作業所グループホーム改修工事
+                                //-     td.pr-1 [RC]鉄筋ｺﾝｸﾘｰﾄ造
+                                //-     td.pr-1 12,000,000
+                                //-     td.pr-1 1,200,000
+                                //-     td.pr-1 13,200,000
+                                //- tr
+                                //-     td.py-2.pl-1.text-left(style="color:#ea4335") 支出
+                                //-     td.pr-1 2023/10/09
+                                //-     td.pr-1 三菱電機ビルテクノサービス㈱
+                                //-     td.pr-1 外注加工費
+                                //-     td.pr-1 舞作業所グループホーム改修工事
+                                //-     td.pr-1 [RC]鉄筋ｺﾝｸﾘｰﾄ造
+                                //-     td.pr-1 12,000,000
+                                //-     td.pr-1 1,200,000
+                                //-     td.pr-1 13,200,000
+                                //- tr
+                                //-     td.py-2.pl-1.text-left(style="color:#ea4335") 支出
+                                //-     td.pr-1 2023/10/09
+                                //-     td.pr-1 三菱電機ビルテクノサービス㈱
+                                //-     td.pr-1 外注加工費
+                                //-     td.pr-1 舞作業所グループホーム改修工事
+                                //-     td.pr-1 [RC]鉄筋ｺﾝｸﾘｰﾄ造
+                                //-     td.pr-1 12,000,000
+                                //-     td.pr-1 1,200,000
+                                //-     td.pr-1 13,200,000
+

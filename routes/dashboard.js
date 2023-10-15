@@ -295,4 +295,82 @@ function HowToUseMongoDB (){
 }
 
 
+// new[monkey]
+router.get('/daityou/',urlencodedParser, async(req, res) => {
+  const db = req.app.locals.db;let dbData = await initData(req);
+  if(dbData.isLogin){
+    res.render('dashboard_nippo_daityou',Object.assign({title:'工事台帳'},dbData));
+    // nipposhukei(db);
+  }else{
+    res.redirect('../');
+  }
+});
+
+router.get('/inoutcome/',urlencodedParser, async(req, res) => {
+  const db = req.app.locals.db;let dbData = await initData(req);
+  if(dbData.isLogin){
+    res.render('dashboard_nippo_inoutcome',Object.assign({title:'入出金管理'},dbData));
+  }else{
+    res.redirect('../');
+  }
+});
+
+router.get('/daityou/genba',urlencodedParser, async(req, res) => {
+  const db = req.app.locals.db;let dbData = await initData(req)
+  if(dbData.isLogin){
+    let genbaID = req.query.genbaID
+    if( genbaID && genbaID != '0' ){
+      // res.render('daityou_genba');
+      res.render('daityou_genba',Object.assign({title:'現場まとめ'},dbData)); // TODO: title <= genba name
+    } else {
+      res.redirect('/dashboard/daityou/')
+    }
+  } else {
+    res.redirect('/dashboard');
+  }
+});
+
+router.get('/daityou/sihara_ichiran',urlencodedParser, async(req, res) => {
+  const db = req.app.locals.db;let dbData = await initData(req)
+  if(dbData.isLogin){
+    let genbaID = req.query.genbaID
+    if( genbaID && genbaID != '0' ){
+      res.render('daityou_sihara_ichiran',Object.assign({title:'支払一覧'},dbData)); // TODO: title <= genba name
+    } else {
+      res.redirect('/dashboard/daityou/')
+    }
+  } else {
+    res.redirect('/dashboard');
+  }
+});
+
+router.get('/daityou/genba_ichiran',urlencodedParser, async(req, res) => {
+  const db = req.app.locals.db;let dbData = await initData(req)
+  if(dbData.isLogin){
+    let genbaID = req.query.genbaID
+    if( genbaID && genbaID != '0' ){
+      res.render('daityou_genba_ichiran',Object.assign({title:'現場日報'},dbData)); // TODO: title <= genba name
+    } else {
+      res.redirect('/dashboard/daityou/')
+    }
+  } else {
+    res.redirect('/dashboard');
+  }
+});
+
+router.get('/daityou/yotin',urlencodedParser, async(req, res) => {
+  const db = req.app.locals.db;let dbData = await initData(req)
+  if(dbData.isLogin){
+    let genbaID = req.query.genbaID
+    if( genbaID && genbaID != '0' ){
+      res.render('daityou_yotin',Object.assign({title:'実行予算'},dbData)); // TODO: title <= genba name
+    } else {
+      res.redirect('/dashboard/daityou/')
+    }
+  } else {
+    res.redirect('/dashboard');
+  }
+});
+
+
 module.exports = router;
