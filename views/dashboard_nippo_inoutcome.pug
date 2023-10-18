@@ -1,6 +1,6 @@
 extends new_dashboard
 block content
-    script(src='/js/dashboard-inoutcome.js')
+    script(src='/js/controller/dashboard-inoutcome.js')
     #inoutcomePage.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
         h3.d-block.title.font-weight-light.mb-2.pb-2.border-bottom #{title}
         #inoutcomeview
@@ -33,7 +33,7 @@ block content
                                         span.label-totalprice.font-weight-bold.pl-3 0 円
                         
                             .form-group.elements
-                                input.totalLine.income(type="hidden" value="1" name="totalLine")
+                                //- input.totalLine.income(type="hidden" value="1" name="totalLine")
 
                                 .form-row.label-group.d-none-custom.d-xxl-flex
                                     .col-12.col-md-6.col-xl-4.col-xxl-2
@@ -43,11 +43,11 @@ block content
                                     .col-6.col-xl-4.col-xxl-2
                                         //- label.control-label.pl-2(for="備考") 備考
                                     .col-6.col-xl-5.col-xxl-2
-                                        //- label.control-label.pl-2(for="査定金額") 査定金額 (税込)
+                                        //- label.control-label.pl-2(for="査定金額") 査定金額 (税抜)
                                     .col-6.col-xl-3.col-xxl-1
                                         label.control-label.pl-2(for="税率") 税率
 
-                                .form-row.element(data-name="income" data-value="1")
+                                .form-row.element(data-name="income" data-value="1" minus="0")
                                     .col-12.col-md-6.col-xl-4.col-xxl-2.text-center.pb-2
                                         select.input-kanjoukamoku.text-center.w-100(name="勘定科目-1", data-name='収入')
                                     .col-12.col-md-6.col-xl-4.col-xxl-2.text-center.pb-2
@@ -55,7 +55,8 @@ block content
                                     .col-6.col-xl-4.col-xxl-2.text-center.pb-2
                                         input.input-bikou.border.rounded.py-2.px-2.w-100(placeholder="備考" name="備考-1")
                                     .col-6.col-xl-5.col-xxl-2.text-center
-                                        input.input-sateiprice.border.rounded.py-2.px-2.w-100(placeholder="査定金額 (税込)" name="査定金額-1")
+                                        span.span-minus(data-feather='chevron-up' name='minus-1').text-white.ml-n3.mr-1
+                                        input.input-sateiprice.border.rounded.py-2.px-2(placeholder="査定金額 (税抜)" name="査定金額-1")
                                     .col-6.col-xl-3.col-xxl-1.text-center
                                         select.input-zeiritu.text-center.w-100(name="税率-1")
                                     .col-5.col-xl-3.col-xxl-2.text-right.pt-2
@@ -74,7 +75,7 @@ block content
                                             span.pb-1(data-feather='plus-circle')
                                             span.pl-2 控除・マイナス行を追加
                                 .col-12.col-sm-4.text-right
-                                    button.saveBtn.btn.btn-success.rounded(data-name="income") 支出を登録する
+                                    button.saveBtn.btn.btn-success.rounded(data-name="income") 登録する
                 
             div(class="tab-pane fade" id="nav-outcome" role="tabpanel" aria-labelledby="nav-outcome-tab")
                 .card.inoutcome.border-secondary.w-100
@@ -98,7 +99,7 @@ block content
                                         span.label-totalprice.font-weight-bold.pl-3 0 円
                         
                             .form-group.elements
-                                input.totalLine.outcome(type="hidden" value="1" name="totalLine")
+                                //- input.totalLine.outcome(type="hidden" value="1" name="totalLine")
 
                                 .form-row.label-group.d-none-custom.d-xxl-flex
                                     .col-12.col-md-6.col-xl-4.col-xxl-2
@@ -108,19 +109,20 @@ block content
                                     .col-6.col-xl-4.col-xxl-2
                                         //- label.control-label.pl-2(for="備考") 備考
                                     .col-6.col-xl-5.col-xxl-2
-                                        //- label.control-label.pl-2(for="査定金額") 査定金額 (税込)
+                                        //- label.control-label.pl-2(for="査定金額") 査定金額 (税抜)
                                     .col-6.col-xl-3.col-xxl-1
                                         label.control-label.pl-2(for="税率") 税率
 
-                                .form-row.element(data-name="outcome" data-value="1")
+                                .form-row.element(data-name="outcome" data-value="1" minus="0")
                                     .col-12.col-md-6.col-xl-4.col-xxl-2.text-center.pb-2
-                                        select.input-kanjoukamoku.text-center.w-100(name="勘定科目-1", data-name='収入')
+                                        select.input-kanjoukamoku.text-center.w-100(name="勘定科目-1", data-name='支出')
                                     .col-12.col-md-6.col-xl-4.col-xxl-2.text-center.pb-2
                                         select.input-genba-daityou.text-center.w-100(name="現場名-1")
                                     .col-6.col-xl-4.col-xxl-2.text-center.pb-2
                                         input.input-bikou.border.rounded.py-2.px-2.w-100(placeholder="備考" name="備考-1")
                                     .col-6.col-xl-5.col-xxl-2.text-center
-                                        input.input-sateiprice.border.rounded.py-2.px-2.w-100(placeholder="査定金額 (税込)" name="査定金額-1")
+                                        span.span-minus(data-feather='chevron-up' name='minus-1').text-white.ml-n3.mr-1
+                                        input.input-sateiprice.border.rounded.py-2.px-2(placeholder="査定金額 (税抜)" name="査定金額-1")
                                     .col-6.col-xl-3.col-xxl-1.text-center
                                         select.input-zeiritu.text-center.w-100(name="税率-1")
                                     .col-5.col-xl-3.col-xxl-2.text-right.pt-2
@@ -139,10 +141,10 @@ block content
                                             span.pb-1(data-feather='plus-circle')
                                             span.pl-2 控除・マイナス行を追加
                                 .col-12.col-sm-4.text-right
-                                    button.saveBtn.btn.btn-success.rounded(data-name="outcome") 支出を登録する
+                                    button.saveBtn.btn.btn-success.rounded(data-name="outcome") 登録する
                 
             .pt-5
-                button#filterBtn.btn.btn-outline-secondary ー括削除
+                button#filterAllBtn.btn.btn-outline-secondary ー括削除
                 button.btn.btn-secondary.ml-4.collapsed(id="toggle-filter" data-toggle="collapse" data-target="#filter-panel" aria-expanded="false" aria-controls="filter-panel" style="cursor:pointer") 条件で検案
                     span.pr-1.float-left.off.d-inline(data-feather="chevron-down")
                     span.pr-1.float-left.on.d-none(data-feather="chevron-up")
@@ -264,7 +266,7 @@ block content
                                                 input#input-filter-price-to.border.rounded.py-2.px-2(style="width:150px")
 
                                 .col-12.text-right
-                                    button#clearFilterBtn.btn.btn-outline-primary.rounded 絞り込む
+                                    button#filterBtn.btn.btn-primary.rounded 絞り込む
             .row.mx-lg-n4.px-0
                 .card.border-secondary.my-4.w-100
                     .card-body.p-0
@@ -280,7 +282,7 @@ block content
                                     th 金額 (税抜)
                                     th 消費税
                                     th 合計
-                            tbody#inoutcome-filtered-data.text-right
+                            tbody#inoutcome-filtered-tbody.text-right
                                 //- tr
                                 //-     td.py-2.pl-1.text-left(style="color:#00b0f0") 収入
                                 //-     td.pr-1 2023/10/09

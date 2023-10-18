@@ -358,12 +358,12 @@ router.get('/daityou/genba_ichiran',urlencodedParser, async(req, res) => {
   }
 });
 
-router.get('/daityou/yotin',urlencodedParser, async(req, res) => {
+router.get('/daityou/yosan',urlencodedParser, async(req, res) => {
   const db = req.app.locals.db;let dbData = await initData(req)
   if(dbData.isLogin){
     let genbaID = req.query.genbaID
     if( genbaID && genbaID != '0' ){
-      res.render('daityou_yotin',Object.assign({title:'実行予算'},dbData)); // TODO: title <= genba name
+      res.render('daityou_yosan',Object.assign({title:'実行予算'},dbData)); // TODO: title <= genba name
     } else {
       res.redirect('/dashboard/daityou/')
     }

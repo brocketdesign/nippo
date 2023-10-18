@@ -950,11 +950,6 @@ $(document).ready(async function () {
         SUA({ event: '現場まとめページ' });
     }
 
-    if (!!document.querySelector('#daityouSiharaIchiran')) {
-        daityouSiharaIchiran()
-        SUA({ event: '支払一覧ページ' });
-    }
-
     if (!!document.querySelector('#daityouGenbaIchiran')) {
         let userID = $('#userID').attr('data-value')
         inputInit(function () {
@@ -5757,7 +5752,4 @@ function daityouGenbaChart(data) {
         });
     });
 
-}
-
-function daityouSiharaIchiran() {
 }
