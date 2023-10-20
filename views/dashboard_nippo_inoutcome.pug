@@ -54,10 +54,10 @@ block content
                                         select.input-genba-daityou.text-center.w-100(name="現場名-1")
                                     .col-6.col-xl-4.col-xxl-2.text-center.pb-2
                                         input.input-bikou.border.rounded.py-2.px-2.w-100(placeholder="備考" name="備考-1")
-                                    .col-6.col-xl-5.col-xxl-2.text-center
-                                        span.span-minus(data-feather='chevron-up' name='minus-1').text-white.ml-n3.mr-1
-                                        input.input-sateiprice.border.rounded.py-2.px-2(placeholder="査定金額 (税抜)" name="査定金額-1")
-                                    .col-6.col-xl-3.col-xxl-1.text-center
+                                    .col-6.col-xl-5.col-xxl-2.text-center(style='position: relative')
+                                        input.input-sateiprice.border.rounded.py-2.px-2(placeholder="査定金額 (税抜)" name="査定金額-1").w-100.text-right
+                                        span.span-minus(data-feather='minus' name='minus-1' style='position: absolute; top:0; left:21px').text-white.ml-n3.mr-1
+                                    .col-6.col-xl-3.col-xxl-1.text-center.pb-2
                                         select.input-zeiritu.text-center.w-100(name="税率-1")
                                     .col-5.col-xl-3.col-xxl-2.text-right.pt-2
                                         label.label-subtotal(name="小計-1" data-value="0")
@@ -75,7 +75,7 @@ block content
                                             span.pb-1(data-feather='plus-circle')
                                             span.pl-2 控除・マイナス行を追加
                                 .col-12.col-sm-4.text-right
-                                    button.saveBtn.btn.btn-success.rounded(data-name="income") 登録する
+                                    button.saveBtn.btn.btn-success.rounded(data-name="income") 収入を登録する
                 
             div(class="tab-pane fade" id="nav-outcome" role="tabpanel" aria-labelledby="nav-outcome-tab")
                 .card.inoutcome.border-secondary.w-100
@@ -109,7 +109,7 @@ block content
                                     .col-6.col-xl-4.col-xxl-2
                                         //- label.control-label.pl-2(for="備考") 備考
                                     .col-6.col-xl-5.col-xxl-2
-                                        //- label.control-label.pl-2(for="査定金額") 査定金額 (税抜)
+                                        //- label.control-label.pl-2(for="査定金額") 査定金額 (税込)
                                     .col-6.col-xl-3.col-xxl-1
                                         label.control-label.pl-2(for="税率") 税率
 
@@ -120,10 +120,10 @@ block content
                                         select.input-genba-daityou.text-center.w-100(name="現場名-1")
                                     .col-6.col-xl-4.col-xxl-2.text-center.pb-2
                                         input.input-bikou.border.rounded.py-2.px-2.w-100(placeholder="備考" name="備考-1")
-                                    .col-6.col-xl-5.col-xxl-2.text-center
-                                        span.span-minus(data-feather='chevron-up' name='minus-1').text-white.ml-n3.mr-1
-                                        input.input-sateiprice.border.rounded.py-2.px-2(placeholder="査定金額 (税抜)" name="査定金額-1")
-                                    .col-6.col-xl-3.col-xxl-1.text-center
+                                    .col-6.col-xl-5.col-xxl-2.text-center(style='position: relative')
+                                        input.input-sateiprice.border.rounded.py-2.px-2(placeholder="査定金額 (税抜)" name="査定金額-1").w-100.text-right
+                                        span.span-minus(data-feather='minus' name='minus-1' style='position: absolute; top:0; left:21px').text-white.ml-n3.mr-1
+                                    .col-6.col-xl-3.col-xxl-1.text-center.pb-2
                                         select.input-zeiritu.text-center.w-100(name="税率-1")
                                     .col-5.col-xl-3.col-xxl-2.text-right.pt-2
                                         label.label-subtotal(name="小計-1" data-value="0")
@@ -141,7 +141,7 @@ block content
                                             span.pb-1(data-feather='plus-circle')
                                             span.pl-2 控除・マイナス行を追加
                                 .col-12.col-sm-4.text-right
-                                    button.saveBtn.btn.btn-success.rounded(data-name="outcome") 登録する
+                                    button.saveBtn.btn.btn-success.rounded(data-name="outcome") 支出を登録する
                 
             .pt-5
                 button#filterAllBtn.btn.btn-outline-secondary ー括削除

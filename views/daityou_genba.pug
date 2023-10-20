@@ -1,18 +1,27 @@
 extends new_dashboard
 
 block content
-    #daityouGenba.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
+    script(src='/js/controller/daityou-genba.js')
+    #daityouGenbaPage.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
+        //- .d-flex.flex-wrap.pt-1
+        //-     a(href="/dashboard").small.d-inline.pr-2
+        //-         span.pr-2 ホーム
+        //-         span(data-feather='chevron-right' style="height: 20px;")
+        //-     a(href="/dashboard/daityou").small.d-inline.pr-2
+        //-         span.pr-2 工事台帳
+        //-         span(data-feather='chevron-right' style="height: 20px;")
+        //- h5#genba-name.pt-2.font-weight-bold
         .d-flex.flex-wrap
             a(href="/dashboard/daityou").d-inline.pt-1.px-3.pr-4.mr-1
                 span(data-feather='chevron-left' style="height: 30px;")
-                span 工事台帳に戻る
-            h3.d-block.title #{title}
+                span.pt-1 工事台帳に戻る
+            h3#title.d-block.genba-name-title
     
-        .nav.my-3.border-bottom.border-secondary
-            a.nav-link-ex.active 現場まとめ
-            a.nav-link-ex(href="/dashboard/daityou/sihara_ichiran?genbaID=1") 支払管理
-            a.nav-link-ex(href="/dashboard/daityou/genba_ichiran?genbaID=1") 現場日報
-            a.nav-link-ex(href="/dashboard/daityou/yosan?genbaID=1") 実行予算
+        .nav#nav-bar.my-3.border-bottom.border-secondary
+            a#nav-genba.nav-link-ex.active 現場まとめ
+            a#nav-sihara.nav-link-ex 支払管理
+            a#nav-ichiran.nav-link-ex 現場日報
+            a#nav-yosan.nav-link-ex 実行予算
 
         div#nav-genba
             .row.pt-3
@@ -23,67 +32,70 @@ block content
                                 span.pt-1 基本情報
                                 
                         .card-body.p-0
-                            table.w-100
+                            table#genba-table.w-100
                                 tr
                                     td.border.font-weight-bold.p-2(style="background-color:lightgray") 工事名
-                                    td.border.p-2 マルニ工業巽東工場新築工事
+                                    td#genba-name.border.p-2 
                                 tr
                                     td.border.font-weight-bold.p-2(style="background-color:lightgray") 発注者
-                                    td.border.p-2 マルニ工業株式会社
+                                    td#genba-orderer.border.p-2 
                                 tr
                                     td.border.font-weight-bold.p-2(style="background-color:lightgray") 場所
-                                    td.border.p-2 大阪府柏原市本郷 4 丁目 2 7 地内
+                                    td#genba-place.border.p-2 
                                 tr
                                     td.border.font-weight-bold.p-2(style="background-color:lightgray") 担当者
-                                    td.border.p-2 興一堀田
+                                    td#genba-user.border.p-2 
                                 tr
                                     td.border.font-weight-bold.p-2(style="background-color:lightgray") 工期
-                                    td.border.p-2 2023年 1月 〜 2023年 4月
+                                    td#genba-period.border.p-2 
 
                     .card.border-secondary.my-4.w-100
                         .card-body.p-0
-                            table.w-100
+                            table#yosan-table.w-100
                                 tr
                                     td.border.font-weight-bold.p-2(style="background-color:lightgray") 契約金額
-                                    td.border.text-right.p-2 159,138,000
+                                    td#yosan-deposit.border.text-right.p-2 
                                 tr
                                     td.border.font-weight-bold.p-2(style="background-color:lightgray") 売上
-                                    td.border.text-right.p-2 159,138,000
+                                    td#yosan-sale.border.text-right.p-2 
                                 tr
                                     td.border.font-weight-bold.p-2(style="background-color:lightgray") 実行予算
-                                    td.border.text-right.p-2 144,224,957
+                                    td#yosan-budget.border.text-right.p-2 
                                 tr
                                     td.border.font-weight-bold.p-2(style="background-color:lightgray") 原価
-                                    td.border.text-right.p-2 100,957,500
+                                    td#yosan-cost.text-right.p-2 
                                 tr
                                     td.border.font-weight-bold.p-2(style="background-color:lightgray") 粗利益
-                                    td.border.text-right.p-2 58,180,500
+                                    td#yosan-profit.border.text-right.p-2 
                                 tr
                                     td.border.font-weight-bold.p-2(style="background-color:lightgray") 粗利率
-                                    td.border.text-right.p-2 36.56%
+                                    td#yosan-profit-rate.border.text-right.p-2 
 
                     .card.border-secondary.mb-3.w-100
                         .card-body.py-3.pl-3.pr-0
-                            #daityouGenbaChartBar1
+                            #normal-barchart
 
                 .col-xxl-8
                     .card.border-secondary.my-3.w-100
                         .card-body.p-3
-                            .col-12.pb-2.font-weight-bold
-                                span 予算完了率 (70%)
+                            .col-12.pb-2.font-weight-bold.d-flex
+                                span 予算完了率
+                                span#progress-percent.pl-1 (ー)
+                                .flex-grow-1.text-right
+                                    #finishBtn.btn.btn-primary.rounded 竣工報告
                             .progress(style="height:2rem;background-color:#ea4335")
-                                .progress-bar(style="background-color:#00b0f0;width:70%")
+                                .progress-bar#progress-chart(style="background-color:#00b0f0;width:0%")
 
                     .card.border-secondary.mb-3.w-100
                         .card-header.py-1.font-weight-bold
                             .col-12.text-center
                                 span.pt-1 原価内訳
                         .card-body.py-3.pl-3.pr-0
-                            #daityouGenbaChartBar2
+                            #cost-barchart
 
                     .card.border-secondary.mb-3.w-100
                         .card-header.py-1.font-weight-bold
                             .col-12.text-center
                                 span.pt-1 月別　原価と売上
                         .card-body.py-3.pl-3.pr-0
-                            #daityouGenbaChartBar3
+                            #spline-chart

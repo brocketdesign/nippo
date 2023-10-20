@@ -4,11 +4,16 @@ block content
     script(src='/js/controller/daityou-sihara-ichiran.js')
     #daityouSiharaIchiran.container.col-12.pt-3.pb-5.px-0
         .col-md-12.ml-sm-auto.col-lg-12.pl-2.pr-3
+            //- .d-flex.flex-wrap
+            //-     a(href="/dashboard/daityou").d-inline.pt-1.px-3.pr-4.mr-1
+            //-         span(data-feather='chevron-left' style="height: 30px;")
+            //-         span.pt-1 工事台帳に戻る
+            //-     h3.d-block.title #{title}
             .d-flex.flex-wrap
                 a(href="/dashboard/daityou").d-inline.pt-1.px-3.pr-4.mr-1
                     span(data-feather='chevron-left' style="height: 30px;")
                     span.pt-1 工事台帳に戻る
-                h3.d-block.title #{title}
+                h3#title.d-block.genba-name-title
         //- nav#daityougenbaview
         //-     div(class="nav nav-pills d-flex" id="nav-tab" role="tablist")
         //-         button(class="nav-link active col btn btn-outline-primary" id="nav-genba-tab" data-toggle="tab" data-target="#nav-genba" type="button" role="tab" aria-controls="nav-genba" aria-selected="true" onclick="setCookie('daityougenbaview','nav-genba-tab');" data-sua-event="工事台帳ページ" data-sua-detail="「すべて」のTABをクリック") 
@@ -19,11 +24,11 @@ block content
         //-             span(style="font-size: 21px; font-weight: bold;") 現場日報
         //-         button(class="nav-link btn col btn-outline-info" id="nav-budget-tab" data-toggle="tab" data-target="#nav-budget" type="button" role="tab" aria-controls="nav-budget" aria-selected="false" onclick="setCookie('daityougenbaview','nav-budget-tab');" data-sua-event="工事台帳ページ" data-sua-detail="「完了・未受注」のTABをクリック") 
         //-             span(style="font-size: 21px; font-weight: bold;") 実行予算
-        .nav.my-3.pl-2.pr-3.border-bottom.border-secondary
-            a.nav-link-ex(href="/dashboard/daityou/genba?genbaID=1") 現場まとめ
-            a.nav-link-ex.active 支払管理
-            a.nav-link-ex(href="/dashboard/daityou/genba_ichiran?genbaID=1") 現場日報
-            a.nav-link-ex(href="/dashboard/daityou/yosan?genbaID=1") 実行予算
+        .nav#nav-bar.my-3.pl-2.pr-3.border-bottom.border-secondary
+            a#nav-genba.nav-link-ex 現場まとめ
+            a#nav-sihara.nav-link-ex.active 支払管理
+            a#nav-ichiran.nav-link-ex 現場日報
+            a#nav-yosan.nav-link-ex 実行予算
 
         div#nav-sihara-ichiran.pt-3
             .col-12.col-xxl-10.mx-auto.px-0.pt-0

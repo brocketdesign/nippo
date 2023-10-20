@@ -1,25 +1,27 @@
 extends new_dashboard
 block content
+    script(src='/js/controller/daityou.js')
     #daityouPage.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
         h3.d-block.title.font-weight-light.mb-2.pb-2.border-bottom #{title}
         #daityouview
             .nav#nav-tab.nav-tabs.my-3.border-bottom.border-secondary(role="tablist")
-                a#nav-all-tab.nav-link-ex.active(data-toggle="tab" data-target="#nav-all" type="button" role="tab" aria-controls="nav-all" aria-selected="true" onclick="setCookie('daityouview','nav-all-tab');" data-sua-event="工事台帳ページ" data-sua-detail="「すべて」のTABをクリック") すべて
-                a#nav-inprogress-tab.nav-link-ex(data-toggle="tab" data-target="#nav-inprogress" type="button" role="tab" aria-controls="nav-inprogress" aria-selected="false" onclick="setCookie('daityouview','nav-inprogress-tab');" data-sua-event="工事台帳ページ" data-sua-detail="「進行中 8」のTABをクリック") 進行中 8
-                a#nav-finished-tab.nav-link-ex(data-toggle="tab" data-target="#nav-finished" type="button" role="tab" aria-controls="nav-finished" aria-selected="false" onclick="setCookie('daityouview','nav-finished-tab');" data-sua-event="工事台帳ページ" data-sua-detail="「完了・未受注」のTABをクリック") 完了・未受注
+                a#nav-all-tab.nav-link-ex.active(data-toggle="tab" data-target="#nav-all" type="button" role="tab" aria-controls="nav-all" aria-selected="true" data-name="all") すべて
+                a#nav-inprogress-tab.nav-link-ex(data-toggle="tab" data-target="#nav-inprogress" type="button" role="tab" aria-controls="nav-inprogress" aria-selected="false" data-name="inprogress") 進行中
+                    span#inprogress-count.pl-1
+                a#nav-finished-tab.nav-link-ex(data-toggle="tab" data-target="#nav-finished" type="button" role="tab" aria-controls="nav-finished" aria-selected="false" data-name="finished") 完了・未受注
         div(class="tab-content")
             .col-12.mt-3.py-3
                 .row
-                    .col-8.col-sm-8.col-md-6.col-lg-7.col-xl-5.col-xxl-4.px-0
+                    .col-7.col-sm-7.col-md-6.col-lg-7.col-xl-5.col-xxl-4.px-0
                         .input-group
-                            input.filter.form-control(data-value="table" type="text" placeholder="検索する...")
+                            input#input-keyword.filter.form-control(type="text" placeholder="キーワードを入カ")
                             span.input-group-append 
                                 .input-group-text 
                                     span(data-feather="search") 検索する
                     .col.px-0
-                        button.ml-4.sendForm.btn.btn-dark.rounded.shadow-sm.s-el.w-auto(style="cursor:pointer;")
-                                span.pt-1 絞り込み
-                                span.ml-2(data-feather='arrow-right' style="width: 15px;height: 15px;")
+                        button#searchBtn.ml-4.sendForm.btn.btn-dark.rounded.shadow-sm.s-el.w-auto(style="cursor:pointer;")
+                            span.pt-1 絞り込む
+                            span.ml-2(data-feather='arrow-right' style="width: 15px;height: 15px;")
 
             div(class="tab-pane fade show active" id="nav-all" role="tabpanel" aria-labelledby="nav-all-tab")
                 .col-12.col-xxl-10.px-0
@@ -33,162 +35,39 @@ block content
                                 
                         .card-body.px-4.collapse(id="filter-panel-all" aria-labelledby="toggle-filter-all")
                             label.control-label.ml-2 契約金額
-                            .row
+                            .row.deposit-range
                                 .col-5.col-md-4.col-lg-2
-                                    input.form-control.col-12( name="contract-sum-min")
+                                    input.form-control.col-12.text-center(name="deposit-min")
                                 span.pt-2 〜
                                 .col-5.col-md-4.col-lg-2
-                                    input.form-control.col-12( name="contract-sum-max")
+                                    input.form-control.col-12.text-center(name="deposit-max")
 
-                            .mt-4
+                            .mt-4.period-range
                                 label.control-label.ml-2 工事開始日
                                 .btn-group-toggle
-                                    .btn-group(data-toggle="buttons")
-                                        label.btn.nav-link-inoutcome-filter.active
-                                            input.toggle(type='radio', value=0, checked='true')
+                                    .btn-group.filter-group(data-name="all" data-toggle="buttons")
+                                        label.btn.nav-link-inoutcome-filter
+                                            input.toggle(type='radio', value=1)
                                             | 今月
                                         label.btn.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=1)
+                                            input.toggle(type="radio", value=2)
                                             | 先月
                                         label.btn.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=2)
+                                            input.toggle(type="radio", value=3)
                                             | 先々月
                                         label.btn.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=2)
+                                            input.toggle(type="radio", value=4)
                                             | 今期
                                         label.btn.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=2)
+                                            input.toggle(type="radio", value=5)
                                             | 前期
                                         label.btn.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=2)
+                                            input.toggle(type="radio", value=6)
                                             | 前期より以前
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="this-month") 今月
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="next-month") 先月
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="n-next-month") 先々月
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="this-ki") 今期
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="prev-ki") 前期
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1(name="p-prev-ki") 前期より以前
 
                             .text-right.mt-4
-                                button.btn.btn-outline-primary.rounded 絞り込む
-
-                .col-12.mt-4.mb-1 合計
-                .col-12.col-xxl-10.px-0.mb-4.d-flex
-                    .display.view-table.border.border-secondary.rounded
-                        table.w-100.table-bordered
-                            thead.bg-secondary.text-center.text-white
-                                tr
-                                    th.py-2.px-2 契約金額
-                                    th.px-2 原価
-                                    th.px-2 予想粗利益
-                            tbody
-                                tr.text-right.font-weight-bold
-                                    td.py-2.px-2#contract-amount-all 1,003,810,055
-                                    td.px-2#prime-cost-all 939,754,601
-                                    td.px-2#expect-profit-all 64,055,454
-                
-                .col-12.col-lg-12.col-xl-10.col-xxl-8.py-2
-                    .row
-                        div.form-check.pt-2
-                            input.form-check-input.genba-checkbox(type="checkbox" name="select-all" id="select-all" style="cursor:pointer")
-                            label.form-check-label.ml-2(for="select-all" style="font-size:18px;cursor:pointer") 全て選択／解除
-                        .col.px-0.text-right
-                            a.btn.btn-success.rounded(href="/dashboard/settings/genba?genbaID=0") 新現場追加
-                    .row.py-3
-                        ul#listGenbas.list-group.mb-3.w-100
-                            //- each genba in genbas
-                            li.list-group-item.mb-2.px-0
-                                .d-flex
-                                    .align-self-center.px-sm-4
-                                        input.check-input.genba-checkbox(type="checkbox" name="select-one" style="cursor:pointer")
-                                    .clickable-no-hover.col.px-0(data-link="/dashboard/daityou/genba?genbaID=1")
-                                        h5.mb-3 あおいこども園
-                                        .d-flex
-                                            span.align-self-center.div-btn-dark.div-btn-rounded.div-btn-sm 完了
-                                            .pl-sm-4.pr-0
-                                                
-                                                .d-flex.text-right
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 契約金額:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 粗利益:
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 10,939,754,601
-                                                .d-flex.text-right
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 原価:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 粗利益率:
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 52.2%
-                                                .d-flex.text-right.small
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 実行予算:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px")
-                                                            .flex-grow-1(style="width:100px")
-
-                                                .d-flex.mt-4.small.text-center
-                                                    .flex-grow-1(style="width:100px") 自
-                                                    .flex-grow-1(style="width:100px") 至
-                                                    .flex-grow-1(style="width:100px") 担当
-                                                .d-flex.py-2.text-center
-                                                    .flex-grow-1(style="width:100px") 2022/00/00
-                                                    .flex-grow-1(style="width:100px") 2023/00/00
-                                                    .flex-grow-1(style="width:100px") 鬼塚
-                            li.list-group-item.mb-2.px-0
-                                .d-flex
-                                    .align-self-center.px-sm-4
-                                        input.check-input.genba-checkbox(type="checkbox" name="select-one" style="cursor:pointer")
-                                    .clickable-no-hover.col.px-0(data-link="/dashboard/daityou/genba?genbaID=1")
-                                        h5.mb-3 あおいこども園
-                                        .d-flex
-                                            span.align-self-center.div-btn-outline-dark.div-btn-rounded.div-btn-sm 進行中
-                                            .pl-sm-4.pr-0
-                                                
-                                                .d-flex.text-right
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 契約金額:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 粗利益:
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 10,939,754,601
-                                                .d-flex.text-right
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 原価:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 粗利益率:
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 52.2%
-                                                .d-flex.text-right.small
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 実行予算:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px")
-                                                            .flex-grow-1(style="width:100px")
-
-                                                .d-flex.mt-4.small.text-center
-                                                    .flex-grow-1(style="width:100px") 自
-                                                    .flex-grow-1(style="width:100px") 至
-                                                    .flex-grow-1(style="width:100px") 担当
-                                                .d-flex.py-2.text-center
-                                                    .flex-grow-1(style="width:100px") 2022/00/00
-                                                    .flex-grow-1(style="width:100px") 2023/00/00
-                                                    .flex-grow-1(style="width:100px") 鬼塚
+                                button.clearBtn.btn.btn-outline-dark.rounded.mr-3(data-name='all') 条件をクリア
+                                button.filterBtn.btn.btn-primary.rounded(data-name='all') 絞り込む
 
             div(class="tab-pane fade" id="nav-inprogress" role="tabpanel" aria-labelledby="nav-inprogress-tab")
                 .col-12.col-xxl-10.px-0
@@ -202,167 +81,44 @@ block content
                                 
                         .card-body.px-4.collapse(id="filter-panel-inprogress" aria-labelledby="toggle-filter-inprogress")
                             label.control-label.ml-2 契約金額
-                            .row
+                            .row.deposit-range
                                 .col-5.col-md-4.col-lg-2
-                                    input.form-control.col-12( name="contract-sum-min")
+                                    input.form-control.col-12.text-center(name="deposit-min")
                                 span.pt-2 〜
                                 .col-5.col-md-4.col-lg-2
-                                    input.form-control.col-12( name="contract-sum-max")
+                                    input.form-control.col-12.text-center(name="deposit-max")
 
-                            .mt-4
+                            .mt-4.period-range
                                 label.control-label.ml-2 工事開始日
                                 .btn-group-toggle
-                                    .btn-group.d-flex(data-toggle="buttons")
-                                        label.btn.text-wrap.nav-link-inoutcome-filter.active
-                                            input.toggle(type='radio', value=0, checked='true')
+                                    .btn-group.filter-group(data-name="inprogress" data-toggle="buttons")
+                                        label.btn.nav-link-inoutcome-filter
+                                            input.toggle(type='radio', value=1)
                                             | 今月
-                                        label.btn.text-wrap.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=1)
+                                        label.btn.nav-link-inoutcome-filter
+                                            input.toggle(type="radio", value=2)
                                             | 先月
-                                        label.btn.text-wrap.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=2)
+                                        label.btn.nav-link-inoutcome-filter
+                                            input.toggle(type="radio", value=3)
                                             | 先々月
-                                        label.btn.text-wrap.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=2)
+                                        label.btn.nav-link-inoutcome-filter
+                                            input.toggle(type="radio", value=4)
                                             | 今期
-                                        label.btn.text-wrap.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=2)
+                                        label.btn.nav-link-inoutcome-filter
+                                            input.toggle(type="radio", value=5)
                                             | 前期
-                                        label.btn.text-wrap.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=2)
+                                        label.btn.nav-link-inoutcome-filter
+                                            input.toggle(type="radio", value=6)
                                             | 前期より以前
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="this-month") 今月
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="next-month") 先月
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="n-next-month") 先々月
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="this-ki") 今期
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="prev-ki") 前期
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1(name="p-prev-ki") 前期より以前
 
                             .text-right.mt-4
-                                button.btn.btn-outline-success.rounded 絞り込む
-
-                .col-12.mt-4.mb-1 合計
-                .col-12.col-xxl-10.px-0.mb-4.d-flex
-                    .display.view-table.border.border-secondary.rounded
-                        table.w-100.table-bordered
-                            thead.bg-secondary.text-center.text-white
-                                tr
-                                    th.py-2.px-2 契約金額
-                                    th.px-2 原価
-                                    th.px-2 予想粗利益
-                            tbody
-                                tr.text-right.font-weight-bold
-                                    td.py-2.px-2#contract-amount-all 1,003,810,055
-                                    td.px-2#prime-cost-all 939,754,601
-                                    td.px-2#expect-profit-all 64,055,454
-                
-                .col-12.col-lg-12.col-xl-10.col-xxl-8.py-2
-                    .row
-                        div.form-check.pt-2
-                            input.form-check-input.genba-checkbox(type="checkbox" name="select-all" id="select-all" style="cursor:pointer")
-                            label.form-check-label.ml-2(for="select-all" style="font-size:18px;cursor:pointer") 全て選択／解除
-                        .col.px-0.text-right
-                            a.btn.btn-success.rounded(href="/dashboard/settings/genba?genbaID=0") 新現場追加
-                    .row.py-3
-                        ul#listGenbas.list-group.mb-3.w-100
-                            //- each genba in genbas
-                            li.list-group-item.mb-2.px-0
-                                .d-flex
-                                    .align-self-center.px-sm-4
-                                        input.check-input.genba-checkbox(type="checkbox" name="select-one" style="cursor:pointer")
-                                    .clickable-no-hover.col.px-0(data-link="/dashboard/daityou/genba?genbaID=1")
-                                        h5.mb-3 あおいこども園
-                                        .d-flex
-                                            span.align-self-center.div-btn-dark.div-btn-rounded.div-btn-sm 完了
-                                            .pl-sm-4.pr-0
-                                                
-                                                .d-flex.text-right
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 契約金額:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 粗利益:
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 10,939,754,601
-                                                .d-flex.text-right
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 原価:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 粗利益率:
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 52.2%
-                                                .d-flex.text-right.small
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 実行予算:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px")
-                                                            .flex-grow-1(style="width:100px")
-
-                                                .d-flex.mt-4.small.text-center
-                                                    .flex-grow-1(style="width:100px") 自
-                                                    .flex-grow-1(style="width:100px") 至
-                                                    .flex-grow-1(style="width:100px") 担当
-                                                .d-flex.py-2.text-center
-                                                    .flex-grow-1(style="width:100px") 2022/00/00
-                                                    .flex-grow-1(style="width:100px") 2023/00/00
-                                                    .flex-grow-1(style="width:100px") 鬼塚
-                            li.list-group-item.mb-2.px-0
-                                .d-flex
-                                    .align-self-center.px-sm-4
-                                        input.check-input.genba-checkbox(type="checkbox" name="select-one" style="cursor:pointer")
-                                    .clickable-no-hover.col.px-0(data-link="/dashboard/daityou/genba?genbaID=1")
-                                        h5.mb-3 あおいこども園
-                                        .d-flex
-                                            span.align-self-center.div-btn-outline-dark.div-btn-rounded.div-btn-sm 進行中
-                                            .pl-sm-4.pr-0
-                                                
-                                                .d-flex.text-right
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 契約金額:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 粗利益:
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 10,939,754,601
-                                                .d-flex.text-right
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 原価:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 粗利益率:
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 52.2%
-                                                .d-flex.text-right.small
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 実行予算:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px")
-                                                            .flex-grow-1(style="width:100px")
-
-                                                .d-flex.mt-4.small.text-center
-                                                    .flex-grow-1(style="width:100px") 自
-                                                    .flex-grow-1(style="width:100px") 至
-                                                    .flex-grow-1(style="width:100px") 担当
-                                                .d-flex.py-2.text-center
-                                                    .flex-grow-1(style="width:100px") 2022/00/00
-                                                    .flex-grow-1(style="width:100px") 2023/00/00
-                                                    .flex-grow-1(style="width:100px") 鬼塚
+                                button.clearBtn.btn.btn-outline-dark.rounded.mr-3(data-name='inprogress') 条件をクリア
+                                button.filterBtn.btn.btn-success.rounded(data-name='inprogress') 絞り込む
 
             div(class="tab-pane fade" id="nav-finished" role="tabpanel" aria-labelledby="nav-finished-tab")
                 .col-12.col-xxl-10.px-0
                     .card.border-secondary.my-3.w-100
-                        .card-header.py-1.bg-warning.text-white.font-weight-bold.collapsed(id="toggle-filter-finished" data-toggle="collapse" data-target="#filter-panel-finished" aria-expanded="false" aria-controls="filter-panel-finished" style="cursor:pointer")
+                        .card-header.py-1.bg-danger.text-white.font-weight-bold.collapsed(id="toggle-filter-finished" data-toggle="collapse" data-target="#filter-panel-finished" aria-expanded="false" aria-controls="filter-panel-finished" style="cursor:pointer")
                             .row.pl-3
                                 span.pt-1 詳細で絞り込む
                                 .col.d-flex.justify-content-end.pt-1
@@ -371,159 +127,62 @@ block content
                                 
                         .card-body.px-4.collapse(id="filter-panel-finished" aria-labelledby="toggle-filter-finished")
                             label.control-label.ml-2 契約金額
-                            .row
+                            .row.deposit-range
                                 .col-5.col-md-4.col-lg-2
-                                    input.form-control.col-12( name="contract-sum-min")
+                                    input.form-control.col-12.text-center(name="deposit-min")
                                 span.pt-2 〜
                                 .col-5.col-md-4.col-lg-2
-                                    input.form-control.col-12( name="contract-sum-max")
+                                    input.form-control.col-12.text-center(name="deposit-max")
 
-                            .mt-4
+                            .mt-4.period-range
                                 label.control-label.ml-2 工事開始日
                                 .btn-group-toggle
-                                    .btn-group.d-flex(data-toggle="buttons")
-                                        label.btn.text-wrap.nav-link-inoutcome-filter.active
-                                            input.toggle(type='radio', value=0, checked='true')
+                                    .btn-group.filter-group(data-name="finished" data-toggle="buttons")
+                                        label.btn.nav-link-inoutcome-filter
+                                            input.toggle(type='radio', value=1)
                                             | 今月
-                                        label.btn.text-wrap.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=1)
+                                        label.btn.nav-link-inoutcome-filter
+                                            input.toggle(type="radio", value=2)
                                             | 先月
-                                        label.btn.text-wrap.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=2)
+                                        label.btn.nav-link-inoutcome-filter
+                                            input.toggle(type="radio", value=3)
                                             | 先々月
-                                        label.btn.text-wrap.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=2)
+                                        label.btn.nav-link-inoutcome-filter
+                                            input.toggle(type="radio", value=4)
                                             | 今期
-                                        label.btn.text-wrap.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=2)
+                                        label.btn.nav-link-inoutcome-filter
+                                            input.toggle(type="radio", value=5)
                                             | 前期
-                                        label.btn.text-wrap.nav-link-inoutcome-filter
-                                            input.toggle(type="radio", value=2)
+                                        label.btn.nav-link-inoutcome-filter
+                                            input.toggle(type="radio", value=6)
                                             | 前期より以前
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="this-month") 今月
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="next-month") 先月
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="n-next-month") 先々月
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="this-ki") 今期
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1.mr-2(name="prev-ki") 前期
-                                        //- button.btn.btn-outline-secondary.rounded.flex-grow-1(name="p-prev-ki") 前期より以前
 
                             .text-right.mt-4
-                                button.btn.btn-outline-warning.rounded 絞り込む
+                                button.clearBtn.btn.btn-outline-dark.rounded.mr-3(data-name='finished') 条件をクリア
+                                button.filterBtn.btn.btn-danger.rounded.text-white(data-name='finished') 絞り込む
 
-                .col-12.mt-4.mb-1 合計
-                .col-12.col-xxl-10.px-0.mb-4.d-flex
-                    .display.view-table.border.border-secondary.rounded
-                        table.w-100.table-bordered
-                            thead.bg-secondary.text-center.text-white
-                                tr
-                                    th.py-2.px-2 契約金額
-                                    th.px-2 原価
-                                    th.px-2 予想粗利益
-                            tbody
-                                tr.text-right.font-weight-bold
-                                    td.py-2.px-2#contract-amount-all 1,003,810,055
-                                    td.px-2#prime-cost-all 939,754,601
-                                    td.px-2#expect-profit-all 64,055,454
-                
-                .col-12.col-lg-12.col-xl-10.col-xxl-8.py-2
-                    .row
-                        div.form-check.pt-2
-                            input.form-check-input.genba-checkbox(type="checkbox" name="select-all" id="select-all" style="cursor:pointer")
-                            label.form-check-label.ml-2(for="select-all" style="font-size:18px;cursor:pointer") 全て選択／解除
-                        .col.px-0.text-right
-                            a.btn.btn-success.rounded(href="/dashboard/settings/genba?genbaID=0") 新現場追加
-                    .row.py-3
-                        ul#listGenbas.list-group.mb-3.w-100
-                            //- each genba in genbas
-                            li.list-group-item.mb-2.px-0
-                                .d-flex
-                                    .align-self-center.px-sm-4
-                                        input.check-input.genba-checkbox(type="checkbox" name="select-one" style="cursor:pointer")
-                                    .clickable-no-hover.col.px-0(data-link="/dashboard/daityou/genba?genbaID=1")
-                                        h5.mb-3 あおいこども園
-                                        .d-flex
-                                            span.align-self-center.div-btn-dark.div-btn-rounded.div-btn-sm 完了
-                                            .pl-sm-4.pr-0
-                                                
-                                                .d-flex.text-right
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 契約金額:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 粗利益:
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 10,939,754,601
-                                                .d-flex.text-right
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 原価:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 粗利益率:
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 52.2%
-                                                .d-flex.text-right.small
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 実行予算:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px")
-                                                            .flex-grow-1(style="width:100px")
-
-                                                .d-flex.mt-4.small.text-center
-                                                    .flex-grow-1(style="width:100px") 自
-                                                    .flex-grow-1(style="width:100px") 至
-                                                    .flex-grow-1(style="width:100px") 担当
-                                                .d-flex.py-2.text-center
-                                                    .flex-grow-1(style="width:100px") 2022/00/00
-                                                    .flex-grow-1(style="width:100px") 2023/00/00
-                                                    .flex-grow-1(style="width:100px") 鬼塚
-                            li.list-group-item.mb-2.px-0
-                                .d-flex
-                                    .align-self-center.px-sm-4
-                                        input.check-input.genba-checkbox(type="checkbox" name="select-one" style="cursor:pointer")
-                                    .clickable-no-hover.col.px-0(data-link="/dashboard/daityou/genba?genbaID=1")
-                                        h5.mb-3 あおいこども園
-                                        .d-flex
-                                            span.align-self-center.div-btn-outline-dark.div-btn-rounded.div-btn-sm 進行中
-                                            .pl-sm-4.pr-0
-                                                
-                                                .d-flex.text-right
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 契約金額:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 粗利益:
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 10,939,754,601
-                                                .d-flex.text-right
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 原価:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 粗利益率:
-                                                            .flex-grow-1(style="width:100px").font-weight-bold 52.2%
-                                                .d-flex.text-right.small
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px") 実行予算:
-                                                            .flex-grow-1(style="width:100px") 939,754,601
-                                                    .flex-grow-1
-                                                        .d-md-flex.p-2
-                                                            .flex-grow-1(style="width:100px")
-                                                            .flex-grow-1(style="width:100px")
-
-                                                .d-flex.mt-4.small.text-center
-                                                    .flex-grow-1(style="width:100px") 自
-                                                    .flex-grow-1(style="width:100px") 至
-                                                    .flex-grow-1(style="width:100px") 担当
-                                                .d-flex.py-2.text-center
-                                                    .flex-grow-1(style="width:100px") 2022/00/00
-                                                    .flex-grow-1(style="width:100px") 2023/00/00
-                                                    .flex-grow-1(style="width:100px") 鬼塚
+            .col-12.mt-4.mb-1 合計
+            .col-12.col-xxl-10.px-0.mb-4.d-flex
+                .display.view-table.border.border-secondary.rounded
+                    table.w-100.table-bordered
+                        thead.bg-secondary.text-center.text-white
+                            tr
+                                th.py-2.px-2 契約金額
+                                th.px-2 原価
+                                th.px-2 予想粗利益
+                        tbody#summary-tbody
+                            tr.text-right.font-weight-bold
+                                td.py-2.px-2#deposit-amount-all 0
+                                td.px-2#prime-cost-all 0
+                                td.px-2#expect-profit-all 0
+            
+            .col-12.col-lg-12.col-xl-10.col-xxl-8.py-2
+                .row
+                    div.form-check.pt-2
+                        input#batch-check.form-check-input.genba-checkbox(type="checkbox" name="batch-check" style="cursor:pointer")
+                        label.form-check-label.ml-2(for="batch-check" style="font-size:18px;cursor:pointer") 全て選択 / 解除
+                    .col.px-0.text-right
+                        a.btn.btn-success.rounded(href="/dashboard/settings/genba?genbaID=0") 新現場追加
+                .row.py-3
+                    ul#listGenbas.list-group.mb-3.w-100
+                        //- each genba in genbas

@@ -1,14 +1,25 @@
 $(document).ready(async function () {
 
-    // let genbaID = getUrlParameter('genbaID')
-    let genbaID = "610c7d73c3640304088b6735"
+    let genbaID = getUrlParameter('genbaID')
+    let genbaName = getUrlParameter('genbaName')
+    // let genbaID = "610c7d73c3640304088b6735"
 
     //NIPPO FORM PAGE
     if (!!document.querySelector('#daityouYosanPage')) {
+        initNavBar()
         inputInit()
         tableInit()
         setTimeout(() => { initForm() }, 1000)
         SUA({ event: '実行予算ページ' })
+    }
+
+    function initNavBar() {
+        $('#title').html(genbaName)
+        var urlParams = 'genbaID=' + genbaID + '&genbaName=' + genbaName
+        $('#nav-genba').attr('href', '/dashboard/daityou/genba?' + urlParams)
+        $('#nav-sihara').attr('href', '/dashboard/daityou/sihara_ichiran?' + urlParams)
+        $('#nav-ichiran').attr('href', '/dashboard/daityou/genba_ichiran?' + urlParams)
+        // $('#nav-yosan').attr('href', '/dashboard/daityou/yosan?' + urlParams)
     }
 
     function inputInit() {
@@ -43,7 +54,7 @@ $(document).ready(async function () {
             if (!$(this).hasClass('init-on')) {
                 $.get("/api/daityou/company", function (data) {
                     data = sortit(data, '業社名kana')
-                    for (let index = 0; index < data.length; index++) {
+                    for (var index = 0; index < data.length; index++) {
                         let element = data[index]
                         companySelect.append('<option value="' + element.el+'" data-id="' + element._id + '" data-kana="' + element.業社名kana + '">' + element.el+' </option>')
                     }
@@ -74,8 +85,8 @@ $(document).ready(async function () {
             let koushuSelect = $(this)
             if (!$(this).hasClass('init-on')) {
                 $.get("/api/koushu", function (data) {
-                    for (let index = 0; index < data.length; index++) {
-                        let element = data[index]
+                    for (var index = 0; index < data.length; index++) {
+                        var element = data[index]
                         if (element.el) {
                             koushuSelect.append('<option value="' + element.el+'" data-id="' + element._id+'">' + element.el+' </option>')
                         }
@@ -100,15 +111,16 @@ $(document).ready(async function () {
     }
 
     function initSummaryTable(tbody) {
-        let query = {
-            genba_id: genbaID
+        var query = {
+            genbaID: genbaID,
+            estimate: 1 // estimation of profit
         }
         request2GetSummaryData(query)
     }
 
     function initFullTable(tbody) {
-        let query = {
-            genba: genbaID
+        var query = {
+            genbaID: genbaID
         }
         request2GetFullData(query)
     }
@@ -131,7 +143,7 @@ $(document).ready(async function () {
 
         // Input Sub Total Price
         $('body').on('keyup', '.input-subtotal', function () {
-            let elements = $(this).parent().parent().parent()
+            var elements = $(this).parent().parent().parent()
             updateTotalPrice(elements)
         })
 
@@ -151,15 +163,15 @@ $(document).ready(async function () {
                 let formID = '.form-container'
                 let elements = $('body').find(formID + ' .elements')
                 $.each(elements.children(), function() {
-                    let element = $(this)
+                    var element = $(this)
                     if (element.hasClass('element')) {
                         if (element.attr('data-value') > 1) {   // remove all elements excepting the first one
                             element.remove()
                         } else {                                // initialize the values for the first element
                             firstElement = element
-                            let selectKoushu = element.find('.input-koushu')
-                            let inputTekiyou = element.find('.input-tekiyou')
-                            let inputSubTotal = element.find('.input-subtotal')
+                            var selectKoushu = element.find('.input-koushu')
+                            var inputTekiyou = element.find('.input-tekiyou')
+                            var inputSubTotal = element.find('.input-subtotal')
 
                             selectKoushu.val('')
                             selectKoushu.niceSelect('update')
@@ -190,10 +202,10 @@ $(document).ready(async function () {
 
         let totalPrice = 0
         $.each(elements.children(), function () {
-            let element = $(this)
+            var element = $(this)
             if (element.hasClass('element')) {
-                let inputSubTotal = element.find('.input-subtotal')
-                let price = parseInt(inputSubTotal.val())
+                var inputSubTotal = element.find('.input-subtotal')
+                var price = parseInt(inputSubTotal.val())
                 if (!isNaN(price)) {
                     totalPrice += price
                 }
@@ -285,17 +297,17 @@ $(document).ready(async function () {
 
         data.forEach(function (item) {
             
-            let companyID = item._id
-            let subdata = item.data
+            var companyID = item._id
+            var subdata = item.data
             if (subdata.length > 0) {
             
-                let company = subdata[0].company
+                var company = subdata[0].company
 
                 var id = 'subheader-' + index
                 var subitemClazz = 'collapse-' + index
 
                 // sub header
-                html += '<tr class="bg-lightgray collapsed" id="' + id + '" data-toggle="collapse" data-target=".' + subitemClazz + '" aria-expanded="false" aria-controls="' + subitemClazz + '" style="cursor:pointer"><td class="py-1 pl-1">' + company.el +
+                html += '<tr class="bg-lightgray" id="' + id + '" data-toggle="collapse" data-target=".' + subitemClazz + '" aria-expanded="true" aria-controls="' + subitemClazz + '" style="cursor:pointer"><td class="py-1 pl-1">' + company.el +
                         '<span data-feather="chevron-down" class="pr-1 float-left off d-inline"></span><span data-feather="chevron-up" class="pr-1 float-left on d-none"></span></td><td></td><td> </td><td></td><td></td></tr>'
 
                 // sub data
@@ -311,13 +323,14 @@ $(document).ready(async function () {
     }
 
     function updateSummaryTableOnResponse(data) {
-        let tbody = $('#yosan-summary-tbody')
+        var tbody = $('#yosan-summary-tbody')
 
-        let deposit = data.契約金額
-        let budget = data.実行予算
-        let profit = data.予想粗利
-        let profitRate = data.粗利率
-        var html = '<tr><td class="py-2 pr-1">' + numberFormat(deposit) + '</td><td class="pr-1">' + numberFormat(budget) + '</td><td class="pr-1">' + numberFormat(profit) + '</td><td class="pr-1">' + numberFormat(profitRate) + '%</td></tr>'
+        var deposit = data.契約金額 ? data.契約金額 : 0
+        var budget = data.実行予算 ? data.実行予算 : 0
+        var profit = data.予想粗利 ? data.予想粗利 : 0
+        var _profitRate = data.粗利率
+        var profitRate = data.粗利率 ? numberFormat(_profitRate) + '%' : 'ー'
+        var html = '<tr><td class="py-2 pr-1">' + numberFormat(deposit) + '</td><td class="pr-1">' + numberFormat(budget) + '</td><td class="pr-1">' + numberFormat(profit) + '</td><td class="pr-1">' + profitRate + '</td></tr>'
    
         tbody.html(html)
     }
@@ -342,7 +355,7 @@ $(document).ready(async function () {
         // let selectCompany = document.getElementById("input-company")
         // let selectedCompany = selectCompany.options[selectCompany.selectedIndex]
         if ($('#input-company').find('option:checked').length == 0) {
-            showFormAlert("You must select company")
+            showFormAlert("業務名を選択ください。")
             return
         }
         // console.log(selectedCompany)
@@ -364,8 +377,7 @@ $(document).ready(async function () {
             company.業社名kana = kana
         }
 
-        let now = new Date()
-        let ct = now.getFullYear() + '/' + paddingNumber(now.getMonth() + 1, 2) + '/' + paddingNumber(now.getDate(), 2)
+        let ct = formatedDateString(new Date())
 
         $.each(elements.children(), function () {
             let element = $(this)
@@ -429,14 +441,18 @@ $(document).ready(async function () {
     function hideFormAlert() {
         $('#form-alert').addClass('d-none')
     }
-
-    function numberFormat(number) {
-        return new Intl.NumberFormat('ja-JP').format(number)
-    }
-
-    function paddingNumber(number, padding) {
-        var num = "" + number
-        while(num.length < padding) num = "0" + num
-        return num
-    }
 })
+
+function numberFormat(number) {
+    return new Intl.NumberFormat('ja-JP').format(number)
+}
+
+function paddingNumber(number, padding) {
+    var num = "" + number
+    while(num.length < padding) num = "0" + num
+    return num
+}
+
+function formatedDateString(date) {
+    return date.getFullYear() + '/' + paddingNumber(date.getMonth() + 1, 2) + '/' + paddingNumber(date.getDate(), 2)   
+}

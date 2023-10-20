@@ -1,5 +1,7 @@
 $(document).ready(async function () {
 
+    let prevQuery = null
+
     //NIPPO FORM PAGE
     if (!!document.querySelector('#inoutcomePage')) {
         inputInit()
@@ -60,7 +62,7 @@ $(document).ready(async function () {
         }
 
         if (document.querySelector('#inoutcome-filtered-tbody')) {
-            initTable($('#inoutcome-filtered-tbody'))
+            initTable()
         }
     }
 
@@ -328,8 +330,7 @@ $(document).ready(async function () {
         })
         allSelect.each(function () {
             let dateSelect = $(this)
-            let now = new Date()
-            let today = now.getFullYear() + '/' + paddingNumber(now.getMonth() + 1, 2) + '/' + paddingNumber(now.getDate(), 2)
+            let today = formatedDateString(new Date())
 
             dateSelect.val(todayJP)
             dateSelect.attr('data-date', today)
@@ -343,7 +344,7 @@ $(document).ready(async function () {
                 endDate: new Date()
             }).on('changeDate', function (e) {
                 let dd = new Date(e.date)
-                let ct = dd.getFullYear() + '/' + paddingNumber(dd.getMonth() + 1, 2) + '/' + paddingNumber(dd.getDate(), 2)
+                let ct = formatedDateString(dd)
                 let options = {
                     year: 'numeric',
                     month: 'short',
@@ -359,13 +360,8 @@ $(document).ready(async function () {
         })
     }
 
-    function initTable(tbody) {
-        let dd = new Date()
-        let ct = dd.getFullYear() + '/' + (dd.getMonth() + 1) + '/' + dd.getDate()
-        let query = {
-            dateFrom: ct,
-            dateTo: ct
-        }
+    function initTable() {
+        let query = { limit: 30 }
         request2GetFilteredData(query)
     }
 
@@ -448,7 +444,7 @@ $(document).ready(async function () {
                 updateSubTotal(firstElement.find('.input-sateiprice'), firstElement.find('.input-zeiritu'), firstElement.find('.label-subtotal'), firstElement.parent())
 
                 // update table with new elements
-                initTable($('#inoutcome-filtered-tbody'))
+                initTable()
             })
         })
     
@@ -497,25 +493,25 @@ $(document).ready(async function () {
         $('body').on('click', '#filterBtn', function () {
 
             let query = {}
-            let type
+            let inoutType
             let kanjoukamoku
 
             // Main Tab(type)
             if ($('#filter-income-tab').hasClass('active') == true) { // in
-                type = '収入'
+                inoutType = '収入'
             } else if ($('#filter-outcome-tab').hasClass('active') == true) { // out
-                type = '支出'
+                inoutType = '支出'
             }
 
-            if (type) { // type = all
-                query.type = type
+            if (inoutType) { // type = all
+                query.inoutType = inoutType
             }
 
             // Sub Tab(kanjoukamoku)
             let subTabPanel
-            if (type == '収入') { // in
+            if (inoutType == '収入') { // in
                 subTabPanel = $('#filter-income')
-            } else if (type == '支出') { // out
+            } else if (inoutType == '支出') { // out
                 subTabPanel = $('#filter-outcome')
             } else { // all
                 subTabPanel = $('#filter-all')
@@ -548,9 +544,9 @@ $(document).ready(async function () {
 
             // torihiki selector
             let torihiki
-            if (type == '収入') { // in
+            if (inoutType == '収入') { // in
                 torihiki = $('#input-filter-hattyu').val()
-            } else if (type == '支出') { // out
+            } else if (inoutType == '支出') { // out
                 torihiki = $('#input-filter-gyousha').val()
             } else { // all
                 torihiki = $('#input-filter-torihiki').val()
@@ -582,11 +578,19 @@ $(document).ready(async function () {
                 query.priceTo = priceTo
             }
 
-            request2GetFilteredData(query)
+            if (prevQuery && JSON.stringify(prevQuery) == JSON.stringify(query)) {
+                console.log("same query")
+            } else {
+                console.log(query)
+                prevQuery = query
+                request2GetFilteredData(query)
+            }
+
         })
 
         // Clear Filter Button
         $('body').on('click', '#filterAllBtn', function () {
+            initTable()
         })
     }
 
@@ -680,9 +684,9 @@ $(document).ready(async function () {
                     let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
                     $(this).attr('name', name + currVal)
                     if (isMinus) {
-                        $(this).removeClass('text-white')
+                        $(this).addClass('bg-danger')
                     } else {
-                        $(this).addClass('text-white')
+                        $(this).removeClass('bg-danger')
                     }
                 }
             })
@@ -740,17 +744,17 @@ $(document).ready(async function () {
 
         var html = ''
         data.forEach(function(item) {
-            let type = item.type
-            let kanjoukamoku = item.勘定科目
-            let date = item.日付
-            let kouza = item.口座
-            let torihiki = item.取引先
-            let genba = item.現場名
-            let bikou = item.備考
-            let price = item.査定金額
-            let zeiritu = item.税率
-            let tax = parseInt((price * zeiritu / 100).toFixed())
-            let priceWithTax = price + tax
+            var type = item.type
+            var kanjoukamoku = item.勘定科目
+            var date = item.日付
+            var kouza = item.口座
+            var torihiki = item.取引先
+            var genba = item.現場名
+            var bikou = item.備考
+            var price = item.査定金額
+            var zeiritu = item.税率
+            var tax = parseInt((price * zeiritu / 100).toFixed())
+            var priceWithTax = price + tax
             if (!tax) tax = 0
             if (!priceWithTax) priceWithTax = 0
 
@@ -856,18 +860,22 @@ $(document).ready(async function () {
             }, 1000);
         })
     }
-
-    function currencyFormat(number) {
-        return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(number)
-    }
-
-    function numberFormat(number) {
-        return new Intl.NumberFormat('ja-JP').format(number)
-    }
-
-    function paddingNumber(number, padding) {
-        var num = "" + number
-        while(num.length < padding) num = "0" + num
-        return num
-    }
 })
+
+function currencyFormat(number) {
+    return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(number)
+}
+
+function numberFormat(number) {
+    return new Intl.NumberFormat('ja-JP').format(number)
+}
+
+function paddingNumber(number, padding) {
+    var num = "" + number
+    while(num.length < padding) num = "0" + num
+    return num
+}
+
+function formatedDateString(date) {
+    return date.getFullYear() + '/' + paddingNumber(date.getMonth() + 1, 2) + '/' + paddingNumber(date.getDate(), 2)   
+}
