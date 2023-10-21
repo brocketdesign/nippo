@@ -101,18 +101,32 @@ router.get('/settings',urlencodedParser, async(req, res) => {
 router.get('/settings/nippo',urlencodedParser, async(req, res) => {
   const db = req.app.locals.db;let dbData = await initData(req)
   if(dbData.isLogin && dbData.isAdmin){
-      let types = await new Promise((resolve,reject)=>{
-        let myCollection = db.collection('type')
-        myCollection.find().toArray((err, results) => {
-          resolve(results);
-        });
-      })
-      let places = await new Promise((resolve,reject)=>{
-        let myCollection = db.collection('place')
-        myCollection.find().toArray((err, results) => {
-          resolve(results);
-        });
-      })
+    let types = await new Promise((resolve,reject)=>{
+      let myCollection = db.collection('type')
+      myCollection.find().toArray((err, results) => {
+        resolve(results);
+      });
+    })
+    let places = await new Promise((resolve,reject)=>{
+      let myCollection = db.collection('place')
+      myCollection.find().toArray((err, results) => {
+        resolve(results);
+      });
+    })
+    let koushu = await new Promise((resolve,reject)=>{
+      let myCollection = db.collection('koushu')
+      myCollection.find().toArray((err, results) => {
+        resolve(results);
+      });
+    })
+    elementTypes = [
+      {name:'type',nameJP:'作業種類',data:types},
+      {name:'place',nameJP:'場所',data:places},
+      {name:'koushu',nameJP:'工種',data:koushu},
+    ]
+    res.render('settings_update',Object.assign({elementTypes:elementTypes,title:'日報設定'},dbData));
+  }else{
+    if(dbData.isLogin && !dbData.isAdmin){
       let koushu = await new Promise((resolve,reject)=>{
         let myCollection = db.collection('koushu')
         myCollection.find().toArray((err, results) => {
@@ -120,31 +134,48 @@ router.get('/settings/nippo',urlencodedParser, async(req, res) => {
         });
       })
       elementTypes = [
-        {name:'type',nameJP:'作業種類',data:types},
-        {name:'place',nameJP:'場所',data:places},
         {name:'koushu',nameJP:'工種',data:koushu},
       ]
       res.render('settings_update',Object.assign({elementTypes:elementTypes,title:'日報設定'},dbData));
     }else{
-      if(dbData.isLogin && !dbData.isAdmin){
-        let koushu = await new Promise((resolve,reject)=>{
-          let myCollection = db.collection('koushu')
-          myCollection.find().toArray((err, results) => {
-            resolve(results);
-          });
-        })
-        elementTypes = [
-          {name:'koushu',nameJP:'工種',data:koushu},
-        ]
-        res.render('settings_update',Object.assign({elementTypes:elementTypes,title:'日報設定'},dbData));
-      }else{
-        res.redirect('/dashboard');
-      }
+      res.redirect('/dashboard');
     }
+  }
 });
+// new[monkey]
 router.get('/settings/global',urlencodedParser, async(req, res) => {
   const db = req.app.locals.db;let dbData = await initData(req)
   if(dbData.isLogin && dbData.isAdmin){
+    let bankAccount = await new Promise((resolve,reject)=>{
+      let myCollection = db.collection('kouza')
+      myCollection.find().toArray((err, results) => {
+        resolve(results);
+      });
+    })
+    let financeCategoryIn = await new Promise((resolve,reject)=>{
+      let myCollection = db.collection('kanjoukamokuIn')
+      myCollection.find().toArray((err, results) => {
+        resolve(results);
+      });
+    })
+    let financeCategoryOut = await new Promise((resolve,reject)=>{
+      let myCollection = db.collection('kanjoukamokuOut')
+      myCollection.find().toArray((err, results) => {
+        resolve(results);
+      });
+    })
+    let taxRate = await new Promise((resolve,reject)=>{
+      let myCollection = db.collection('zeiritu')
+      myCollection.find().toArray((err, results) => {
+        resolve(results);
+      });
+    })
+    elementTypes = [
+      {name:'kouza',nameJP:'口座',data:bankAccount},
+      {name:'kanjoukamokuIn',nameJP:'勘定科目（収入の場合）',data:financeCategoryIn},
+      {name:'kanjoukamokuOut',nameJP:'勘定科目（支出の場合）',data:financeCategoryOut},
+      {name:'zeiritu',nameJP:'税率',data:taxRate},
+    ]
     res.render('settings_global', Object.assign({title:'基本設定'},dbData));
   }else{
     res.redirect('/dashboard');
@@ -358,12 +389,12 @@ router.get('/daityou/genba_ichiran',urlencodedParser, async(req, res) => {
   }
 });
 
-router.get('/daityou/yotin',urlencodedParser, async(req, res) => {
+router.get('/daityou/yosan',urlencodedParser, async(req, res) => {
   const db = req.app.locals.db;let dbData = await initData(req)
   if(dbData.isLogin){
     let genbaID = req.query.genbaID
     if( genbaID && genbaID != '0' ){
-      res.render('daityou_yotin',Object.assign({title:'実行予算'},dbData)); // TODO: title <= genba name
+      res.render('daityou_yosan',Object.assign({title:'実行予算'},dbData)); // TODO: title <= genba name
     } else {
       res.redirect('/dashboard/daityou/')
     }

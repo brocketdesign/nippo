@@ -338,9 +338,6 @@ input:disabled {
 }
 
 /* new[monkey] - need comment ? */
-.input-koushu {
-  margin: 5px;
-}
 .input-company {
   margin: 5px;
   margin-top: 2px;
@@ -866,9 +863,19 @@ input:disabled {
   background-color: #343a40;
   border-color: #343a40;
 }
+.div-btn-primary {
+  color: #fff;
+  background-color: #007bff;
+  border-color: #007bff;
+}
 .div-btn-outline-dark {
   color: #343a40;
   border: 1px solid #343a40;
+}
+.div-btn-outline-primary {
+  /* color: #343a40; */
+  color: #007bff;
+  border: 1px solid #007bff;
 }
 /* End daityou */
 
@@ -952,17 +959,17 @@ input:disabled {
   }
 }
 
-#daityouGenbaChartBar1 {
+#normal-barchart {
   width: 100%;
   height: 300px;
 }
 
-#daityouGenbaChartBar2 {
+#cost-barchart {
   width: 100%;
   height: 350px;
 }
 
-#daityouGenbaChartBar3 {
+#spline-chart {
   width: 100%;
   height: 300px;
 }
@@ -1105,4 +1112,8 @@ input:disabled {
 
 .input-date-inoutcome, .input-date-filter{
   cursor:pointer;
+}
+
+.genba-name-title {
+  color: #007bff !important;
 }
