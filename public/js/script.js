@@ -2860,7 +2860,7 @@ function SettingsCompnayInit() {
             .then(koushu =>{
                 koushu.forEach((element, index) => {
                     if (element.el) {
-                        $('#koushuCheckList').append('<div class="form-check col-3" ><input class="form-check-input" type="checkbox" name="sub" id="checkbox_' + element._id + '" value="' + element._id + '" data-id="' + element._id + '"><label class="form-check-label" for="checkbox_' + element._id + '">' + element.el + '</label></div>')
+                        $('#koushuCheckList').append('<div class="form-check col-3" ><input class="form-check-input" type="checkbox" name="sub" id="checkbox_' + element._id + '" value="' + element._id + '" data-id="' + element._id + '" data-name="' + element.el + '"><label class="form-check-label" for="checkbox_' + element._id + '">' + element.el + '</label></div>')
                     }
                 });
             })
@@ -2930,7 +2930,11 @@ function submitData(el) {
         if ($(this).hasClass('form-check-input')) {
             if ($(this).is(':checked')) {
                 if (obj[$(this).attr('name')] != undefined) {
-                    obj[$(this).attr('name')].push($(this).val())
+                    if(formAction.indexOf('addone/company')){
+                        obj[$(this).attr('name')].push({id:$(this).val(),name:$(this).attr('data-name')})
+                    }else{
+                        obj[$(this).attr('name')].push($(this).val())
+                    }
                 } else {
                     obj[$(this).attr('name')] = [$(this).val()]
                 }
@@ -2939,15 +2943,9 @@ function submitData(el) {
             obj[$(this).attr('name')] = $(this).val()
         }
     })
-    /*
-    console.log({
-        event:'submitData',
-        formSelect:formSelect,
-        formAction:formAction,
-        formRedirect:formRedirect,
-        obj:obj,
-    })
-    */
+    
+    //console.log(obj)
+    
     $.post(formAction, obj, function () {
         window.location.href = window.location.origin + formRedirect
     })
@@ -3534,6 +3532,7 @@ function miniTools() {
         let elementTypeID = $(this).attr('data-id')
         let elementTypeValue = $(this).attr('data-value')
         let elementType = $(this).attr('data-name')
+        deleteLocalStorageForType(elementType);
         $('.removeThisIdHide[data-id="' + elementTypeID + '"][data-value="' + elementTypeValue + '"]').hide()
         console.log({
             elementTypeID: elementTypeID,

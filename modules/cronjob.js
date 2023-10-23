@@ -75,9 +75,6 @@ async function findGenbaList(db) {
   }
 }
 
-
-
-
 async function companyManage(db) {
   const companies = await db.collection('company').find().toArray();
   const koushu = await db.collection('koushu').find().toArray();
