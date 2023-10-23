@@ -590,7 +590,9 @@ $(document).ready(async function () {
 
         // Clear Filter Button
         $('body').on('click', '#filterAllBtn', function () {
-            deleteCheckedList()
+            if (confirm("本当に削除しますか？")) {
+                deleteCheckedList()
+            }            
         })
 
         $('#batch-check').click(function(){
