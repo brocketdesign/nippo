@@ -585,8 +585,10 @@ router.post('/genbanippo', urlencodedParser, async (req, res) => {
           //Adding company ID
           try {
             if (value['業社名-' + i] != undefined) {
-              let companyID = await db.collection('company').findOne({ el: value['業社名-' + i] })
-              value['業社ID-' + i] = companyID._id
+              let company = await db.collection('company').findOne({ el: value['業社名-' + i] })
+              let companyID = company._id
+              value['業社ID-' + i] = companyID
+              //addGenbaIdToCompanyGenbaList(db,companyID,value.genbaID)
             }
           } catch (e) {
             console.log(e)
@@ -641,6 +643,38 @@ router.post('/genbanippo', urlencodedParser, async (req, res) => {
     res.sendStatus(403);
   }
 });
+
+async function addGenbaIdToCompanyGenbaList(db, companyID, genbaID) {
+  // Log the input IDs
+  //console.log("Adding genbaID to company's genbaList", { companyID, genbaID });
+
+  // Convert string IDs to ObjectIDs, if they are strings
+  if (typeof companyID === 'string') {
+    companyID = new ObjectId(companyID);
+  }
+
+  if (typeof genbaID === 'string') {
+    genbaID = new ObjectId(genbaID);
+  }
+
+  try {
+    
+    // Update the company document
+    const updateResult = await db.collection('company').updateOne(
+      { _id: companyID },
+      { $addToSet: { genbaList: genbaID } }
+    );
+
+    // Check if the update was successful
+    if (updateResult.modifiedCount === 1) {
+      //console.log(`Successfully added genbaID ${genbaID} to company ${companyID}`);
+    } else {
+      //console.log(`Could not add genbaID ${genbaID} to company ${companyID}`);
+    }
+  } catch (error) {
+    //console.error(`An error occurred: ${error}`);
+  }
+}
 
 router.post('/userinfo', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
@@ -975,34 +1009,12 @@ router.get('/:dbName', urlencodedParser, async (req, res) => {
     if (elID) {
       if (req.query.getGenba) {
         db.collection(dbName).findOne({ '_id': new ObjectId(elID) }, async (err, result) => {
-            let genbaList=[]
-            let genbaCollection = db.collection("genba");
-            const genbaList10 = await genbaCollection.find().toArray();
-            if (genbaList10.length) {
-              for (let k = 0; k < genbaList10.length; k++) {
-                let nippoCollection = db.collection(genbaList10[k]._id + '_genbanippo');
-                let genbaNippoList = await nippoCollection.find().toArray();
-                if (genbaNippoList.length > 0) {
-                  for (let j = 0; j < genbaNippoList.length; j++) {
-                    if (genbaList.indexOf(genbaList10[k]) > -1) break;
-                    if(genbaNippoList[j].totalLine) {
-                      for (let i = 1; i <= parseInt(genbaNippoList[j].totalLine); i++) {
-                        if (genbaNippoList[j]['業社名-' + i] === result.el) {
-                          if (genbaList.indexOf(genbaList10[k]) > -1) break;
-                          genbaList.push(genbaList10[k]);
-                          break;
-                        } else { continue; }
-                      }
-                    } else { continue; }
-                  }
-                }
-                if (k + 1 >= genbaList10.length) {
-                  res.send({company:result,genba:genbaList});
-                }
-              }
-            } else {
-              res.send({company:result,genba:[]});
-            }
+          if(result){
+            res.send({company:result});
+          }else{
+            res.send(false)
+          }
+
         })
       } else {
         db.collection(dbName).findOne({ '_id': new ObjectId(elID) }, (err, result) => {

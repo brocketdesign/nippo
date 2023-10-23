@@ -1895,7 +1895,7 @@ function getGenbaTodayData(userID, today) {
 
 function deleteLocalStorageForType(type) {
     try {
-        localStorage.removeItem(`input-${type}`);
+        localStorage.removeItem(`inputTypeData-${type}`);
         console.log(`Successfully deleted local storage variable for type: ${type}`);
     } catch (err) {
         console.error(`Error deleting local storage variable for type ${type}:`, err);
@@ -1909,7 +1909,7 @@ function updateLocalStorageForType(type) {
         $.get(`/api/${type}`, function(data) {
             try {
                 // Store the data in local storage
-                localStorage.setItem(`input-${type}`, JSON.stringify(data));
+                localStorage.setItem(`inputTypeData-${type}`, JSON.stringify(data));
                 resolve(data);  // Resolve with fetched data
             } catch (err) {
                 console.error(`Error updating local storage for type ${type}:`, err);
@@ -2859,69 +2859,76 @@ function SettingsCompnayInit() {
 
                 if (element.el) {
                     let col1 = element.el || ""
-                    let col2 = element.sub || ""
-                    let col3 = element['業社名kana'] || ""
-                    if (Array.isArray(col2)) {
-                        col2 = col2.filter(String)
-                    }
-                    cSelector.find('tbody').append('<tr class="clickable" data-link="/dashboard/settings/company?companyID=' + element._id + '"><td>' + col1 + '</td><td>' + col3 + '</td><td>' + col2 + '</td></tr>')
+                    let col2 = element['業社名kana'] || ""
+                    let col3 = element.sub || [];
+                    if (Array.isArray(col3)) {
+                        col3 = col3.map(item => item.name).filter(String);
+                    }                    
+                    cSelector.find('tbody').append('<tr class="clickable" data-link="/dashboard/settings/company?companyID=' + element._id + '"><td>' + col1 + '</td><td>' + col2 + '</td><td>' + col3 + '</td></tr>')
                 }
             };
         });
     }
     //koushuCheckList
     if (!!document.querySelector('#koushuCheckList')) {
-        $.get("/api/koushu", function (data) {
-            data.forEach((element, index) => {
-                if (element.el) {
-                    $('#koushuCheckList').append('<div class="form-check col-3" ><input class="form-check-input" type="checkbox" name="sub" id="checkbox_' + element._id + '" value="' + element._id + '" data-id="' + element._id + '"><label class="form-check-label" for="checkbox_' + element._id + '">' + element.el + '</label></div>')
-                }
-            });
-            if (companyID != 0) {
-                $('#submit_company').attr('data-action', '/api/edit/company?elementTypeID=' + companyID)
-                $.get('/api/company?elID=' + companyID + '&getGenba=true', function (result) {
-                    if (result.company) {
-                        const company = result.company;
-                        SUA({ event: '業社編集ページ', detail: company.el })
-                        if (company.sub) {
-                            if (Array.isArray(company.sub)) {
-                                company.sub.forEach(function (koushu) {
-                                    $('#koushuCheckList').find('.form-check input[value="' + koushu + '"]').attr('checked', true)
-                                })
-                            } else {
-                                $('#koushuCheckList').find('.form-check input[value="' + company.sub + '"]').attr('checked', true)
-                            }
-                        }
-                        $.each($('#formCompany').find('input.form-control'), function () {
-                            let name = $(this).attr('name')
-                            let newVal = company[name]
-                            $('input[name="' + name + '"]').val(newVal).change()
-                        })
-                        $.each($('#formCompany').find('select'), function () {
-                            let name = $(this).attr('name')
-                            let newVal = company[name]
-                            $('select[name="' + name + '"]').val(newVal).change()
-                        })
-                        $.each($('#formCompany').find('textarea'), function () {
-                            let name = $(this).attr('name')
-                            let newVal = company[name]
-                            $('textarea[name="' + name + '"]').val(newVal).change()
-                        })
-                        if (result.genba) {
-                            let genbaContent = "";
-                            for (let i = 0; i < result.genba.length; i++) {
-                                genbaContent += '<a class="mr-5 text-nowrap" href="/dashboard/settings/genba?genbaID=' + result.genba[i]._id + '">' + result.genba[i].工事名 + '</a>';
-                            }
-                            $(".company-genba").html(genbaContent);
+
+        fetchAndCache('koushu')
+            .then(koushu =>{
+                koushu.forEach((element, index) => {
+                    if (element.el) {
+                        $('#koushuCheckList').append('<div class="form-check col-3" ><input class="form-check-input" type="checkbox" name="sub" id="checkbox_' + element._id + '" value="' + element._id + '" data-id="' + element._id + '"><label class="form-check-label" for="checkbox_' + element._id + '">' + element.el + '</label></div>')
+                    }
+                });
+            })
+
+        if (companyID != 0) {
+            $('#submit_company').attr('data-action', '/api/edit/company?elementTypeID=' + companyID)
+            $.get('/api/company?elID=' + companyID + '&getGenba=true', function (result) {
+                if (result.company) {
+                    const company = result.company;
+                    SUA({ event: '業社編集ページ', detail: company.el })
+                    if (company.sub) {
+                        if (Array.isArray(company.sub)) {
+                            company.sub.forEach(function (koushu) {
+                                $('#koushuCheckList').find('.form-check input[value="' + koushu.id + '"]').attr('checked', true)
+                            })
+                        } else {
+                            $('#koushuCheckList').find('.form-check input[value="' + company.sub + '"]').attr('checked', true)
                         }
                     }
-                })
-            } else {
-                SUA({ event: '新規業社ページ' })
-                $('#submit_company').attr('data-action', '/api/addone/company')
-            }
-            $('#companyDelete').attr('action', '/api/delete/company?elementTypeID=' + companyID)
-        })
+                    $.each($('#formCompany').find('input.form-control'), function () {
+                        let name = $(this).attr('name')
+                        let newVal = company[name]
+                        $('input[name="' + name + '"]').val(newVal).change()
+                    })
+                    $.each($('#formCompany').find('select'), function () {
+                        let name = $(this).attr('name')
+                        let newVal = company[name]
+                        $('select[name="' + name + '"]').val(newVal).change()
+                    })
+                    $.each($('#formCompany').find('textarea'), function () {
+                        let name = $(this).attr('name')
+                        let newVal = company[name]
+                        $('textarea[name="' + name + '"]').val(newVal).change()
+                    })
+                    if (result.company.genbaList) {
+                        let genbaContent = "";
+                        for (let i = 0; i < result.company.genbaList.length; i++) {
+                            $.get(`/api/genba?elID=${result.company.genbaList[i]}`,function(genba){
+                                genbaContent += '<a class="mr-5 text-nowrap" href="/dashboard/settings/genba?genbaID=' + genba._id + '">' + genba['工事名'] + '</a>';
+                                $(".company-genba").html(genbaContent);
+                            })
+                        }
+                       
+                    }
+                }
+            })
+        } else {
+            SUA({ event: '新規業社ページ' })
+            $('#submit_company').attr('data-action', '/api/addone/company')
+        }
+        $('#companyDelete').attr('action', '/api/delete/company?elementTypeID=' + companyID)
+        
     }
 }
 function submitData(el) {
@@ -4245,7 +4252,8 @@ function linkSelect(el) {
                     if ((!Array.isArray(element.sub))) {
                         element.sub = element.sub.split(' ')
                     }
-                    if (element.sub.includes(value) == true) {
+                    const containsValue = element.sub.some(obj => obj.name === value);
+                    if (containsValue) {
                         result.push(element.el)
                         let checking = ''; if (compnayValue == element.el) { checking = 'selected' }
                         content += '<option value="' + element.el + '" ' + checking + '>' + element.el + '</option>'
