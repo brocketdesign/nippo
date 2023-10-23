@@ -1,18 +1,24 @@
 extends new_dashboard
 
 block content
+    script(src='/js/controller/daityou-genba-ichiran.js')
     #daityouGenbaIchiran.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
+        //- .d-flex.flex-wrap
+            //- a(href="/dashboard/daityou").d-inline.pt-1.px-3.pr-4.mr-1
+            //-     span(data-feather='chevron-left' style="height: 30px;")
+            //-     span 工事台帳に戻る
+            //- h3.d-block.title #{title}
         .d-flex.flex-wrap
             a(href="/dashboard/daityou").d-inline.pt-1.px-3.pr-4.mr-1
                 span(data-feather='chevron-left' style="height: 30px;")
-                span 工事台帳に戻る
-            h3.d-block.title #{title}
+                span.pt-1 工事台帳に戻る
+            h3#title.d-block.genba-name-title
     
         .nav.my-3(style="border-bottom:1px solid #000")
-            a.nav-link-ex(href="/dashboard/daityou/genba?genbaID=1") 現場まとめ
-            a.nav-link-ex(href="/dashboard/daityou/sihara_ichiran?genbaID=1") 支払管理
-            a.nav-link-ex.active 現場日報
-            a.nav-link-ex(href="/dashboard/daityou/yotin?genbaID=1") 実行予算
+            a#nav-genba.nav-link-ex 現場まとめ
+            a#nav-sihara.nav-link-ex 支払管理
+            a#nav-ichiran.nav-link-ex.active 現場日報
+            a#nav-yosan.nav-link-ex 実行予算
 
         div(class="tab-pane fade show active" id="nav-genba" role="tabpanel" aria-labelledby="nav-genba-tab")
             .row.my-2

@@ -1,0 +1,180 @@
+extends new_dashboard
+
+block content
+    script(src='/js/controller/daityou-yosan.js')
+    #daityouYosanPage.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
+        //- .d-flex.flex-wrap
+        //-     a(href="/dashboard/daityou").d-inline.pt-1.px-3.pr-4.mr-1
+        //-         span(data-feather='chevron-left' style="height: 30px;")
+        //-         span.pt-1 工事台帳に戻る
+        //-     h3.d-block.title #{title}
+        .d-flex.flex-wrap
+            a(href="/dashboard/daityou").d-inline.pt-1.px-3.pr-4.mr-1
+                span(data-feather='chevron-left' style="height: 30px;")
+                span.pt-1 工事台帳に戻る
+            h3#title.d-block.genba-name-title
+    
+        .nav#nav-bar.my-3.border-bottom.border-secondary
+            a#nav-genba.nav-link-ex 現場まとめ
+            a#nav-sihara.nav-link-ex 支払管理
+            a#nav-ichiran.nav-link-ex 現場日報
+            a#nav-yosan.nav-link-ex.active 実行予算
+
+        div#nav-yosan
+            .col-sm-12.col-md-10.col-xl-8.col-xxl-6.pt-3
+                .card.border-secondary.w-100
+                    .card-body.p-0
+                        table.w-100.table-bordered(style="table-layout:fixed")
+                            thead.bg-secondary.text-center.text-white
+                                tr
+                                    th.py-2 契約金額
+                                    th 実行予算
+                                    th 予想粗利
+                                    th 粗利率
+                            tbody#yosan-summary-tbody.text-right
+                                //- tr
+                                //-     td.py-2.pr-1 123,456,789
+                                //-     td.pr-1 123,456,789
+                                //-     td.pr-1 123,456,789
+                                //-     td.pr-1 7.02%
+
+            .card.border-secondary.mt-5.w-100
+                .card-header.py-1.bg-primary.text-white.font-weight-bold
+                    .row
+                        .col-6.text-left
+                            span.pt-1 実行予算を入力　（税抜）
+                        .col-6.text-right
+                            #saving-progress(style="display:none" role="status")
+                                .spinner-border.spinner-border-sm.mr-1
+                                span.mx-1 保存しています...
+                .card-body
+                    #form-alert.alert.alert-danger.alert-dismissible.mb-3.d-none
+                        button(type="button" class="close") &times;
+                        span.message Warning
+                    .form-container
+                        .form-row.label
+                            label.control-label.pl-3 業務名
+                                span.badge.badge-danger.ml-2 必須
+                        .form-row
+                            .col-12.col-md-5.col-lg-5.text-center
+                                select#input-company.text-center.w-100(name="業務名")
+                            .col-12.col-md-7.col-lg-6.pt-2.mb-4.text-right
+                                span.font-weight-bold 合計 (税込):
+                                span#label-totalprice.font-weight-bold.pl-3 0 円
+
+                        .form-row.label-group.d-none.d-lg-flex
+                            .col-12.col-md-4.col-lg-2
+                                label.pl-2.control-label(for="工種") 工種
+                            .col-12.col-md-8.col-lg-7
+                                //- label.pl-2.control-label(for="摘要") 摘要
+                            .col-12.col-md-6.col-lg-2
+                                //- label.pl-2.control-label(for="小計") 小計
+                                span.badge.badge-danger.ml-2 必須
+
+                        .form-group.elements
+                            .form-row.element(data-value="1")
+                                .col-12.col-md-4.col-lg-2.text-center.pb-2
+                                    select.input-koushu-yosan.text-center.w-100(name="工種-1")
+                                .col-12.col-md-8.col-lg-7.text-center.pb-2
+                                    input.input-tekiyou.border.rounded.py-2.px-2.w-100(placeholder="摘要" name="摘要-1")
+                                .col-12.col-md-6.col-lg-2.text-center
+                                    input.input-subtotal.text-right.py-2.px-2.border.rounded.w-100(placeholder="小計" name="小計-1")
+                                .col-12.col-md-6.col-lg-1.text-right.pt-2.d-sm-block.d-none
+                                    .settingOptions
+                                        .removeGroup(style="cursor:pointer;" data-value="1")
+                                            span.ml-2.mr-2(data-feather='trash' style="width: 15px;height: 15px;")
+                    .form-row.ml-1
+                        .col-6
+                            span#addGroup.ml-1(style="cursor:pointer")
+                                span.text-white.bg-secondary.rounded-circle(data-feather='plus-circle')
+                        .col.text-right
+                            button#saveBtn.btn.btn-success.rounded 更新する
+            
+            .card.border-secondary.my-5.w-100
+                .card-body.p-0
+                    table.w-100.table-bordered
+                        thead.bg-secondary.text-center.text-white
+                            tr
+                                th(style="width:22%")
+                                th(style="width:16%").py-2 工種
+                                th(style="width:32%") 摘要
+                                th(style="width:16%") 実行予算
+                                th 登録日
+                        tbody#yosan-tbody
+                            //- tr.collapsed.bg-lightgray(id="test-1" data-toggle="collapse" data-target=".collapse-test-1" aria-expanded="false" aria-controls="collapse-test-1" style="cursor:pointer")
+                            //-     td.py-1.pl-1 ニッケイ電機設備
+                            //-         span.pr-1.float-left.off.d-inline(data-feather="chevron-down")
+                            //-         span.pr-1.float-left.on.d-none(data-feather="chevron-up")
+                            //-     td
+                            //-     td 
+                            //-     td
+                            //-     td
+                            //- tr.collapse(class="collapse-test-1" aria-labelledby="test-1")
+                            //-     td.py-1.pl-1.bg-lightgray
+                            //-     td.py-1.pl-1 鋼製建具工
+                            //-     td.py-1.pl-1
+                            //-     td.py-1.pr-1.text-right 18,300,000
+                            //-     td.py-1.pr-1.text-right 2023/8/4
+                            //- tr.collapse(class="collapse-test-1" aria-labelledby="test-1")
+                            //-     td.py-1.pl-1.bg-lightgray
+                            //-     td.py-1.pl-1 内装工
+                            //-     td.py-1.pl-1
+                            //-     td.py-1.pr-1.text-right 18,300,000
+                            //-     td.py-1.pr-1.text-right 2023/8/4
+                            //- tr.collapse(class="collapse-test-1" aria-labelledby="test-1")
+                            //-     td.py-1.pl-1.bg-lightgray
+                            //-     td.py-1.pl-1 圧送工
+                            //-     td.py-1.pl-1
+                            //-     td.py-1.pr-1.text-right 18,300,000
+                            //-     td.py-1.pr-1.text-right 2023/8/4
+                            //- tr.collapse(class="collapse-test-1" aria-labelledby="test-1")
+                            //-     td.py-1.pl-1.bg-lightgray
+                            //-     td.py-1.pl-1 クリーニング
+                            //-     td.py-1.pl-1
+                            //-     td.py-1.pr-1.text-right 18,300,000
+                            //-     td.py-1.pr-1.text-right 2023/8/4
+                            //- tr.collapse(class="collapse-test-1" aria-labelledby="test-1")
+                            //-     td.py-1.pl-1.bg-lightgray
+                            //-     td.py-1.pl-1 テント
+                            //-     td.py-1.pl-1
+                            //-     td.py-1.pr-1.text-right 18,300,000
+                            //-     td.py-1.pr-1.text-right 2023/8/4
+                            
+                            //- tr.collapsed.bg-lightgray(id="test-2" data-toggle="collapse" data-target="#collapse-test-2" aria-expanded="false" aria-controls="collapse-test-2" style="cursor:pointer")
+                            //-     td.py-1.pl-1 ニッケイ電機設備
+                            //-         span.pr-1.float-left.off.d-inline(data-feather="chevron-down")
+                            //-         span.pr-1.float-left.on.d-none(data-feather="chevron-up")
+                            //-     td
+                            //-     td 
+                            //-     td
+                            //-     td
+                            //- tr.collapse(id="collapse-test-2" aria-labelledby="test-2")
+                            //-     td.py-1.pl-1.bg-lightgray
+                            //-     td.py-1.pl-1 鋼製建具工
+                            //-     td.py-1.pl-1
+                            //-     td.py-1.pr-1.text-right 18,300,000
+                            //-     td.py-1.pr-1.text-right 2023/8/4
+                            //- tr.collapse(id="collapse-test-2" aria-labelledby="test-2")
+                            //-     td.py-1.pl-1.bg-lightgray
+                            //-     td.py-1.pl-1 内装工
+                            //-     td.py-1.pl-1
+                            //-     td.py-1.pr-1.text-right 18,300,000
+                            //-     td.py-1.pr-1.text-right 2023/8/4
+                            //- tr.collapse(id="collapse-test-2" aria-labelledby="test-2")
+                            //-     td.py-1.pl-1.bg-lightgray
+                            //-     td.py-1.pl-1 圧送工
+                            //-     td.py-1.pl-1
+                            //-     td.py-1.pr-1.text-right 18,300,000
+                            //-     td.py-1.pr-1.text-right 2023/8/4
+                            //- tr.collapse(id="collapse-test-2" aria-labelledby="test-2")
+                            //-     td.py-1.pl-1.bg-lightgray
+                            //-     td.py-1.pl-1 クリーニング
+                            //-     td.py-1.pl-1
+                            //-     td.py-1.pr-1.text-right 18,300,000
+                            //-     td.py-1.pr-1.text-right 2023/8/4
+                            //- tr.collapse(id="collapse-test-2" aria-labelledby="test-2")
+                            //-     td.py-1.pl-1.bg-lightgray
+                            //-     td.py-1.pl-1 テント
+                            //-     td.py-1.pl-1
+                            //-     td.py-1.pr-1.text-right 18,300,000
+                            //-     td.py-1.pr-1.text-right 2023/8/4

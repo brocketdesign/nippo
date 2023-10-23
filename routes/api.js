@@ -12,6 +12,9 @@ const geoip = require('geoip-lite');
 const moment = require('moment');
 const genbaModule = require('../modules/genbaModule'); // Import the refactored module
 const urlencodedParser = bodyParser.urlencoded({ extended: true })
+const {siharaCostsOfPeriod, siharaSalesOfPeriod, siharaBudgetSumOfPeriod, siharaCompanies} = require('../public/js/helper/sihara-ichiran-helper')
+const { yosanKeiyakukingaku, yosanYosanTable, yosanYosan, yosanUriage, yosanGenka } = require('../public/js/helper/yosan-helper')
+
 require('dotenv').config({ path: './.env' });
 router.use(cookieParser('horiken'));
 
@@ -732,23 +735,296 @@ router.post('/saveYearCalendar', urlencodedParser, async (req, res) => {
   }
 });
 
+
+//////////////////////////////////////////////////////////////////////
 // new[monkey]
-//save inoutcome
-router.post('/inoutcome/daityou', urlencodedParser, async (req, res) => {
+//////////////////////////////////////////////////////////////////////
+// Get user info(lname, fname, email)
+router.post('/user/simple-info', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    db.collection('users').aggregate([
+      { $match: { _id: new ObjectId(req.body.userID) } },
+      { $project: { _id:0, lname:1, fname:1 } }
+    ]).next((err, result) => {
+      res.send(result)
+    })
+  } else {
+    res.sendStatus(403)
+  }
+});
+
+// Get genba infomation
+router.post('/genba-detail', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    let genba = await db.collection('genba').findOne({ '_id': new ObjectId(req.body.genbaID) })
+    res.send(genba)
+    // console.log(req.body.genbaID);
+  } else {
+    res.sendStatus(403)
+  }
+});
+
+// Save genba status
+router.post('/update/genba-status', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    let genbaID = new ObjectId(req.body.genbaID)
+    let genbaStatus = req.body.status || '進行中'
+    
+    db.collection('genba').updateOne({ '_id': genbaID }, { $set: {'完了状況':genbaStatus} }, 
+    (err, result) => {
+      if (err)
+        res.send({error:err})
+      else
+        res.sendStatus(200)
+    })
+    
+  } else {
+    res.sendStatus(403);
+  }
+});
+// Get filtered daityou
+router.post('/daityou', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+
+    var body = req.body
+
+    var status = body.status
+    var today = body.today
+    var keyword = body.keyword
+    var period_min = body.period_min
+    var period_max = body.period_max
+    var depositMin = body.depositMin
+    var depositMax = body.depositMax
+
+    var depositCriteria = null
+    if (depositMin) {
+      if (depositMax) {
+        depositCriteria = {契約金額: {$gte:parseInt(depositMin), $lte:parseInt(depositMax)}}
+      } else {
+        depositCriteria = {契約金額: {$gte:parseInt(depositMin)}}
+      }
+    } else {
+      if (depositMax) {
+        depositCriteria = {契約金額: {$lte:parseInt(depositMax)}}
+      }
+    }
+
+    var periodCriteria = null
+    if (period_min || period_max) {
+      if (!period_min) {
+        periodCriteria = {'工期(至)': {$gte:period_max}}
+      } else if (period_max) {
+        periodCriteria = { $and: [ {'工期(至)': {$gte:period_min}}, {'工期(至)': {$lte:period_max}} ] }
+      } else { // error
+      }
+    }
+
+    // res.send(periodCriteria)
+    // return
+
+    var statusCriteria = null
+    // if (status == 'inprogress') { // in progress => from < today < to
+    //   statusCriteria = { $and: [ {'工期(自)': {$lte:today}}, {'工期(至)': {$gte:today}} ] }
+    // } else if (status == 'finished') { // finished | not started => to < today
+    //   // statusCriteria = { $or: [ {'工期(至)': {$lte:today}}, {'工期(自)': {}} ] }
+    //   statusCriteria = {'工期(至)': {$lte:today}}
+    // } else { // all
+    // }
+    // res.send(status)
+    if (status == 'inprogress') { // in progress => from < today < to
+      statusCriteria = { '完了状況': { $not: /完了/} }
+    } else if (status == 'finished') { // finished | not started => to < today
+      statusCriteria = { '完了状況': '完了' }
+    } else { // all
+    }
+
+    // res.send(statusCriteria)
+    // return
+
+    var keywordCriteria = null
+    if (keyword) {
+      keywordCriteria = {
+        $or: [ {工事名: new RegExp(keyword, 'i')}, {工事名kana: new RegExp(keyword, 'i')} ]
+        // 工事名: new RegExp(keyword, 'i'),
+      }
+    }
+
+    var match = []
+    if (depositCriteria)
+      match.push(depositCriteria)
+    if (periodCriteria)
+      match.push(periodCriteria)
+    if (statusCriteria)
+      match.push(statusCriteria)
+    if (keywordCriteria)
+      match.push(keywordCriteria)
+
+    var project = { $project: { 工事名:1, 工事名kana:1, 契約金額:1, '工期(自)':1, '工期(至)':1, 担当者:1, 完了状況:1 } }
+    
+    var aggregation
+    if (match.length > 0) {
+      match = { $match: { $and: match } }
+      aggregation = [match, project]
+    } else {
+      aggregation = [project]
+    }
+
+    // res.send(aggregation)
+    // return
+
+    db.collection('genba').aggregate(aggregation).toArray((err, results) => {
+      if (err || !results || results.length == 0)
+        res.send([])
+      else {
+        results = sortit(results, '工事名kana')
+        processGetUserInfo(err, results)
+      }
+    })
+
+    function processGetUserInfo(err, results) {
+      if (err) {
+        sendStatus(300)
+        return
+      }
+
+      let nResult = results.length
+      let count = 0
+      let usersCache = {}
+      for (let i = 0; i < nResult; i++) {
+        let item = results[i]
+        db.collection('users').aggregate([
+          { $match: { _id: new ObjectId(item.担当者) } },
+          { $project: { _id:0, lname:1, fname:1 } }
+        ]).next((err, result) => {
+          item.userName = result.lname
+          count ++
+          if (count >= nResult) {
+            // res.send(results)
+            processYosan(results)
+          }
+        })
+      }
+    }
+
+    function processYosan(results) {
+      let nResult = results.length
+      let count = 0
+      for (let i = 0; i < nResult; i++) {
+        let item = results[i]
+        var params = { genbaID: item._id }
+        yosanYosan(db, params, function (err, budget) {
+          item.budget = budget
+          count ++
+          if (count >= nResult) {
+            // res.send(results)
+            processSales(results)
+          }
+        })
+      }
+    }
+
+    function processSales(results) {
+      let nResult = results.length
+      let count = 0
+      for (let i = 0; i < nResult; i++) {
+        let item = results[i]
+        var params = { genbaID: item._id, type: '収入' }
+        yosanUriage(db, params, function (err, sale) {
+          item.sale = sale
+          count ++
+          if (count >= nResult) {
+            // res.send(results)
+            processCosts(results)
+          }
+        })
+      }
+    }
+
+    function processCosts(results) {
+      let nResult = results.length
+      let count = 0
+      for (let i = 0; i < nResult; i++) {
+        let item = results[i]
+        var params = { genbaID: item._id, type: '支出' }
+        yosanGenka(db, params, function (err, cost) {
+          item.cost = cost
+          item.profit = item.sale - cost
+          if (item.sale > 0)
+            item.profitRate = parseFloat((item.sale / cost * 100).toFixed(2))
+          // item.status = getRandomIntInclusive(0, 1) // TODO
+          count ++
+          if (count >= nResult) {
+            res.send(results)
+          }
+        })
+      }
+    }
+
+  } else {
+    res.sendStatus(403)
+  }
+
+  function sortit(arr, sel) {
+    if (arr[0].el == undefined) { sel = '工事名kana' }
+    arr.sort(function (a, b) {
+        if (a[sel] && b[sel]) {
+            a = katakanaToHiragana(a[sel].toString());
+            b = katakanaToHiragana(b[sel].toString());
+            if (a < b) {
+                return -1;
+            } else if (a > b) {
+                return 1;
+            }
+        } else {
+            return -1;
+        }
+        return 0;
+    });
+    return arr
+  }
+
+  function katakanaToHiragana(src) {
+      return src.replace(/[\u30a1-\u30f6]/g, function (match) {
+          var chr = match.charCodeAt(0) - 0x60;
+          return String.fromCharCode(chr);
+      });
+  }
+
+  // TODO - debug
+  function getRandomIntInclusive(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive 
+  }
+});
+
+// Save inoutcome
+router.post('/update/inoutcome', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {
     let kouza = req.body.口座
+    let torihikiID = new ObjectId(req.body.torihiki_id)
     let torihiki = req.body.取引先
     let date = req.body.日付
     let items = req.body.data
+    date = date
     
     items.forEach(item => {
+      item.genba_id = new ObjectId(item.genba_id)
       item.口座 = kouza
+      item.torihiki_id = torihikiID
       item.取引先 = torihiki
       item.日付 = date
+      item.査定金額 = parseInt(item.査定金額)
+      item.税率 = parseInt(item.税率)
 
       db.collection('inoutcomeDaityou').insert(item)
     })
+    // res.send(JSON.stringify(items))
     res.sendStatus(200)
     
   } else {
@@ -756,14 +1032,14 @@ router.post('/inoutcome/daityou', urlencodedParser, async (req, res) => {
   }
 });
 
-// Filter inoutcomeDaityou
-router.post('/inoutcome/filter', urlencodedParser, async (req, res) => {
+// Get filtered inoutcomeDaityou
+router.post('/inoutcome', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {
 
     let body = req.body
 
-    let type = body.type
+    let inoutType = body.inoutType
     let kanjoukamoku = body.勘定科目
     let dateFrom = body.dateFrom
     let dateTo = body.dateTo
@@ -773,11 +1049,12 @@ router.post('/inoutcome/filter', urlencodedParser, async (req, res) => {
     let bikou = body.備考
     let priceFrom = body.priceFrom
     let priceTo = body.priceTo
+    let limit = body.limit
 
     let criteria = {}
 
-    if (type) {
-      criteria.type = type
+    if (inoutType) {
+      criteria.inoutType = inoutType
     }
 
     if (kanjoukamoku) {
@@ -812,7 +1089,7 @@ router.post('/inoutcome/filter', urlencodedParser, async (req, res) => {
     }
 
     if (torihiki) {
-      criteria.取引先 = torihiki
+      criteria.取引先 = new ObjectId(torihiki)
     }
 
     if (genba) {
@@ -838,16 +1115,385 @@ router.post('/inoutcome/filter', urlencodedParser, async (req, res) => {
       }
     }
 
-    // res.send(JSON.stringify(criteria))
-    db.collection('inoutcomeDaityou').find(criteria).sort({日付: -1}).toArray((err, results) => {
+    if (Object.keys(criteria).length == 0) {
+      // res.send('non condition')
+      if (!limit) limit = 0
+      else limit = parseInt(limit)
+      db.collection('inoutcomeDaityou').find().sort({日付: -1}).limit(limit).toArray((err, results) => {
+        res.send(results)
+      })
+    } else {
       // res.send(JSON.stringify(criteria))
+      db.collection('inoutcomeDaityou').find(criteria).sort({日付: -1}).toArray((err, results) => {
+        // res.send(JSON.stringify(criteria))
+        res.send(results)
+      })
+    }
+
+  } else {
+    res.sendStatus(403)
+  }
+});
+
+// Save jitkouyosan
+router.post('/update/yosan', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+
+    // console.log(req.body)
+    let items = req.body.data
+    items.forEach(item => {
+      item.company._id = new ObjectId(item.company._id)
+      sanitizedItem = {
+        genba: new ObjectId(item.genba),
+        company: item.company,
+        date: item.date,
+        小計: parseInt(item.小計),
+        工種: item.工種
+      }
+      if (item.摘要) {
+        sanitizedItem.摘要 = item.摘要
+      }
+
+      db.collection('jitkouyosan').insert(sanitizedItem)
+    })
+    // res.send(JSON.stringify(items))
+    res.sendStatus(200)
+
+  } else {
+    res.sendStatus(403)
+  }
+});
+
+// Get 実行予算 full table: daityou-yosan bottom table
+router.post('/yosan', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+
+    let params = { genbaID: req.body.genbaID }
+    yosanYosanTable(db, params, function (err, results) {
+      if (err) {
+        res.sendStatus(300)
+        return
+      }
+
       res.send(results)
+    })
+    
+  } else {
+    res.sendStatus(403)
+  }
+});
+
+// Get 実行予算 summary table: daityou-yosan top table
+router.post('/yosan-summary', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    let genbaID = req.body.genbaID
+    let resultAll = {}
+    let isEstimate = req.body.estimate
+
+    let params = { genbaID: genbaID }
+
+    // get 契約金額
+    let deposit = await yosanKeiyakukingaku(db, params)
+    resultAll.契約金額 = deposit
+
+    // get 実行予算
+    yosanYosan(db, params, function (err, budget) {
+      if (err) {
+        res.sendStatus(300)
+        return
+      }
+      
+      resultAll.実行予算 = budget
+
+      let cost = 0
+      let sale = 0
+
+      // get 原価
+      params.type = '支出'
+      yosanGenka(db, params, function (err, cost) {
+        if (err) {
+          res.sendStatus(300)
+          return
+        }
+
+        resultAll.原価 = cost
+
+        if (isEstimate) {
+
+          // calculate 予想粗利, 粗利率
+          let profit = deposit - budget
+          resultAll.予想粗利 = profit
+          resultAll.粗利率 = parseFloat((profit / deposit * 100).toFixed(2))
+
+          res.send(resultAll)
+
+        } else {
+          
+          // get 売上
+          params.type = '収入'
+          yosanUriage(db, params, function (err, sale) {
+            if (err) {
+              res.sendStatus(300)
+              return
+            }
+  
+            resultAll.売上 = sale
+  
+            // calculate 予想粗利, 粗利率
+            resultAll.予想粗利 = sale - cost
+            resultAll.粗利率 = parseFloat((sale / cost * 100).toFixed(2))
+  
+            res.send(resultAll)
+          })
+        }
+      })
+
     })
 
   } else {
     res.sendStatus(403)
   }
 });
+
+// Get 支払一覧 full table: daityou-sihara-ichiran bottom table
+// Get 現場まとめ cost graph: daityou-genba cost bar chart
+router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+
+    let genbaID = req.body.genbaID
+    let period = req.body.period
+    let need_budgets = req.body.need_budgets
+    let need_cost_sum = req.body.need_cost_sum
+    let resultAll = {}
+    let data = []
+
+    let yearBase = null
+    const monthFrom = 8, monthTo = 9
+
+    if (period) {
+      var now = new Date()
+      if (period == 'now') { // from 9月 to next-year.8月
+        yearBase = now.getFullYear()
+      } else { // from prev-year.9月 to 8月
+        yearBase = now.getFullYear() - 1
+      }
+    }
+
+    let params = { genbaID: genbaID }
+    if (yearBase) { params.yearBase = yearBase }
+    if (yearBase) { resultAll.yearBase = yearBase }
+
+    // get distinct company list
+    siharaCompanies(db, params, function (err, results) {
+      if (err) {
+        res.sendStatus(300)
+        return
+      }
+      
+      // res.send(results)
+      // return
+
+      let nResult = results.length
+      if (nResult > 0) {
+
+        if (need_cost_sum) { params.need_cost_sum = need_cost_sum }
+
+        for (let i = 0; i < nResult; i++) {
+
+          let company = results[i]
+          params.company_el = company._id // company name
+          
+          // get 原価
+          siharaCostsOfPeriod(db, params, function (err, results) {
+            if (err) {
+              res.sendStatus(300)
+              return
+            }
+
+            if (need_cost_sum || (!need_cost_sum && results.length > 0)) {
+
+              let result = {
+                company_id: company.data._id, // company id
+                company_el: company._id, // company name
+                costs: results
+              }
+
+              if (need_budgets) {
+
+                let dateFrom = yearBase + '/09/00'
+                let dateTo = (yearBase + 1) + '/08/00'
+                let params = {
+                  genbaID: genbaID,
+                  company_id: company.data._id,
+                  dateFrom: dateFrom,
+                  dateTo: dateTo
+                }
+
+                // get 実行予算
+                siharaBudgetSumOfPeriod(db, params, function (err, budgetSum) {
+                  
+                  if (err) {
+                    res.sendStatus(300)
+                    return
+                  }
+  
+                  result.budget = budgetSum
+                  data.push(result)
+  
+                  if (i == nResult - 1) {
+                    resultAll.items = data
+                    res.send(resultAll)
+                  }
+
+                })
+
+              } else {
+
+                data.push(result)
+
+                if (i == nResult - 1) {
+                  resultAll.items = data
+                  res.send(resultAll)
+                }
+              }
+
+            } else {
+
+              if (i == nResult - 1) {
+                res.send(resultAll)
+              }
+            }
+
+          })
+        }
+
+      } else {
+        res.send(resultAll)
+      }
+
+    })
+      
+  } else {
+    res.sendStatus(403)
+  }
+});
+
+// Get 支払一覧 summary table: daityou-sihara-ichiran top table
+router.post('/sihara-ichiran-summary', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+
+    let genbaID = req.body.genbaID
+    let period = req.body.period
+    let resultAll = {}
+
+    let yearBase
+    const monthFrom = 8, monthTo = 9
+
+    let now = new Date()
+    if (period == 'now') {
+      yearBase = now.getFullYear()
+    } else { // before
+      yearBase = now.getFullYear() - 1
+    }
+
+    let params = { genbaID: genbaID, yearBase: yearBase }
+
+    // get 原価
+    siharaCostsOfPeriod(db, params, function (err, results) {
+      if (err) {
+        res.sendStatus(300)
+        return
+      }
+      
+      if (results.length > 0) {
+        resultAll.costs = results
+      }
+
+      // get 売上
+      siharaSalesOfPeriod(db, params, function (err, results) {
+        if (err) {
+          res.sendStatus(300)
+          return
+        }
+        
+        if (results.length > 0) {
+          resultAll.sales = results
+        }
+
+        resultAll.yearBase = yearBase
+
+        res.send(resultAll)
+      })
+    })
+      
+  } else {
+    res.sendStatus(403)
+  }
+});
+
+//GET kanjoukamoku
+router.get('/kanjoukamoku', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    let type = req.query.type
+    if (type == '収入') { // in
+      db.collection('kanjoukamokuIn').find().toArray((err, results) => {
+        res.send(results)
+      });
+    } else { // out
+      db.collection('kanjoukamokuOut').find().toArray((err, results) => {
+        res.send(results)
+      });
+    }
+  } else {
+    res.sendStatus(403);
+  }
+});
+
+//GET hattyu
+router.get('/daityou/hattyu', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    // db.collection('genba').aggregate([
+      // { $match: { '発注者': /.+/ } }
+    // ]).distinct('発注者').toArray((err, results) => {
+
+    // let temp = db.collection('genba').distinct('発注者', { '発注者': /.+/ })
+    // res.send(temp)
+
+    db.collection('genba')
+      .find({ '発注者': /.+/ })
+    //   // .distinct('発注者', { '発注者': /.+/ })
+      .toArray((err, results) => {
+        res.send(results);
+      });
+    
+  } else {
+    res.sendStatus(403);
+  }
+});
+
+//GET company
+router.get('/daityou/company', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    db.collection('company').find({ 'el': /.+/ }).toArray((err, results) => {
+      res.send(results);
+    });
+    
+  } else {
+    res.sendStatus(403);
+  }
+});
+////////////////////////////////////////////////////
+////////////// new[monkey] /////////////////////////
+////////////////////////////////////////////////////
+
 
 router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
@@ -962,6 +1608,8 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
     res.sendStatus(403);
   }
 });
+
+
 router.get('/update/:dbName', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {
@@ -1012,37 +1660,45 @@ router.get('/:dbName', urlencodedParser, async (req, res) => {
           if(result){
             res.send({company:result});
           }else{
-            res.send(false)
+            res.sendStatus(300)
           }
-
         })
       } else {
         db.collection(dbName).findOne({ '_id': new ObjectId(elID) }, (err, result) => {
-          if (result == undefined) {
-            db.collection(dbName).findOne({ '_id': elID }, (err, result) => {
-              res.send(result);
-            })
+          if (err) {
+            res.sendStatus(300)
           } else {
-            res.send(result);
+            if (result == undefined) {
+              db.collection(dbName).findOne({ '_id': elID }, (err, result) => {
+                res.send(result);
+              })
+            } else {
+              res.send(result);
+            }
           }
-        })        
+        })       
       }
-    }
-    if (day) {
+    } else if (day) { // new[monkey]
       db.collection(dbName).find({ 'today': day }).sort({ '_id': -1 }).toArray((err, results) => {
-        res.send(results);
+        if (err) {
+          res.sendStatus(300)
+        } else {
+          res.send(results);
+        }
       });
-    }
-    if (!day && !elID) {
+    } else if (!day && !elID) { // new[monkey]
       db.collection(dbName).find().sort({ '_id': 1 }).toArray((err, results) => {
-        res.send(results);
+        if (err) {
+          res.sendStatus(300)
+        } else {
+          res.send(results);
+        }
       });
     }
   } else {
     res.sendStatus(403);
   }
 });
-
 
 //GET USER INFO
 router.get('/db/userid', urlencodedParser, async (req, res) => {
@@ -1135,47 +1791,6 @@ router.get('/', urlencodedParser, (req, res) => {
     });
   */
 
-});
-
-// new[monkey]
-//GET kanjoukamoku
-router.get('/kanjoukamoku', urlencodedParser, async (req, res) => {
-  const db = req.app.locals.db; let dbData = await initData(req)
-  if (dbData.isLogin) {
-    let type = req.query.type
-    db.collection('kanjoukamoku').find({ 'type': type }).toArray((err, results) => {
-      res.send(results);
-    });
-    
-  } else {
-    res.sendStatus(403);
-  }
-});
-
-//GET hattyu
-router.get('/daityou/hattyu', urlencodedParser, async (req, res) => {
-  const db = req.app.locals.db; let dbData = await initData(req)
-  if (dbData.isLogin) {
-    db.collection('genba').find({ '発注者': /.+/ }).toArray((err, results) => {
-      res.send(results);
-    });
-    
-  } else {
-    res.sendStatus(403);
-  }
-});
-
-//GET company
-router.get('/daityou/company', urlencodedParser, async (req, res) => {
-  const db = req.app.locals.db; let dbData = await initData(req)
-  if (dbData.isLogin) {
-    db.collection('company').find({ 'el': /.+/ }).toArray((err, results) => {
-      res.send(results);
-    });
-    
-  } else {
-    res.sendStatus(403);
-  }
 });
 
 //DB UTILIZATION
