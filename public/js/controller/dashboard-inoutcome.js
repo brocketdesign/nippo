@@ -579,9 +579,9 @@ $(document).ready(async function () {
             }
 
             if (prevQuery && JSON.stringify(prevQuery) == JSON.stringify(query)) {
-                console.log("same query")
+                // console.log("same query")
             } else {
-                console.log(query)
+                // console.log(query)
                 prevQuery = query
                 request2GetFilteredData(query)
             }
@@ -590,8 +590,37 @@ $(document).ready(async function () {
 
         // Clear Filter Button
         $('body').on('click', '#filterAllBtn', function () {
-            initTable()
+            deleteCheckedList()
         })
+
+        $('#batch-check').click(function(){
+            if($(this).is(':checked')){
+                $('.item-check').prop('checked', true)
+            }
+            else {
+                $('.item-check').prop('checked', false)
+            }
+        })
+
+        $('body').on('click', '.item-check', function () {
+            // console.log("item-check");
+            // var checkbox = $(this).find('input')
+            // if (checkbox.is(':checked')) {
+            //     checkbox.prop('checked', false)
+            // } else {
+            //     checkbox.prop('checked', true)
+            // }
+        })
+
+        // $('body').on('click', '.list-item', function () {
+            // var checkbox = $(this).find('input')
+            // if (checkbox.is(':checked')) {
+            //     checkbox.prop('checked', false)
+            // } else {
+            //     checkbox.prop('checked', true)
+            // }
+            // console.log("list-item");
+        // })
     }
 
     function updateSubTotal(inputSateiprice, selectZeiritu, labelSubTotal, elements) {
@@ -758,7 +787,7 @@ $(document).ready(async function () {
             if (!tax) tax = 0
             if (!priceWithTax) priceWithTax = 0
 
-            html += '<tr><td class="py-2 pl-1 text-left" style="color:' + (type == '収入' ? '#00b0f0' : '#ea4335') + '">' + type +
+            html += '<tr class="list-item"><td class="text-left"><label class="mb-0 pl-2 py-2 d-flex" style="color:' + (type == '収入' ? '#00b0f0' : '#ea4335') + ';cursor:pointer"><input type="checkbox" style="cursor:pointer;margin-top:3px" class="item-check" data-value="' + item._id + '"><span class="pl-2">' + type + '</span></label>' +
                     '</td><td class="pr-1">' + date + '</td><td class="pr-1">' + torihiki +
                     '</td><td class="pr-1">' + kanjoukamoku + '</td><td class="pr-1">' + genba +
                     '</td><td class="pr-1">' + bikou + '</td><td class="pr-1">' + numberFormat(price) +
@@ -859,6 +888,22 @@ $(document).ready(async function () {
                 if (callback) { callback() }
             }, 1000);
         })
+    }
+
+    function deleteCheckedList() {
+        var ids = []
+        $.each($(".item-check:checked"), function () {
+            var _id = $(this).attr('data-value')
+            ids.push(_id)
+        })
+
+        if (ids.length > 0) {
+            var query = {ids: ids}
+            $.post('/api/delete/inoutcome/', query, function (data) {
+                console.log(data)
+                initTable()
+            })
+        }
     }
 })
 

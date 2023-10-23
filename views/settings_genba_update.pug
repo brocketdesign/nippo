@@ -1,6 +1,7 @@
 extends new_dashboard
 block content
-    #SettingsGenba.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
+    script(src='/js/controller/settings-genba-update.js')
+    #EditGenba.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
         .d-flex    
             .col-sm-auto.col-12.pt-1
                 a(href="/dashboard/settings/genba").d-block 
@@ -30,9 +31,18 @@ block content
                         .form-group.row
                             label.control-label.col-sm-2(for="契約金額") 契約金額
                             input.form-control.col-sm-10( type="text" placeholder="(契約金額)" name="契約金額")
+                        //- new[monkey]
                         .form-group.row
                             label.control-label.col-sm-2(for="担当者") 担当者
-                            select#formResponsible.form-control.col-sm-10.px-2.py-0(name="担当者")
+                            .col-sm-10.pl-0#responsible-group
+                                .form-row.pb-3.mx-0(data-value="1")
+                                    select#formResponsible.form-control.genba-select.w-85.py-0(name="担当者-1")
+                                    span.settingOptions.removeGroup.w-15.text-right.pt-2(style="cursor:pointer;" data-value="1")
+                                        span.ml-2.mr-2(data-feather='trash' style="width: 15px;height: 15px;")
+                            .col-sm-2
+                            .col-sm-10
+                                span#addGroup.ml-1(style="cursor:pointer")
+                                    span.text-white.bg-success.rounded-circle(data-feather='plus-circle')
                         .form-group.row
                             label.control-label.col-sm-2(for="工期(自)") 工期(自)
                             input.input-date.form-control.col-sm-10( type="text" placeholder="(工期(自))" name="工期(自)")
@@ -70,4 +80,4 @@ block content
                                     button.d-inline-block.btn.btn-outline-danger.rounded.px-2.pt-1(style="cursor:pointer" type="submint")
                                         span(data-feather='trash' style="width: 15px;height: 15px;")
                         .col.text-right.border-top.pt-3
-                            button#submit_genba.btn.btn-primary(onclick="submitData(this)" data-value="formGenba" data-redirect="/dashboard/settings/genba") #{title}
+                            button#submit-genba.btn.btn-primary(data-value="formGenba" data-redirect="/dashboard/settings/genba") #{title}

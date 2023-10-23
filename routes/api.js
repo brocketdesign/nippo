@@ -758,6 +758,7 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
 
     var body = req.body
 
+    var userID = body.userID
     var status = body.status
     var today = body.today
     var keyword = body.keyword
@@ -765,6 +766,15 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
     var period_max = body.period_max
     var depositMin = body.depositMin
     var depositMax = body.depositMax
+
+    // res.send(userID)
+    // return
+
+    var userCriteria = null
+    if (userID) {
+      // userID = "61121694a5605df54de93e5a"
+      userCriteria = { $or: [{担当者: userID}, {担当者: {$elemMatch: {$eq:userID}} }] }
+    }
 
     var depositCriteria = null
     if (depositMin) {
@@ -820,6 +830,8 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
     }
 
     var match = []
+    if (userCriteria)
+      match.push(userCriteria)
     if (depositCriteria)
       match.push(depositCriteria)
     if (periodCriteria)
@@ -831,12 +843,14 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
 
     var project = { $project: { 工事名:1, 工事名kana:1, 契約金額:1, '工期(自)':1, '工期(至)':1, 担当者:1, 完了状況:1 } }
     
+    var sort = { $sort: {'工期(自)': -1} }
+
     var aggregation
     if (match.length > 0) {
       match = { $match: { $and: match } }
-      aggregation = [match, project]
+      aggregation = [match, project, sort]
     } else {
-      aggregation = [project]
+      aggregation = [project, sort]
     }
 
     // res.send(aggregation)
@@ -846,7 +860,7 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
       if (err || !results || results.length == 0)
         res.send([])
       else {
-        results = sortit(results, '工事名kana')
+        // res.send(results)
         processGetUserInfo(err, results)
       }
     })
@@ -862,17 +876,29 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
       let usersCache = {}
       for (let i = 0; i < nResult; i++) {
         let item = results[i]
-        db.collection('users').aggregate([
-          { $match: { _id: new ObjectId(item.担当者) } },
-          { $project: { _id:0, lname:1, fname:1 } }
-        ]).next((err, result) => {
-          item.userName = result.lname
-          count ++
-          if (count >= nResult) {
-            // res.send(results)
-            processYosan(results)
+        var responsibles = item['担当者']
+        if (responsibles) {
+          var responsible
+          if (Array.isArray(responsibles)) {
+            responsible = responsibles[0]
+          } else {
+            responsible = responsibles
           }
-        })
+          // res.send(responsible)
+          // return
+          db.collection('users').aggregate([
+            { $match: { _id: new ObjectId(responsible) } },
+            { $project: { _id:0, lname:1, fname:1 } }
+          ]).next((err, result) => {
+            if (result && result.lname) {
+              item.userName = result.lname
+            }
+            count ++
+            if (count >= nResult) {
+              processYosan(results)
+            }
+          })
+        }
       }
     }
 
@@ -965,6 +991,31 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive 
+  }
+});
+
+// Delete inoutcome
+router.post('/delete/inoutcome', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    var ids = req.body.ids
+    var nIds = ids.length || 0
+    if (nIds == 0) {
+      res.sendStatus(300)
+      return
+    }
+    for (var i = 0; i < nIds; i++) {
+      ids[i] = new ObjectId(ids[i])
+    }
+    await new Promise((resolve, reject) => {
+      db.collection('inoutcomeDaityou').deleteMany({ _id: {$in: ids} }, (err, result) => {
+        resolve()
+      });
+    })
+    res.sendStatus(200)
+    
+  } else {
+    res.sendStatus(403);
   }
 });
 
@@ -1252,6 +1303,9 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
     let params = { genbaID: genbaID }
     if (yearBase) { params.yearBase = yearBase }
     if (yearBase) { resultAll.yearBase = yearBase }
+
+    // res.send(params)
+    // return
 
     // get distinct company list
     siharaCompanies(db, params, function (err, results) {

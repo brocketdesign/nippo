@@ -68,7 +68,7 @@ $(document).ready(async function () {
         }
 
         $.post('/api/sihara-ichiran/', query, function (data) {
-            console.log(data)
+            // console.log(data)
             updateFullTableOnResponse(data)
         })
     }
@@ -107,7 +107,11 @@ $(document).ready(async function () {
                 }
                 htmlBody += '<td class="pr-1 bg-light">' + numberFormat(costSum) + '</td>'
                 htmlBody += '<td class="pr-1 bg-light">' + numberFormat(item.budget) + '</td>'
-                htmlBody += '<td class="pr-1 bg-light">' + numberFormat(parseFloat((costSum * 100 / item.budget).toFixed(2))) + '%</td>'
+                if (item.budget == 0) {
+                    htmlBody += '<td class="pr-1 bg-light">ー</td>'
+                } else {
+                    htmlBody += '<td class="pr-1 bg-light">' + numberFormat(parseFloat((costSum * 100 / item.budget).toFixed(2))) + '%</td>'
+                }
                 htmlBody += '</tr>'
             })
         }
@@ -195,7 +199,7 @@ function paddingCosts(dates, costs) {
     var costsFull = []
     if (costs === undefined || costs.length == 0) {
         for (var i = 0; i < 12; i++) {
-            costsFull.push(i)
+            costsFull.push(0)
         }
     } else {
         var idxS = 0
@@ -208,6 +212,7 @@ function paddingCosts(dates, costs) {
             for (var j = idxS; j < idxE; j++) costsFull.push(0)
             idxE ++
             idxS = idxE
+            if (!cost) cost = 0
             costsFull.push(cost)
         }
         for (var i = idxS; i < 12; i++) {
@@ -221,7 +226,7 @@ function paddingSales(dates, sales) {
     var salesFull = []
     if (sales === undefined || sales.length == 0) {
         for (var i = 0; i < 12; i++) {
-            salesFull.push(i)
+            salesFull.push(0)
         }
     } else {
         var idxS = 0
@@ -234,6 +239,7 @@ function paddingSales(dates, sales) {
             for (var j = idxS; j < idxE; j++) salesFull.push(0)
             idxE ++
             idxS = idxE
+            if (!sale) sale = 0
             salesFull.push(sale)
         }
         for (var i = idxS; i < 12; i++) {

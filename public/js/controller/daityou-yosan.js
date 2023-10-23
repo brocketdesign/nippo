@@ -125,7 +125,7 @@ $(document).ready(async function () {
         request2GetFullData(query)
     }
 
-    function initForm(callback) {
+    function initForm() {
 
         //
         // Save Form
@@ -355,7 +355,7 @@ $(document).ready(async function () {
         // let selectCompany = document.getElementById("input-company")
         // let selectedCompany = selectCompany.options[selectCompany.selectedIndex]
         if ($('#input-company').find('option:checked').length == 0) {
-            showFormAlert("業務名を選択ください。")
+            showFormAlert("You must select company")
             return
         }
         // console.log(selectedCompany)

@@ -10,6 +10,8 @@ const pPrevPeriod = 5
 const pPPrevPeriod = 6
 
 $(document).ready(async function () {
+    let userID =  $('#userID').attr('data-value')
+    let userLevel = $('#user-level').attr('data-value') // 1: admin, others: not admin
 
     let prevQuery = null
     let inprogressCount = 0
@@ -46,6 +48,11 @@ $(document).ready(async function () {
             clearFilter(status)
         })
 
+        $('body').on('change', '#input-keyword', function () {
+            var status = currentStatus()
+            search(status, true)
+        })
+
         initListItems()
         initCheckGroup()
 
@@ -73,6 +80,9 @@ $(document).ready(async function () {
         var keyword = $('#input-keyword').val()
 
         var query = { status: status, today: today }
+        if (userLevel != 1) {
+            query.userID = userID
+        }
         if (keyword) query.keyword = keyword
 
         if (isFilter) {
@@ -279,7 +289,7 @@ $(document).ready(async function () {
             if ($(this).attr('data-link')) {
                 window.location = new URL(window.location.origin + $(this).attr('data-link'))
             }
-        })   
+        })
     }
 
     function initCheckGroup() {
