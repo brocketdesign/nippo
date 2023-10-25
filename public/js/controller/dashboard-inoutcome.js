@@ -340,6 +340,7 @@ $(document).ready(async function () {
                 language: "ja",
                 format: 'yyyy年mm月dd日(D)',
                 autoclose: true,
+                orientation: 'bottom',                
                 // startDate: null,
                 endDate: new Date()
             }).on('changeDate', function (e) {
