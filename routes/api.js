@@ -532,6 +532,9 @@ router.post('/nippo', urlencodedParser, async (req, res) => {
     const now = date
     const todayJP = now.toLocaleDateString('ja-JP', options)
 
+
+    value.save_date =  dataTimeJapan();    
+
     value.date = date
     value.today = today
     value.todayJP = todayJP
@@ -578,7 +581,7 @@ router.post('/genbanippo', urlencodedParser, async (req, res) => {
       }
       const now = date
       const todayJP = now.toLocaleDateString('ja-JP', options)
-
+      value.save_date =  dataTimeJapan();    
       value.date = date
       value.today = today
       value.todayJP = todayJP
@@ -646,6 +649,27 @@ router.post('/genbanippo', urlencodedParser, async (req, res) => {
     res.sendStatus(403);
   }
 });
+function dataTimeJapan(){
+  const options = {
+    //year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    weekday: 'short',
+  }
+  // Get the current date and time
+  const currentDate = new Date();
+
+  // Format the date to Japanese locale
+  const date = currentDate.toLocaleDateString('ja-JP');
+
+  // Format the date to Japanese locale
+  const dateJP = currentDate.toLocaleDateString('ja-JP',options);
+
+  // Format the time to Japanese locale
+  const time = currentDate.toLocaleTimeString('ja-JP');
+
+  return {date,dateJP,time}
+}
 
 async function addGenbaIdToCompanyGenbaList(db, companyID, genbaID) {
   // Log the input IDs
