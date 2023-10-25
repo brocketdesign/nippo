@@ -1363,8 +1363,8 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
   
                   result.budget = budgetSum
                   data.push(result)
-  
-                  if (i == nResult - 1) {
+
+                  if (data.length == nResult) {
                     resultAll.items = data
                     res.send(resultAll)
                   }
@@ -1375,7 +1375,7 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
 
                 data.push(result)
 
-                if (i == nResult - 1) {
+                if (data.length == nResult) {
                   resultAll.items = data
                   res.send(resultAll)
                 }
