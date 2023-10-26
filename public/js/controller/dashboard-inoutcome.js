@@ -284,6 +284,8 @@ $(document).ready(async function () {
                     for (let index = 0; index < data.length; index++) {
                         let element = data[index]
                         if (element.el) {
+                            if (!element.rate)
+                                element.rate = 0
                             zeirituSelect.append('<option value="' +  element.rate + '" data-id="' + element._id + '">' + element.el+' </option>')
                         }
                     }
@@ -340,9 +342,9 @@ $(document).ready(async function () {
                 language: "ja",
                 format: 'yyyy年mm月dd日(D)',
                 autoclose: true,
-                orientation: 'bottom',                
                 // startDate: null,
-                endDate: new Date()
+                endDate: new Date(),
+                orientation: "bottom left"
             }).on('changeDate', function (e) {
                 let dd = new Date(e.date)
                 let ct = formatedDateString(dd)
@@ -438,6 +440,14 @@ $(document).ready(async function () {
                             inputSateiprice.val('')
                             selectZeiritu.val('')
                             selectZeiritu.niceSelect('update')
+
+                            // initialize the global controls
+                            var selectKouza = $('#input-kouza')
+                            var selectHattyu = $('#input-hattyu')
+                            selectKouza.val('')
+                            selectKouza.niceSelect('update')
+                            selectHattyu.val('')
+                            selectHattyu.niceSelect('update')
                         }
                     }
                 })
@@ -593,7 +603,7 @@ $(document).ready(async function () {
         $('body').on('click', '#filterAllBtn', function () {
             if (confirm("本当に削除しますか？")) {
                 deleteCheckedList()
-            }            
+            }
         })
 
         $('#batch-check').click(function(){

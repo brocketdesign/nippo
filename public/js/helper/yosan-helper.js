@@ -20,6 +20,7 @@ var yosanYosanTable = function (db, params, callback) {
       $group: {
         _id: '$company._id',
         data: { $push: {
+            _id: '$_id',
             genba: '$genba',
             company: {
               el: '$company.el',

@@ -21,7 +21,7 @@ var siharaCostsOfPeriod = function (db, params, callback) {
   var group
   var groupCostField = { $sum: {
     $add: [ '$査定金額',
-      { $trunc: { $divide: [ { $multiply: [ '$査定金額', { $cond: [{ $eq: ['$税率', NaN] }, 0, '$税率'] }] }, 100 ] } }
+      { $trunc: { $divide: [ { $multiply: [ '$査定金額', '$税率' ] }, 100 ] } }
     ] }, // 原価 = SUM(支出)
   }
   if (params.need_cost_sum) {

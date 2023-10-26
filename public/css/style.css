@@ -1125,3 +1125,12 @@ input:disabled {
 .w-85 {
   width: 85% !important;
 }
+
+.ic-td-trash {
+  color: gray;
+  cursor: pointer;
+}
+
+.ic-td-trash:hover {
+  color: #f74711;
+}

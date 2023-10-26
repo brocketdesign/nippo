@@ -6,10 +6,10 @@ $(document).ready(async function () {
 
   if (!!document.querySelector('#daityouGenbaIchiran')) {
     initNavBar()
+    genbaIchiranInit(today)
   }
 
   function initNavBar() {
-    genbaIchiranInit(today)
     $('#title').html(genbaName)
     var urlParams = 'genbaID=' + genbaID + '&genbaName=' + genbaName
     $('#nav-genba').attr('href', '/dashboard/daityou/genba?' + urlParams)
@@ -17,7 +17,7 @@ $(document).ready(async function () {
     // $('#nav-ichiran').attr('href', '/dashboard/daityou/genba_ichiran?' + urlParams)
     $('#nav-yosan').attr('href', '/dashboard/daityou/yosan?' + urlParams)
   }
-  //DISPLAY GENBA ICHIRAN
+
   async function genbaIchiranInit(today, start, end) {
     start = start || false; end = end || false
     if ((!start) && (!end)) {
@@ -25,17 +25,18 @@ $(document).ready(async function () {
         start = period[0].period_start
         end = period[0].period_end
     }
-    
-    if (false) {
-        console.log({
-            event: 'genbaIchiranInit',
-            genbaID: genbaID,
-            genbaName: genbaName,
-            today: today,
-            start: start,
-            end: end,
-        })
-    }
+    // let genbaID =  $('.input-genba.globalselector[data-select="genba"]').find('option:checked').attr('data-id')
+    // let genbaName = $('.input-genba.globalselector[data-select="genba"]').find('option:checked').attr('value')
+    // if (false) {
+    //     console.log({
+    //         event: 'genbaIchiranInit',
+    //         genbaID: genbaID,
+    //         genbaName: genbaName,
+    //         today: today,
+    //         start: start,
+    //         end: end,
+    //     })
+    // }
     if (genbaID != undefined) {
         $('.alert-genba').hide()
         $('#genbaichiran .ichiran tbody').html('')
@@ -211,14 +212,14 @@ $(document).ready(async function () {
                     info['現場監督'] = {total:parseFloat(dTotal),detail:dDetail}
                     info.工種合計 += parseFloat(dTotal)
                     info.工種合計= info.工種合計.toFixed(2)
-                  if (false) {
-                    console.log({
-                        event:'shukei',
-                        genbaName:genbaName,
-                        info:info,
-                        today:today,
-                    })
-                  }
+                   if (false) {
+                     console.log({
+                         event:'shukei',
+                         genbaName:genbaName,
+                         info:info,
+                         today:today,
+                     })
+                   }
                     $('.shukei_todayJP').html(' '+ctodayJP)
                     $('#info.genba').append('<ul class="list-group"><li class="list-group-item ms-design showall" data-ms-base="ms-genbanippo" >工種合計 : '+info['工種合計']+'</li></ul>')
                     Object.keys(info).forEach(k => {
@@ -273,4 +274,5 @@ $(document).ready(async function () {
     }
 
   }
+
 })

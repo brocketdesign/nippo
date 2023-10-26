@@ -1182,6 +1182,59 @@ router.post('/update/yosan', urlencodedParser, async (req, res) => {
   }
 });
 
+// delete jitkouyosan
+router.post('/delete/yosan', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+
+    var _id = new ObjectId(req.body._id)
+    await new Promise((resolve, reject) => {
+      db.collection('jitkouyosan').deleteOne({ '_id': _id }, (err, result) => {
+        resolve()
+      });
+    })
+    res.send({result:'ok'})
+
+  } else {
+    res.sendStatus(403)
+  }
+});
+
+router.post('/update/yosan/element', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+
+    // console.log(req.body)
+    // let items = req.body.data
+    let _id = new ObjectId(req.body._id)
+    var _set = {}
+    if (req.body.工種)
+        _set['工種'] = req.body.工種
+    if (req.body.摘要)
+        _set['摘要'] = req.body.摘要
+    if (req.body.小計)
+        _set['小計'] = parseInt(req.body.小計)
+    if (req.body.date)
+        _set['date'] = req.body.date
+
+    if (Object.keys(_set).length > 0) {
+
+      await new Promise((resolve, reject) => {
+        db.collection('jitkouyosan').updateOne({ '_id': _id }, { $set: _set }, (err, result) => {
+          resolve()
+        });
+      })
+      res.sendStatus(200)
+
+    } else {
+      res.sendStatus(300)
+    }
+
+  } else {
+    res.sendStatus(403)
+  }
+});
+
 // Get 実行予算 full table: daityou-yosan bottom table
 router.post('/yosan', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
@@ -1524,8 +1577,20 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
       myAction: myAction,
       elementType: elementType,
       elementTypeID: req.query.elementTypeID,
-      req: req.body
+      req: req.body,
     })
+
+    // new[monkey]
+    for (var key in req.body) {
+      // if (req.body.hasOwnProperty(key)) {
+      // }
+      var val = req.body[key]
+      var iVal = parseInt(val)
+      if (iVal == val) {
+        req.body[key] = iVal
+      }
+    }
+    
     var date = new Date();
     var today = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
     if (myAction == 'editAll') {
@@ -1549,16 +1614,12 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           resolve()
         });
       })
-    }//editAll
-
-    if (myAction == 'addone') {
+    } else if (myAction == 'addone') {
       let myCollection = db.collection(elementType)
       await new Promise((resolve, reject) => {
         myCollection.insertOne(req.body, (err, result) => { resolve() });
       })
-    }//ADD ONE
-
-    if (myAction == 'edit') {
+    } else if (myAction == 'edit') {
       if (req.query.elementTypeID) {
         let myCollection = db.collection(elementType)
         await new Promise((resolve, reject) => {
@@ -1569,9 +1630,7 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
       } else {
         console.log('elementTypeID not founded')
       }
-    };//update ONE
-
-    if (myAction == 'replace') {
+    } else if (myAction == 'replace') {
       if (req.query.elementTypeID) {
         let myCollection = db.collection(elementType)
         await new Promise((resolve, reject) => {
@@ -1583,9 +1642,7 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
       } else {
         console.log('elementTypeID not founded')
       }
-    };//replace ONE
-
-    if (myAction == 'update') {
+    } else if (myAction == 'update') {
       if (req.query.elementTypeID) {
         let myCollection = db.collection(elementType)
         await new Promise((resolve, reject) => {
@@ -1596,9 +1653,7 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
       } else {
         console.log('elementTypeID not founded')
       }
-    };//update ONE
-
-    if (myAction == 'editField') {
+    } else if (myAction == 'editField') {
       if (req.query.elementTypeID) {
         let myCollection = db.collection(elementType)
         await new Promise((resolve, reject) => {
@@ -1609,9 +1664,7 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
       } else {
         console.log('elementTypeID not founded')
       }
-    };//EDIT ONE
-
-    if (myAction == 'delete') {
+    } else if (myAction == 'delete') {
       if (req.query.elementTypeID) {
         let myCollection = db.collection(elementType)
         await new Promise((resolve, reject) => {
@@ -1620,7 +1673,7 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           });
         })
       } else {
-        console.log('genbaID not founded')
+        console.log('elementTypeID not found')
       }
     }//DELETE
     res.redirect('back')
