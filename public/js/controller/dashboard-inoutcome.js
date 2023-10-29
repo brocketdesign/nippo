@@ -334,9 +334,12 @@ $(document).ready(async function () {
             let dateSelect = $(this)
             let today = formatedDateString(new Date())
 
-            dateSelect.val(todayJP)
-            dateSelect.attr('data-date', today)
-            dateSelect.addClass('isweekend-' + todayJP.substring(todayJP.indexOf('(')).replace('(', '').replace(')', ''))
+            let name = $(this).attr('name')
+            if (name != 'from' && name != 'to') {
+                dateSelect.val(todayJP)
+                dateSelect.attr('data-date', today)
+                dateSelect.addClass('isweekend-' + todayJP.substring(todayJP.indexOf('(')).replace('(', '').replace(')', ''))
+            }
 
             dateSelect.datepicker({
                 language: "ja",
@@ -599,10 +602,31 @@ $(document).ready(async function () {
 
         })
 
-        // Clear Filter Button
+        // Batch Delete
         $('body').on('click', '#filterAllBtn', function () {
             if (confirm("本当に削除しますか？")) {
                 deleteCheckedList()
+        })
+
+        // Clear Filter Button
+        $('body').on('click', '#clearFilterBtn', function () {
+            clearFilterDate()
+            clearFilterKouza()
+            clearFilterHattyu()
+            clearFilterGenba()
+            clearFilterCategory()
+        })
+
+        $('body').on('click', '.ic-feather-x', function () {
+            var dataId = $(this).attr('data-id')
+            if (dataId == 'input-filter-date') {
+                clearFilterDate()
+            } else if (dataId == 'input-filter-kouza') {
+                clearFilterKouza()
+            } else if (dataId == 'input-filter-httyu') {
+                clearFilterHattyu()
+            } else if (dataId == 'input-filter-genba') {
+                clearFilterGenba()
             }
         })
 
@@ -634,6 +658,50 @@ $(document).ready(async function () {
             // }
             // console.log("list-item");
         // })
+
+        $('body').on('keydown', '.input-date-filter', function (e) {
+            if (e.keyCode == 8 || e.keyCode == 46) { // backspace | delete
+                $(this).val('')
+                $(this).attr('data-date', '')
+            }
+        })
+    }
+
+    function clearFilterDate() {
+        $('#date-from').val('')
+        $('#date-from').attr('data-date', '')
+        $('#date-to').val('')
+        $('#date-to').attr('data-date', '')
+    }
+
+    function clearFilterKouza() {
+        $('#input-filter-kouza').val('')
+        $('#input-filter-kouza').niceSelect('update')
+    }
+
+    function clearFilterHattyu() {
+        $('#input-filter-hattyu').val('')
+        $('#input-filter-gyousha').val('')
+        $('#input-filter-torihiki').val('')
+        $('#input-filter-hattyu').niceSelect('update')
+        $('#input-filter-gyousha').niceSelect('update')
+        $('#input-filter-torihiki').niceSelect('update')
+    }
+
+    function clearFilterGenba() {
+        $('#input-filter-genba').val('')
+        $('#input-filter-genba').niceSelect('update')
+    }
+
+    function clearFilterCategory() {
+        $('.btn-group .active').removeClass('active')
+        $('label.sub-filter:first-child').addClass('active')
+        $('#filter-all-tab').attr('aria-selected', true)
+        $('#filter-income-tab').attr('aria-selected', false)
+        $('#filter-outcome-tab').attr('aria-selected', false)
+        $('#filter-all-tab').addClass('active')
+        $('#filter-income-tab').removeClass('active')
+        $('#filter-outcome-tab').removeClass('active')
     }
 
     function updateSubTotal(inputSateiprice, selectZeiritu, labelSubTotal, elements) {

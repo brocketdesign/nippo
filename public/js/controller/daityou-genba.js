@@ -75,7 +75,6 @@ $(document).ready(async function () {
         }
 
         $.post('/api/genba-detail/', query, function (data) {
-            // console.log(data)
             updateUIByGenbaStatus(data.完了状況)
             updateGenbaTableOnResponse(data)
         })
@@ -163,7 +162,7 @@ $(document).ready(async function () {
         var name = data.工事名
         var orderer = data.発注者
         var place = data.場所
-        var user_id = data.担当者
+        var responsibles = data.担当者
         var _dateFrom = data['工期(自)']
         var _dateTo = data['工期(至)']
         var period = ''
@@ -181,13 +180,30 @@ $(document).ready(async function () {
         $('#genba-place').html(place)
         $('#genba-period').html(period)
 
-        var query = {
-            userID: user_id
+        if (responsibles) {
+            var query = {}
+            if (!Array.isArray(responsibles)) {
+                query.userIDs = responsibles
+            } else {
+                query.userIDs = responsibles
+            }
+            $.post('/api/user/simple-info/', query, function (data) {
+                // console.log(data)
+                if (Array.isArray(data)) {
+                    var names = ''
+                    var n = data.length || 0
+                    if (n > 0) {
+                        for (var i = 0; i < n-1; i++) {
+                            names += data[i].lname + '、'
+                        }
+                    }
+                    names += data[n-1].lname
+                    $('#genba-user').html(names)
+                } else {
+                    $('#genba-user').html(data.lname)
+                }
+            })
         }
-        $.post('/api/user/simple-info/', query, function (data) {
-            // console.log(data)
-            $('#genba-user').html(data.lname)
-        })
     }
 
     function drawProgressBarChart(selector) {

@@ -1126,11 +1126,66 @@ input:disabled {
   width: 85% !important;
 }
 
-.ic-td-trash {
+.ic-td-trash,
+.ic-feather-x {
   color: gray;
   cursor: pointer;
 }
 
-.ic-td-trash:hover {
+.ic-td-trash:hover,
+.ic-feather-x:hover {
   color: #f74711;
+}
+
+.scrollable-table thead tr th.col-title {
+  width: 40px;
+}
+
+.scrollable-table thead tr th,
+.scrollable-table tbody tr th {
+  width: 30px;
+}
+
+@media (min-width: 575.98px) {
+  .scrollable-table thead tr th.col-title {
+    width: 50px;
+  }
+
+  .scrollable-table thead tr th,
+  .scrollable-table tbody tr th {
+    width: 30px;
+  }
+}
+
+@media (min-width: 767.98px) {
+  .scrollable-table thead tr th.col-title {
+    width: 80px;
+  }
+
+  .scrollable-table thead tr th,
+  .scrollable-table tbody tr th {
+    width: 50px;
+  }
+}
+
+@media (min-width: 991.98px) {
+  .scrollable-table thead tr th.col-title {
+    width: 120px;
+  }
+
+  .scrollable-table thead tr th,
+  .scrollable-table tbody tr th {
+    width: 75px;
+  }
+}
+
+@media (min-width: 1199.98px) {
+  .scrollable-table thead tr th.col-title {
+    width: 150px;
+  }
+
+  .scrollable-table thead tr th,
+  .scrollable-table tbody tr th {
+    width: 80px;
+  }
 }

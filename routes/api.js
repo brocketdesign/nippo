@@ -709,12 +709,34 @@ router.post('/saveYearCalendar', urlencodedParser, async (req, res) => {
 router.post('/user/simple-info', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {
-    db.collection('users').aggregate([
-      { $match: { _id: new ObjectId(req.body.userID) } },
-      { $project: { _id:0, lname:1, fname:1 } }
-    ]).next((err, result) => {
-      res.send(result)
-    })
+    var ids = req.body.userIDs
+    if (Array.isArray(ids)) {
+
+      var nIds = ids.length || 0
+      if (nIds == 0) {
+        res.sendStatus(300)
+        return
+      }
+
+      for (var i = 0; i < nIds; i++) {
+        ids[i] = new ObjectId(ids[i])
+      }
+  
+      db.collection('users').aggregate([
+        { $match: { _id: {$in: ids} } },
+        { $project: { _id:0, lname:1, fname:1 } }
+      ]).toArray((err, result) => {
+        res.send(result)
+      })
+
+    } else {
+      db.collection('users').aggregate([
+        { $match: { _id: new ObjectId(ids) } },
+        { $project: { _id:0, lname:1, fname:1 } }
+      ]).next((err, result) => {
+        res.send(result)
+      })
+    }
   } else {
     res.sendStatus(403)
   }
@@ -878,20 +900,39 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
         let item = results[i]
         var responsibles = item['担当者']
         if (responsibles) {
-          var responsible
+
+          let match
+          let project = { $project: { _id:0, lname:1, fname:1 } }
+          
           if (Array.isArray(responsibles)) {
-            responsible = responsibles[0]
+            var nIds = responsibles.length || 0
+            if (nIds == 0) {
+              res.sendStatus(300)
+              return
+            }
+            for (var j = 0; j < nIds; j++) {
+              responsibles[j] = new ObjectId(responsibles[j])
+            }
+            match = { $match: { _id: {$in: responsibles} } }
           } else {
-            responsible = responsibles
+            responsibles = new ObjectId(responsibles)
+            match = { $match: { _id: responsibles } }
           }
-          // res.send(responsible)
-          // return
+
           db.collection('users').aggregate([
-            { $match: { _id: new ObjectId(responsible) } },
-            { $project: { _id:0, lname:1, fname:1 } }
-          ]).next((err, result) => {
-            if (result && result.lname) {
-              item.userName = result.lname
+            match,
+            project
+          ]).toArray((err, result) => {
+            if (result && result.length > 0) {
+              var userNames = []
+              for (var userName of result) {
+                userNames.push(userName.lname)
+              }
+              if (userNames.length == 1) {
+                item.userName = userNames[0]
+              } else {
+                item.userNames = userNames
+              }
             }
             count ++
             if (count >= nResult) {
@@ -999,19 +1040,23 @@ router.post('/delete/inoutcome', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {
     var ids = req.body.ids
-    var nIds = ids.length || 0
-    if (nIds == 0) {
-      res.sendStatus(300)
-      return
+    if (Array.isArray(ids)) {
+      var nIds = ids.length || 0
+      if (nIds == 0) {
+        res.sendStatus(300)
+        return
+      }
+      for (var i = 0; i < nIds; i++) {
+        ids[i] = new ObjectId(ids[i])
+      }
+      
+      await new Promise((resolve, reject) => {
+        db.collection('inoutcomeDaityou').deleteMany({ _id: {$in: ids} }, (err, result) => {
+          resolve()
+        });
+      })
+
     }
-    for (var i = 0; i < nIds; i++) {
-      ids[i] = new ObjectId(ids[i])
-    }
-    await new Promise((resolve, reject) => {
-      db.collection('inoutcomeDaityou').deleteMany({ _id: {$in: ids} }, (err, result) => {
-        resolve()
-      });
-    })
     res.sendStatus(200)
     
   } else {
@@ -1068,10 +1113,13 @@ router.post('/inoutcome', urlencodedParser, async (req, res) => {
     let priceTo = body.priceTo
     let limit = body.limit
 
+    // res.send(body)
+    // return
+
     let criteria = {}
 
     if (inoutType) {
-      criteria.inoutType = inoutType
+      criteria.type = inoutType
     }
 
     if (kanjoukamoku) {
@@ -1106,7 +1154,7 @@ router.post('/inoutcome', urlencodedParser, async (req, res) => {
     }
 
     if (torihiki) {
-      criteria.取引先 = new ObjectId(torihiki)
+      criteria.取引先 = torihiki
     }
 
     if (genba) {
@@ -1131,6 +1179,9 @@ router.post('/inoutcome', urlencodedParser, async (req, res) => {
         criteria.査定金額 = {$lte:priceTo}
       }
     }
+
+    // res.send(criteria)
+    // return
 
     if (Object.keys(criteria).length == 0) {
       // res.send('non condition')
@@ -1397,13 +1448,16 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
 
               if (need_budgets) {
 
-                let dateFrom = yearBase + '/09/00'
-                let dateTo = (yearBase + 1) + '/08/00'
                 let params = {
                   genbaID: genbaID,
-                  company_id: company.data._id,
-                  dateFrom: dateFrom,
-                  dateTo: dateTo
+                  company_id: company.data._id
+                }
+
+                if (yearBase) {
+                  let dateFrom = yearBase + '/09/00'
+                  let dateTo = (yearBase + 1) + '/08/00'
+                  params.dateFrom = dateFrom
+                  params.dateTo = dateTo
                 }
 
                 // get 実行予算
@@ -1416,8 +1470,8 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
   
                   result.budget = budgetSum
                   data.push(result)
-
-                  if (data.length == nResult) {
+  
+                  if (i == nResult - 1) {
                     resultAll.items = data
                     res.send(resultAll)
                   }
@@ -1428,7 +1482,7 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
 
                 data.push(result)
 
-                if (data.length == nResult) {
+                if (i == nResult - 1) {
                   resultAll.items = data
                   res.send(resultAll)
                 }
@@ -1673,7 +1727,7 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           });
         })
       } else {
-        console.log('elementTypeID not found')
+        console.log('elementTypeID not founded')
       }
     }//DELETE
     res.redirect('back')

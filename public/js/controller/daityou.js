@@ -234,7 +234,6 @@ $(document).ready(async function () {
             if (profitRate === undefined) profitRate = 'ー'
             else profitRate = numberFormat(profitRate) + '%'
             var budget = numberFormat(item.budget)
-            var userName = item.userName
             var _deposit = item.契約金額 || 0
             var deposit = numberFormat(_deposit)
             var dateFrom = item['工期(自)']
@@ -245,6 +244,20 @@ $(document).ready(async function () {
             depositSum += _deposit
             costSum += _cost
             profitSum += _profit
+
+            var userName = ''
+            if (item.userName) {
+                userName = item.userName
+            } else if (item.userNames) {
+                var userNames = item.userNames
+                var n = userNames.length || 0
+                if (n > 0) {
+                    for (var i = 0; i < n-1; i++) {
+                        userName += userNames[i] + '、'
+                    }
+                    userName += userNames[n-1]
+                }
+            }
 
             var statusSpan
             // if (!dateFrom) { // not started
