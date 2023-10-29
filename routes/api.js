@@ -1425,6 +1425,7 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
       if (nResult > 0) {
 
         if (need_cost_sum) { params.need_cost_sum = need_cost_sum }
+        let count = 0;
 
         for (let i = 0; i < nResult; i++) {
 
@@ -1471,7 +1472,9 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
                   result.budget = budgetSum
                   data.push(result)
   
-                  if (i == nResult - 1) {
+                  count++;
+                  if (count == nResult) {
+
                     resultAll.items = data
                     res.send(resultAll)
                   }
@@ -1482,7 +1485,8 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
 
                 data.push(result)
 
-                if (i == nResult - 1) {
+                count++;
+                if (count == nResult) {
                   resultAll.items = data
                   res.send(resultAll)
                 }
@@ -1490,7 +1494,9 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
 
             } else {
 
-              if (i == nResult - 1) {
+              count++;
+              if (count == nResult) {
+                resultAll.items = data
                 res.send(resultAll)
               }
             }
@@ -1682,7 +1688,7 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           });
         })
       } else {
-        console.log('elementTypeID not founded')
+        console.log('elementTypeID is not found')
       }
     } else if (myAction == 'replace') {
       if (req.query.elementTypeID) {
@@ -1694,7 +1700,7 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           });
         })
       } else {
-        console.log('elementTypeID not founded')
+        console.log('elementTypeID is not found')
       }
     } else if (myAction == 'update') {
       if (req.query.elementTypeID) {
@@ -1705,7 +1711,7 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           });
         })
       } else {
-        console.log('elementTypeID not founded')
+        console.log('elementTypeID is not found')
       }
     } else if (myAction == 'editField') {
       if (req.query.elementTypeID) {
@@ -1716,7 +1722,7 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           });
         })
       } else {
-        console.log('elementTypeID not founded')
+        console.log('elementTypeID is not found')
       }
     } else if (myAction == 'delete') {
       if (req.query.elementTypeID) {
@@ -1727,7 +1733,7 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           });
         })
       } else {
-        console.log('elementTypeID not founded')
+        console.log('elementTypeID is not found')
       }
     }//DELETE
     res.redirect('back')
@@ -1880,7 +1886,7 @@ router.get('/db/userid', urlencodedParser, async (req, res) => {
           if (user) {
             res.send(user._id)
           } else {
-            res.send('user not founded')
+            res.send('user is not found')
           }
         })
       }
