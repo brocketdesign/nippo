@@ -606,6 +606,7 @@ $(document).ready(async function () {
         $('body').on('click', '#filterAllBtn', function () {
             if (confirm("本当に削除しますか？")) {
                 deleteCheckedList()
+            }
         })
 
         // Clear Filter Button
