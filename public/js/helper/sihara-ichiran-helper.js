@@ -158,7 +158,7 @@ var siharaBudgetSumOfPeriod = function (db, params, callback) {
   let match = {
     genba: new ObjectId(params.genbaID),
     'company._id': new ObjectId(params.company_id),
-    date: { $gte: params.dateFrom, $lte: params.dateTo }
+    // date: { $gte: params.dateFrom, $lte: params.dateTo }
   }
 
   // get 実行予算

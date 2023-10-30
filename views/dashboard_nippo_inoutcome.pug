@@ -23,7 +23,7 @@ block content
                                     div.mr-3.mb-2
                                         label.control-label.pl-3(for="日付") 日付
                                         div
-                                            input.input-date-inoutcome.text-center.border.rounded.w-auto.py-2(type="text" name="currentDay")
+                                            input.input-date-inoutcome.text-center.border.rounded.w-auto.py-2(type="text" name="currentDay" autocomplete="off")
                                     div.mr-5.mb-2(style="width:300px")
                                         label.control-label.pl-3(for="発注者名") 取引先
                                         select.input-hattyu.w-100(name="発注者名")
@@ -89,7 +89,7 @@ block content
                                     div.mr-3.mb-2
                                         label.control-label.pl-3(for="日付") 日付
                                         div
-                                            input.input-date-inoutcome.text-center.border.rounded.w-auto.py-2(type="text" name="currentDay")
+                                            input.input-date-inoutcome.text-center.border.rounded.w-auto.py-2(type="text" name="currentDay" autocomplete="off")
                                     div.mr-5.mb-2(style="width:300px")
                                         label.control-label.pl-3(for="業者名") 取引先
                                         select.input-gyousha.w-100(name="業者名")
@@ -159,7 +159,7 @@ block content
                             .form-group.category-group.pb-2
                                 .form-row
                                     #filter-nav-tab.nav.nav-tabs(role="tablist").mr-5.mb-2
-                                        a#filter-all-tab.nav-link-inoutcome-filter.active(data-toggle="tab" data-target="#filter-all" type="button" role="tab" aria-controls="filter-all" aria-selected="true" style="margin-right:-1px" data-name="all").small すべて
+                                        a#filter-all-tab.nav-link-inoutcome-filter.active(data-toggle="tab" data-target="#filter-all" type="button" role="tab" aria-controls="filter-all" aria-selected="true" style="margin-right:-2px" data-name="all").small すべて
                                         a#filter-income-tab.nav-link-inoutcome-filter(data-toggle="tab" data-target="#filter-income" type="button" role="tab" aria-controls="filter-income" aria-selected="false" style="margin-right:-1px" data-name="in").small 収入
                                         a#filter-outcome-tab.nav-link-inoutcome-filter(data-toggle="tab" data-target="#filter-outcome" type="button" role="tab" aria-controls="filter-outcome" aria-selected="false" style="margin-right:-1px" data-name="out").small 支出
                                     
@@ -167,28 +167,28 @@ block content
                                         div(class="tab-pane fade show active" id="filter-all" role="tabpanel" aria-labelledby="filter-all-tab")
                                             .btn-group-toggle
                                                 .btn-group(data-toggle="buttons")
-                                                    label.btn.nav-link-inoutcome-sub-filter.active
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter.active
                                                         input.toggle(type='radio', value='', checked='true')
                                                         | すべて
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='売上')
                                                         | 売上
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='雑収入')
                                                         | 雑収入
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='原材料費')
                                                         | 原材料費
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='外注加工費')
                                                         | 外注加工費
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='労務費')
                                                         | 労務費
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='工事雑費')
                                                         | 工事雑費
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='一般管理費')
                                                         | 一般管理費
                                                 
@@ -196,38 +196,38 @@ block content
                                         div(class="tab-pane fade" id="filter-income" role="tabpanel" aria-labelledby="filter-income-tab")
                                             .btn-group-toggle
                                                 .btn-group(data-toggle="buttons")
-                                                    label.btn.nav-link-inoutcome-sub-filter.active
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter.active
                                                         input.toggle(type='radio', value='', checked='true')
                                                         | すべて
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='売上')
                                                         | 売上
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='雑収入')
                                                         | 雑収入
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='工事雑費')
                                                         | 工事雑費
                                                 
                                         div(class="tab-pane fade" id="filter-outcome" role="tabpanel" aria-labelledby="filter-outcome-tab")
                                             .btn-group-toggle
                                                 .btn-group(data-toggle="buttons")
-                                                    label.btn.nav-link-inoutcome-sub-filter.active
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter.active
                                                         input.toggle(type='radio', value='', checked='true')
                                                         | すべて
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='原材料費')
                                                         | 原材料費
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='外注加工費')
                                                         | 外注加工費
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='労務費')
                                                         | 労務費
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='工事雑費')
                                                         | 工事雑費
-                                                    label.btn.nav-link-inoutcome-sub-filter
+                                                    label.btn.sub-filter.nav-link-inoutcome-sub-filter
                                                         input.toggle(type="radio", value='一般管理費')
                                                         | 一般管理費
 
@@ -236,15 +236,19 @@ block content
                                     div.mr-3.mb-3.d-flex
                                         div
                                             label.control-label.pl-3(for="日付") 日付
+                                            span.ml-1.ic-feather-x(data-feather='x-circle' style="height: 18px;color:gray"
+                                             data-id="input-filter-date")
                                             div
-                                                input#date-from.input-date-filter.text-center.border.rounded.py-2.mb-2(type="text" name="currentDay")
+                                                input#date-from.input-date-filter.text-center.border.rounded.py-2.mb-2(type="text" name="from" autocomplete="off")
                                                 span.mx-2.pt-4.mt-3 〜
-                                                input#date-to.input-date-filter.text-center.border.rounded.py-2(type="text" name="currentDay")
+                                                input#date-to.input-date-filter.text-center.border.rounded.py-2(type="text" name="to" autocomplete="off")
                                     div.mr-3.mb-3(style="width:200px")
                                         label.control-label.pl-3(for="決済口座") 決済口座
+                                        span.ml-1.ic-feather-x(data-feather='x-circle' style="height: 18px;color:gray" data-id="input-filter-kouza")
                                         select#input-filter-kouza.input-kouza.w-100(name="決済口座")
                                     div.mb-2(style="width:300px")
                                         label.control-label.pl-3 取引先
+                                        span.ml-1.ic-feather-x(data-feather='x-circle' style="height: 18px;color:gray" data-id="input-filter-httyu")
                                         select#input-filter-hattyu.input-hattyu.d-none.w-100
                                         select#input-filter-gyousha.input-gyousha.d-none.w-100
                                         select#input-filter-torihiki.input-torihiki.w-100
@@ -253,6 +257,7 @@ block content
                                     div.mr-5.mb-3.d-flex
                                         div
                                             label.control-label.pl-3(for="現場名") 現場名
+                                            span.ml-1.ic-feather-x(data-feather='x-circle' style="height: 18px;color:gray" data-id="input-filter-genba")
                                             div
                                                 div(style="width:200px").mr-3.mb-2.float-left
                                                     select#input-filter-genba.input-genba-daityou.w-100(name="現場名")
@@ -266,6 +271,7 @@ block content
                                                 input#input-filter-price-to.border.rounded.py-2.px-2(style="width:150px")
 
                                 .col-12.text-right
+                                    button#clearFilterBtn.btn.btn-outline-dark.rounded.mr-3 条件をクリア
                                     button#filterBtn.btn.btn-primary.rounded 絞り込む
             .row.mx-lg-n4.px-0
                 .card.border-secondary.my-4.w-100
@@ -273,7 +279,8 @@ block content
                         table#table-inoutcome.w-100.small.table-bordered
                             thead.bg-secondary.text-center.text-white
                                 tr
-                                    th
+                                    th.text-center
+                                        input#batch-check(type="checkbox" style="cursor:pointer;margin-top:3px;width:18px;height:18px")
                                     th.py-2 日付
                                     th 業社名
                                     th 勘定科目
@@ -283,8 +290,11 @@ block content
                                     th 消費税
                                     th 合計
                             tbody#inoutcome-filtered-tbody.text-right
-                                //- tr
-                                //-     td.py-2.pl-1.text-left(style="color:#00b0f0") 収入
+                                //- tr(style="cursor:pointer" data-value="")
+                                //-     td.py-2.pl-2.text-left
+                                //-         label.mb-0.d-flex(style="color:#00b0f0;cursor:pointer")
+                                //-             input(type="checkbox" style="cursor:pointer;margin-top:3px")
+                                //-             span.pl-2 収入
                                 //-     td.pr-1 2023/10/09
                                 //-     td.pr-1 三菱電機ビルテクノサービス㈱
                                 //-     td.pr-1 外注加工費

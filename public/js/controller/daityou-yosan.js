@@ -4,6 +4,8 @@ $(document).ready(async function () {
     let genbaName = getUrlParameter('genbaName')
     // let genbaID = "610c7d73c3640304088b6735"
 
+    let koushuData = null;
+
     //NIPPO FORM PAGE
     if (!!document.querySelector('#daityouYosanPage')) {
         initNavBar()
@@ -37,11 +39,11 @@ $(document).ready(async function () {
 
     function tableInit() {
         if (document.querySelector('#yosan-summary-tbody')) {
-            initSummaryTable($('#yosan-summary-tbody'))
+            initSummaryTable()
         }
 
         if (document.querySelector('#yosan-tbody')) {
-            initFullTable($('#yosan-tbody'))
+            initFullTable()
         }
     }
 
@@ -85,32 +87,37 @@ $(document).ready(async function () {
             let koushuSelect = $(this)
             if (!$(this).hasClass('init-on')) {
                 $.get("/api/koushu", function (data) {
-                    for (var index = 0; index < data.length; index++) {
-                        var element = data[index]
-                        if (element.el) {
-                            koushuSelect.append('<option value="' + element.el+'" data-id="' + element._id+'">' + element.el+' </option>')
-                        }
-                    }
-                    if (!koushuSelect.hasClass('globalselector')) {
-                        koushuSelect.val('')
-                        if (!koushuSelect.attr('value')) {
-                            koushuSelect.val('')
-                        } else {
-                            koushuSelect.val(koushuSelect.attr('value'))
-                        }
-                        koushuSelect.niceSelect('update')
-                    } else {
-                        if (!koushuSelect.hasClass('init-on')) {
-                            koushuSelect.addClass('init-on')
-                            koushuSelect.val(koushuSelect.find("option:first").val()).change()
-                        }
-                    }
+                    koushuData = data
+                    generateKoushuSelect(koushuSelect, data)
                 })
             }
         })
     }
 
-    function initSummaryTable(tbody) {
+    function generateKoushuSelect(selector, data) {
+        for (var index = 0; index < data.length; index++) {
+            var element = data[index]
+            if (element.el) {
+                selector.append('<option value="' + element.el+'" data-id="' + element._id+'">' + element.el+' </option>')
+            }
+        }
+        if (!selector.hasClass('globalselector')) {
+            selector.val('')
+            if (!selector.attr('value')) {
+                selector.val('')
+            } else {
+                selector.val(selector.attr('value'))
+            }
+            selector.niceSelect('update')
+        } else {
+            if (!selector.hasClass('init-on')) {
+                selector.addClass('init-on')
+                selector.val(selector.find("option:first").val()).change()
+            }
+        }
+    }
+
+    function initSummaryTable() {
         var query = {
             genbaID: genbaID,
             estimate: 1 // estimation of profit
@@ -118,14 +125,14 @@ $(document).ready(async function () {
         request2GetSummaryData(query)
     }
 
-    function initFullTable(tbody) {
+    function initFullTable() {
         var query = {
             genbaID: genbaID
         }
         request2GetFullData(query)
     }
 
-    function initForm(callback) {
+    function initForm() {
 
         //
         // Save Form
@@ -169,7 +176,7 @@ $(document).ready(async function () {
                             element.remove()
                         } else {                                // initialize the values for the first element
                             firstElement = element
-                            var selectKoushu = element.find('.input-koushu')
+                            var selectKoushu = element.find('.input-koushu-yosan')
                             var inputTekiyou = element.find('.input-tekiyou')
                             var inputSubTotal = element.find('.input-subtotal')
 
@@ -177,6 +184,11 @@ $(document).ready(async function () {
                             selectKoushu.niceSelect('update')
                             inputTekiyou.val('')
                             inputSubTotal.val('')
+
+                            // initialize the global controls
+                            var selectCompany = $('#input-company')
+                            selectCompany.val('')
+                            selectCompany.niceSelect('update')
                         }
                     }
                 })
@@ -184,13 +196,219 @@ $(document).ready(async function () {
                 updateTotalPrice(firstElement.parent())
 
                 // update table with new elements
-                initFullTable($('#yosan-tbody'))
+                initSummaryTable()
+                initFullTable()
             })
         })
     
         $('body').on('click', '#form-alert .close', function() {
             hideFormAlert()
         })
+
+        $('body').on('click', '.td-koushu', function() {
+            if ($(this).hasClass('in-edit-koushu')) {
+                return    
+            }
+
+            finishItemEdit()
+            $(this).addClass('in-edit-koushu')
+            
+            var currKoushu = $(this).html()
+            $(this).html('')
+
+            var formID = '.form-container'
+            var inputKoushu = $(formID + ' .form-group .form-row.element div .input-koushu-yosan').first().clone()
+            var selectKoushu = $(formID + ' .form-group .form-row.element div .nice-select').first().clone()
+            inputKoushu.attr('name', 'item-koushu')
+
+            inputKoushu.val(currKoushu)
+            selectKoushu.find('.current').html(currKoushu)
+
+            $(this).append(inputKoushu)
+            $(this).append(selectKoushu)
+        })
+
+        $('body').on('click', '.td-bikou', function () {
+            if ($(this).hasClass('in-edit-bikou')) {
+                return    
+            }
+
+            finishItemEdit()
+            $(this).addClass('in-edit-bikou')
+
+            var currBikou = $(this).html()
+            $(this).html('<input class="py-2 px-2 w-100" name="item-bikou" value="' + currBikou + '">')
+            $('.in-edit-bikou input').focus()
+        })
+
+        $('body').on('click', '.td-subtotal', function () {
+            if ($(this).hasClass('in-edit-subtotal')) {
+                return    
+            }
+
+            finishItemEdit()
+            $(this).addClass('in-edit-subtotal')
+
+            var currSubtotal = $(this).html()
+            $(this).html('<input class="py-2 px-2 w-100" name="item-subtotal" value="' + stringFormatedNumber(currSubtotal) + '">')
+            $('.in-edit-subtotal input').focus()
+        })
+
+        $('body').on('click', '.td-date', function () {
+            if ($(this).hasClass('in-edit-date')) {
+                return    
+            }
+
+            finishItemEdit()
+            $(this).addClass('in-edit-date')
+
+            var currDate = $(this).html()
+            $(this).html('<input class="border rounded py-2 w-100" type="text" name="item-date">')
+
+            // const todayJP = date.toLocaleDateString('ja-JP', options)
+            var date = new Date(currDate)
+            var dateStr = date.toLocaleDateString('ja-JP', options)
+            var dateSelect = $('.in-edit-date input')
+            // dateSelect.val(dateStr)
+            dateSelect.val(currDate)
+            dateSelect.attr('data-date', currDate)
+            dateSelect.addClass('isweekend-' + dateStr.substring(dateStr.indexOf('(')).replace('(', '').replace(')', ''))
+            
+            dateSelect.datepicker({
+                language: "ja",
+                format: 'yyyy/mm/dd',
+                autoclose: true,
+                // startDate: null,
+                endDate: new Date(),
+                orientation: "right"
+            }).on('changeDate', function (e) {
+                let dd = new Date(e.date)
+                let ct = formatedDateString(dd)
+                let options = {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    weekday: 'short',
+                }
+                const dJP = dd.toLocaleDateString('ja-JP', options)
+                console.log(ct);
+                dateSelect.val(ct)
+                isweekendClass(dateSelect)
+                dateSelect.addClass('isweekend-' + dJP.substring(dJP.indexOf('(')).replace('(', '').replace(')', ''))
+                dateSelect.attr('data-date', ct)
+                finishItemEdit()
+            })
+        })
+
+        $('body').on('click', '.ic-td-trash', function () {
+            if (!confirm("本当に削除しますか？")) return;
+
+            var _id = $(this).parent().attr('data-id')
+            var query = {_id: _id}
+            $.post('/api/delete/yosan', query, function (data) {
+                if (data && data.result && data.result == 'ok') {
+                    // $(this).parent().parent()
+                    initSummaryTable()
+                    initFullTable()
+                }
+            })
+        })
+
+        setItemEditFinishEvent()
+    }
+
+    function setItemEditFinishEvent() {
+        $('body').on('change', 'select[name="item-koushu"]', function () {
+            finishItemEdit()
+        })
+        $('body').on('keypress', 'input[name="item-bikou"], input[name="item-subtotal"]', function (e) {
+            if (e.which == 13)
+                finishItemEdit()
+        })
+        $('body').on('click', 'tr[data-toggle="collapse"], td.td-id, thead', function () {
+            finishItemEdit()
+        })
+        $('body').keyup(function (e) {
+            if (e.keyCode == 27)
+                finishItemEdit()
+        })
+    }
+
+    function finishItemEdit() {
+        var _id = null
+        var koushu = null
+        var bikou = null
+        var subtotal = null
+        var date = null
+
+        var editKoushu = $('.in-edit-koushu')
+        if (editKoushu.length > 0) {
+            var val = editKoushu.find('select').val()
+            editKoushu.remove('select')
+            editKoushu.remove('div')
+            editKoushu.removeClass('in-edit-koushu')
+            editKoushu.html(val)
+            koushu = val
+            _id = editKoushu.parent().find('.td-id').attr('data-id')
+        }
+
+        var editBikou = $('.in-edit-bikou')
+        if (editBikou.length > 0) {
+            var val = editBikou.find('input').val()
+            editBikou.removeClass('in-edit-bikou')
+            editBikou.html(val)
+            bikou = val
+            _id = editBikou.parent().find('.td-id').attr('data-id')
+        }
+
+        var editSubtotal = $('.in-edit-subtotal')
+        if (editSubtotal.length > 0) {
+            var val = editSubtotal.find('input').val()
+            editSubtotal.removeClass('in-edit-subtotal')
+            if (isNaN(val)) {
+                editSubtotal.html(0)
+                val = 0
+            } else {
+                editSubtotal.html(numberFormat(val))
+            }
+            subtotal = val
+            _id = editSubtotal.parent().find('.td-id').attr('data-id')
+        }
+
+        var editDate = $('.in-edit-date')
+        if (editDate.length > 0) {
+            var val = editDate.find('input').val()
+            editDate.removeClass('in-edit-date')
+            editDate.html(val)
+            date = val
+            _id = editDate.parent().find('.td-id').attr('data-id')
+        }
+
+        var query = {}
+        if (_id) {
+            query['_id'] = _id
+            if (koushu)
+                query['工種'] = koushu
+            if (bikou)
+                query['摘要'] = bikou
+            if (subtotal) {
+                query['小計'] = subtotal
+            }
+            if (date)
+                query['date'] = date
+
+            if (Object.keys(query).length > 0) {
+                console.log(query)
+                $('#saving-progress').fadeIn(500)
+                $.post('/api/update/yosan/element/', query, function (data) {
+                    console.log(data)
+                    setTimeout(() => {
+                        $('#saving-progress').fadeOut(500)
+                    }, 1000);
+                })
+            }
+        }
+
     }
 
     function updateTotalPrice(elements) {
@@ -312,7 +530,7 @@ $(document).ready(async function () {
 
                 // sub data
                 subdata.forEach(function (subitem) {
-                    html += '<tr class="' + subitemClazz + ' collapse show" aria-labelledby="'+ id + '" style=""><td class="py-1 pl-1 bg-lightgray"></td><td class="py-1 pl-1">' + subitem.工種 + '</td><td class="py-1 pl-1">' + (subitem.摘要 === undefined ? '' : subitem.摘要) + '</td><td class="py-1 pr-1 text-right">' + numberFormat(subitem.小計) + '</td><td class="py-1 pr-1 text-right">' + subitem.date + '</td></tr>'
+                    html += '<tr class="' + subitemClazz + ' collapse show" aria-labelledby="'+ id + '" style=""><td class="td-id py-1 pl-1 bg-lightgray text-center" data-id="' + subitem._id + '"><span data-feather="trash" class="py-1 ic-td-trash"></span></td><td class="py-1 pl-1 td-koushu">' + subitem.工種 + '</td><td class="py-1 pl-1 td-bikou">' + (subitem.摘要 === undefined ? '' : subitem.摘要) + '</td><td class="py-1 pr-1 text-right td-subtotal">' + numberFormat(subitem.小計) + '</td><td class="py-1 pr-1 text-right td-date">' + subitem.date + '</td></tr>'
                 })
                 
                 index ++
@@ -355,7 +573,7 @@ $(document).ready(async function () {
         // let selectCompany = document.getElementById("input-company")
         // let selectedCompany = selectCompany.options[selectCompany.selectedIndex]
         if ($('#input-company').find('option:checked').length == 0) {
-            showFormAlert("業務名を選択ください。")
+            showFormAlert("You must select company")
             return
         }
         // console.log(selectedCompany)
@@ -418,13 +636,12 @@ $(document).ready(async function () {
             return
         }
 
-        let result = {
+        let query = {
             data: items
         }
         
-        // console.log(result)
         $('#saving-progress').fadeIn(500)
-        $.post('/api/update/yosan/', result, function (data) {
+        $.post('/api/update/yosan/', query, function (data) {
             // console.log(data)
             setTimeout(() => {
                 $('#saving-progress').fadeOut(500)
@@ -445,6 +662,13 @@ $(document).ready(async function () {
 
 function numberFormat(number) {
     return new Intl.NumberFormat('ja-JP').format(number)
+}
+
+function stringFormatedNumber(numberStr) {
+    if (numberStr) {
+        return numberStr.replace(/,/g, '')
+    }
+    return '0'
 }
 
 function paddingNumber(number, padding) {

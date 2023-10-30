@@ -767,12 +767,34 @@ router.post('/saveYearCalendar', urlencodedParser, async (req, res) => {
 router.post('/user/simple-info', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {
-    db.collection('users').aggregate([
-      { $match: { _id: new ObjectId(req.body.userID) } },
-      { $project: { _id:0, lname:1, fname:1 } }
-    ]).next((err, result) => {
-      res.send(result)
-    })
+    var ids = req.body.userIDs
+    if (Array.isArray(ids)) {
+
+      var nIds = ids.length || 0
+      if (nIds == 0) {
+        res.sendStatus(300)
+        return
+      }
+
+      for (var i = 0; i < nIds; i++) {
+        ids[i] = new ObjectId(ids[i])
+      }
+  
+      db.collection('users').aggregate([
+        { $match: { _id: {$in: ids} } },
+        { $project: { _id:0, lname:1, fname:1 } }
+      ]).toArray((err, result) => {
+        res.send(result)
+      })
+
+    } else {
+      db.collection('users').aggregate([
+        { $match: { _id: new ObjectId(ids) } },
+        { $project: { _id:0, lname:1, fname:1 } }
+      ]).next((err, result) => {
+        res.send(result)
+      })
+    }
   } else {
     res.sendStatus(403)
   }
@@ -816,6 +838,7 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
 
     var body = req.body
 
+    var userID = body.userID
     var status = body.status
     var today = body.today
     var keyword = body.keyword
@@ -823,6 +846,15 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
     var period_max = body.period_max
     var depositMin = body.depositMin
     var depositMax = body.depositMax
+
+    // res.send(userID)
+    // return
+
+    var userCriteria = null
+    if (userID) {
+      // userID = "61121694a5605df54de93e5a"
+      userCriteria = { $or: [{担当者: userID}, {担当者: {$elemMatch: {$eq:userID}} }] }
+    }
 
     var depositCriteria = null
     if (depositMin) {
@@ -878,6 +910,8 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
     }
 
     var match = []
+    if (userCriteria)
+      match.push(userCriteria)
     if (depositCriteria)
       match.push(depositCriteria)
     if (periodCriteria)
@@ -889,12 +923,14 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
 
     var project = { $project: { 工事名:1, 工事名kana:1, 契約金額:1, '工期(自)':1, '工期(至)':1, 担当者:1, 完了状況:1 } }
     
+    var sort = { $sort: {'工期(自)': -1} }
+
     var aggregation
     if (match.length > 0) {
       match = { $match: { $and: match } }
-      aggregation = [match, project]
+      aggregation = [match, project, sort]
     } else {
-      aggregation = [project]
+      aggregation = [project, sort]
     }
 
     // res.send(aggregation)
@@ -904,7 +940,7 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
       if (err || !results || results.length == 0)
         res.send([])
       else {
-        results = sortit(results, '工事名kana')
+        // res.send(results)
         processGetUserInfo(err, results)
       }
     })
@@ -920,17 +956,48 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
       let usersCache = {}
       for (let i = 0; i < nResult; i++) {
         let item = results[i]
-        db.collection('users').aggregate([
-          { $match: { _id: new ObjectId(item.担当者) } },
-          { $project: { _id:0, lname:1, fname:1 } }
-        ]).next((err, result) => {
-          item.userName = result.lname
-          count ++
-          if (count >= nResult) {
-            // res.send(results)
-            processYosan(results)
+        var responsibles = item['担当者']
+        if (responsibles) {
+
+          let match
+          let project = { $project: { _id:0, lname:1, fname:1 } }
+          
+          if (Array.isArray(responsibles)) {
+            var nIds = responsibles.length || 0
+            if (nIds == 0) {
+              res.sendStatus(300)
+              return
+            }
+            for (var j = 0; j < nIds; j++) {
+              responsibles[j] = new ObjectId(responsibles[j])
+            }
+            match = { $match: { _id: {$in: responsibles} } }
+          } else {
+            responsibles = new ObjectId(responsibles)
+            match = { $match: { _id: responsibles } }
           }
-        })
+
+          db.collection('users').aggregate([
+            match,
+            project
+          ]).toArray((err, result) => {
+            if (result && result.length > 0) {
+              var userNames = []
+              for (var userName of result) {
+                userNames.push(userName.lname)
+              }
+              if (userNames.length == 1) {
+                item.userName = userNames[0]
+              } else {
+                item.userNames = userNames
+              }
+            }
+            count ++
+            if (count >= nResult) {
+              processYosan(results)
+            }
+          })
+        }
       }
     }
 
@@ -1026,6 +1093,35 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
   }
 });
 
+// Delete inoutcome
+router.post('/delete/inoutcome', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    var ids = req.body.ids
+    if (Array.isArray(ids)) {
+      var nIds = ids.length || 0
+      if (nIds == 0) {
+        res.sendStatus(300)
+        return
+      }
+      for (var i = 0; i < nIds; i++) {
+        ids[i] = new ObjectId(ids[i])
+      }
+      
+      await new Promise((resolve, reject) => {
+        db.collection('inoutcomeDaityou').deleteMany({ _id: {$in: ids} }, (err, result) => {
+          resolve()
+        });
+      })
+
+    }
+    res.sendStatus(200)
+    
+  } else {
+    res.sendStatus(403);
+  }
+});
+
 // Save inoutcome
 router.post('/update/inoutcome', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
@@ -1075,10 +1171,13 @@ router.post('/inoutcome', urlencodedParser, async (req, res) => {
     let priceTo = body.priceTo
     let limit = body.limit
 
+    // res.send(body)
+    // return
+
     let criteria = {}
 
     if (inoutType) {
-      criteria.inoutType = inoutType
+      criteria.type = inoutType
     }
 
     if (kanjoukamoku) {
@@ -1113,7 +1212,7 @@ router.post('/inoutcome', urlencodedParser, async (req, res) => {
     }
 
     if (torihiki) {
-      criteria.取引先 = new ObjectId(torihiki)
+      criteria.取引先 = torihiki
     }
 
     if (genba) {
@@ -1138,6 +1237,9 @@ router.post('/inoutcome', urlencodedParser, async (req, res) => {
         criteria.査定金額 = {$lte:priceTo}
       }
     }
+
+    // res.send(criteria)
+    // return
 
     if (Object.keys(criteria).length == 0) {
       // res.send('non condition')
@@ -1183,6 +1285,59 @@ router.post('/update/yosan', urlencodedParser, async (req, res) => {
     })
     // res.send(JSON.stringify(items))
     res.sendStatus(200)
+
+  } else {
+    res.sendStatus(403)
+  }
+});
+
+// delete jitkouyosan
+router.post('/delete/yosan', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+
+    var _id = new ObjectId(req.body._id)
+    await new Promise((resolve, reject) => {
+      db.collection('jitkouyosan').deleteOne({ '_id': _id }, (err, result) => {
+        resolve()
+      });
+    })
+    res.send({result:'ok'})
+
+  } else {
+    res.sendStatus(403)
+  }
+});
+
+router.post('/update/yosan/element', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+
+    // console.log(req.body)
+    // let items = req.body.data
+    let _id = new ObjectId(req.body._id)
+    var _set = {}
+    if (req.body.工種)
+        _set['工種'] = req.body.工種
+    if (req.body.摘要)
+        _set['摘要'] = req.body.摘要
+    if (req.body.小計)
+        _set['小計'] = parseInt(req.body.小計)
+    if (req.body.date)
+        _set['date'] = req.body.date
+
+    if (Object.keys(_set).length > 0) {
+
+      await new Promise((resolve, reject) => {
+        db.collection('jitkouyosan').updateOne({ '_id': _id }, { $set: _set }, (err, result) => {
+          resolve()
+        });
+      })
+      res.sendStatus(200)
+
+    } else {
+      res.sendStatus(300)
+    }
 
   } else {
     res.sendStatus(403)
@@ -1311,6 +1466,9 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
     if (yearBase) { params.yearBase = yearBase }
     if (yearBase) { resultAll.yearBase = yearBase }
 
+    // res.send(params)
+    // return
+
     // get distinct company list
     siharaCompanies(db, params, function (err, results) {
       if (err) {
@@ -1325,6 +1483,7 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
       if (nResult > 0) {
 
         if (need_cost_sum) { params.need_cost_sum = need_cost_sum }
+        let count = 0;
 
         for (let i = 0; i < nResult; i++) {
 
@@ -1348,13 +1507,16 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
 
               if (need_budgets) {
 
-                let dateFrom = yearBase + '/09/00'
-                let dateTo = (yearBase + 1) + '/08/00'
                 let params = {
                   genbaID: genbaID,
-                  company_id: company.data._id,
-                  dateFrom: dateFrom,
-                  dateTo: dateTo
+                  company_id: company.data._id
+                }
+
+                if (yearBase) {
+                  let dateFrom = yearBase + '/09/00'
+                  let dateTo = (yearBase + 1) + '/08/00'
+                  params.dateFrom = dateFrom
+                  params.dateTo = dateTo
                 }
 
                 // get 実行予算
@@ -1368,7 +1530,9 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
                   result.budget = budgetSum
                   data.push(result)
   
-                  if (i == nResult - 1) {
+                  count++;
+                  if (count == nResult) {
+
                     resultAll.items = data
                     res.send(resultAll)
                   }
@@ -1379,7 +1543,8 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
 
                 data.push(result)
 
-                if (i == nResult - 1) {
+                count++;
+                if (count == nResult) {
                   resultAll.items = data
                   res.send(resultAll)
                 }
@@ -1387,7 +1552,9 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
 
             } else {
 
-              if (i == nResult - 1) {
+              count++;
+              if (count == nResult) {
+                resultAll.items = data
                 res.send(resultAll)
               }
             }
@@ -1528,8 +1695,20 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
       myAction: myAction,
       elementType: elementType,
       elementTypeID: req.query.elementTypeID,
-      req: req.body
+      req: req.body,
     })
+
+    // new[monkey]
+    for (var key in req.body) {
+      // if (req.body.hasOwnProperty(key)) {
+      // }
+      var val = req.body[key]
+      var iVal = parseInt(val)
+      if (iVal == val) {
+        req.body[key] = iVal
+      }
+    }
+    
     var date = new Date();
     var today = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
     if (myAction == 'editAll') {
@@ -1553,16 +1732,12 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           resolve()
         });
       })
-    }//editAll
-
-    if (myAction == 'addone') {
+    } else if (myAction == 'addone') {
       let myCollection = db.collection(elementType)
       await new Promise((resolve, reject) => {
         myCollection.insertOne(req.body, (err, result) => { resolve() });
       })
-    }//ADD ONE
-
-    if (myAction == 'edit') {
+    } else if (myAction == 'edit') {
       if (req.query.elementTypeID) {
         let myCollection = db.collection(elementType)
         await new Promise((resolve, reject) => {
@@ -1571,11 +1746,9 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           });
         })
       } else {
-        console.log('elementTypeID not founded')
+        console.log('elementTypeID is not found')
       }
-    };//update ONE
-
-    if (myAction == 'replace') {
+    } else if (myAction == 'replace') {
       if (req.query.elementTypeID) {
         let myCollection = db.collection(elementType)
         await new Promise((resolve, reject) => {
@@ -1585,11 +1758,9 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           });
         })
       } else {
-        console.log('elementTypeID not founded')
+        console.log('elementTypeID is not found')
       }
-    };//replace ONE
-
-    if (myAction == 'update') {
+    } else if (myAction == 'update') {
       if (req.query.elementTypeID) {
         let myCollection = db.collection(elementType)
         await new Promise((resolve, reject) => {
@@ -1598,11 +1769,9 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           });
         })
       } else {
-        console.log('elementTypeID not founded')
+        console.log('elementTypeID is not found')
       }
-    };//update ONE
-
-    if (myAction == 'editField') {
+    } else if (myAction == 'editField') {
       if (req.query.elementTypeID) {
         let myCollection = db.collection(elementType)
         await new Promise((resolve, reject) => {
@@ -1611,11 +1780,9 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           });
         })
       } else {
-        console.log('elementTypeID not founded')
+        console.log('elementTypeID is not found')
       }
-    };//EDIT ONE
-
-    if (myAction == 'delete') {
+    } else if (myAction == 'delete') {
       if (req.query.elementTypeID) {
         let myCollection = db.collection(elementType)
         await new Promise((resolve, reject) => {
@@ -1624,7 +1791,7 @@ router.post('/:myAction/:elementType', urlencodedParser, async (req, res) => {
           });
         })
       } else {
-        console.log('genbaID not founded')
+        console.log('elementTypeID is not found')
       }
     }//DELETE
     res.redirect('back')
@@ -1749,7 +1916,7 @@ router.get('/db/userid', urlencodedParser, async (req, res) => {
           if (user) {
             res.send(user._id)
           } else {
-            res.send('user not founded')
+            res.send('user is not found')
           }
         })
       }

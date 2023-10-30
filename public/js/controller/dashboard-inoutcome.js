@@ -284,6 +284,8 @@ $(document).ready(async function () {
                     for (let index = 0; index < data.length; index++) {
                         let element = data[index]
                         if (element.el) {
+                            if (!element.rate)
+                                element.rate = 0
                             zeirituSelect.append('<option value="' +  element.rate + '" data-id="' + element._id + '">' + element.el+' </option>')
                         }
                     }
@@ -332,16 +334,20 @@ $(document).ready(async function () {
             let dateSelect = $(this)
             let today = formatedDateString(new Date())
 
-            dateSelect.val(todayJP)
-            dateSelect.attr('data-date', today)
-            dateSelect.addClass('isweekend-' + todayJP.substring(todayJP.indexOf('(')).replace('(', '').replace(')', ''))
+            let name = $(this).attr('name')
+            if (name != 'from' && name != 'to') {
+                dateSelect.val(todayJP)
+                dateSelect.attr('data-date', today)
+                dateSelect.addClass('isweekend-' + todayJP.substring(todayJP.indexOf('(')).replace('(', '').replace(')', ''))
+            }
 
             dateSelect.datepicker({
                 language: "ja",
                 format: 'yyyy年mm月dd日(D)',
                 autoclose: true,
                 // startDate: null,
-                endDate: new Date()
+                endDate: new Date(),
+                orientation: "bottom left"
             }).on('changeDate', function (e) {
                 let dd = new Date(e.date)
                 let ct = formatedDateString(dd)
@@ -437,6 +443,14 @@ $(document).ready(async function () {
                             inputSateiprice.val('')
                             selectZeiritu.val('')
                             selectZeiritu.niceSelect('update')
+
+                            // initialize the global controls
+                            var selectKouza = $('#input-kouza')
+                            var selectHattyu = $('#input-hattyu')
+                            selectKouza.val('')
+                            selectKouza.niceSelect('update')
+                            selectHattyu.val('')
+                            selectHattyu.niceSelect('update')
                         }
                     }
                 })
@@ -579,19 +593,116 @@ $(document).ready(async function () {
             }
 
             if (prevQuery && JSON.stringify(prevQuery) == JSON.stringify(query)) {
-                console.log("same query")
+                // console.log("same query")
             } else {
-                console.log(query)
+                // console.log(query)
                 prevQuery = query
                 request2GetFilteredData(query)
             }
 
         })
 
-        // Clear Filter Button
+        // Batch Delete
         $('body').on('click', '#filterAllBtn', function () {
-            initTable()
+            if (confirm("本当に削除しますか？")) {
+                deleteCheckedList()
+            }
         })
+
+        // Clear Filter Button
+        $('body').on('click', '#clearFilterBtn', function () {
+            clearFilterDate()
+            clearFilterKouza()
+            clearFilterHattyu()
+            clearFilterGenba()
+            clearFilterCategory()
+        })
+
+        $('body').on('click', '.ic-feather-x', function () {
+            var dataId = $(this).attr('data-id')
+            if (dataId == 'input-filter-date') {
+                clearFilterDate()
+            } else if (dataId == 'input-filter-kouza') {
+                clearFilterKouza()
+            } else if (dataId == 'input-filter-httyu') {
+                clearFilterHattyu()
+            } else if (dataId == 'input-filter-genba') {
+                clearFilterGenba()
+            }
+        })
+
+        $('#batch-check').click(function(){
+            if($(this).is(':checked')){
+                $('.item-check').prop('checked', true)
+            }
+            else {
+                $('.item-check').prop('checked', false)
+            }
+        })
+
+        $('body').on('click', '.item-check', function () {
+            // console.log("item-check");
+            // var checkbox = $(this).find('input')
+            // if (checkbox.is(':checked')) {
+            //     checkbox.prop('checked', false)
+            // } else {
+            //     checkbox.prop('checked', true)
+            // }
+        })
+
+        // $('body').on('click', '.list-item', function () {
+            // var checkbox = $(this).find('input')
+            // if (checkbox.is(':checked')) {
+            //     checkbox.prop('checked', false)
+            // } else {
+            //     checkbox.prop('checked', true)
+            // }
+            // console.log("list-item");
+        // })
+
+        $('body').on('keydown', '.input-date-filter', function (e) {
+            if (e.keyCode == 8 || e.keyCode == 46) { // backspace | delete
+                $(this).val('')
+                $(this).attr('data-date', '')
+            }
+        })
+    }
+
+    function clearFilterDate() {
+        $('#date-from').val('')
+        $('#date-from').attr('data-date', '')
+        $('#date-to').val('')
+        $('#date-to').attr('data-date', '')
+    }
+
+    function clearFilterKouza() {
+        $('#input-filter-kouza').val('')
+        $('#input-filter-kouza').niceSelect('update')
+    }
+
+    function clearFilterHattyu() {
+        $('#input-filter-hattyu').val('')
+        $('#input-filter-gyousha').val('')
+        $('#input-filter-torihiki').val('')
+        $('#input-filter-hattyu').niceSelect('update')
+        $('#input-filter-gyousha').niceSelect('update')
+        $('#input-filter-torihiki').niceSelect('update')
+    }
+
+    function clearFilterGenba() {
+        $('#input-filter-genba').val('')
+        $('#input-filter-genba').niceSelect('update')
+    }
+
+    function clearFilterCategory() {
+        $('.btn-group .active').removeClass('active')
+        $('label.sub-filter:first-child').addClass('active')
+        $('#filter-all-tab').attr('aria-selected', true)
+        $('#filter-income-tab').attr('aria-selected', false)
+        $('#filter-outcome-tab').attr('aria-selected', false)
+        $('#filter-all-tab').addClass('active')
+        $('#filter-income-tab').removeClass('active')
+        $('#filter-outcome-tab').removeClass('active')
     }
 
     function updateSubTotal(inputSateiprice, selectZeiritu, labelSubTotal, elements) {
@@ -758,7 +869,7 @@ $(document).ready(async function () {
             if (!tax) tax = 0
             if (!priceWithTax) priceWithTax = 0
 
-            html += '<tr><td class="py-2 pl-1 text-left" style="color:' + (type == '収入' ? '#00b0f0' : '#ea4335') + '">' + type +
+            html += '<tr class="list-item"><td class="text-left"><label class="mb-0 pl-2 py-2 d-flex" style="color:' + (type == '収入' ? '#00b0f0' : '#ea4335') + ';cursor:pointer"><input type="checkbox" style="cursor:pointer;margin-top:3px" class="item-check" data-value="' + item._id + '"><span class="pl-2">' + type + '</span></label>' +
                     '</td><td class="pr-1">' + date + '</td><td class="pr-1">' + torihiki +
                     '</td><td class="pr-1">' + kanjoukamoku + '</td><td class="pr-1">' + genba +
                     '</td><td class="pr-1">' + bikou + '</td><td class="pr-1">' + numberFormat(price) +
@@ -859,6 +970,22 @@ $(document).ready(async function () {
                 if (callback) { callback() }
             }, 1000);
         })
+    }
+
+    function deleteCheckedList() {
+        var ids = []
+        $.each($(".item-check:checked"), function () {
+            var _id = $(this).attr('data-value')
+            ids.push(_id)
+        })
+
+        if (ids.length > 0) {
+            var query = {ids: ids}
+            $.post('/api/delete/inoutcome/', query, function (data) {
+                console.log(data)
+                initTable()
+            })
+        }
     }
 })
 
