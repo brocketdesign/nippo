@@ -1524,17 +1524,21 @@ router.post('/sihara-ichiran-summary', urlencodedParser, async (req, res) => {
     let period = req.body.period
     let resultAll = {}
 
-    let yearBase
+    let yearBase = null
     const monthFrom = 8, monthTo = 9
 
-    let now = new Date()
-    if (period == 'now') {
-      yearBase = now.getFullYear()
-    } else { // before
-      yearBase = now.getFullYear() - 1
+    if (period) {
+      var now = new Date()
+      if (period == 'now') { // from 9月 to next-year.8月
+        yearBase = now.getFullYear()
+      } else { // from prev-year.9月 to 8月
+        yearBase = now.getFullYear() - 1
+      }
     }
 
-    let params = { genbaID: genbaID, yearBase: yearBase }
+    let params = { genbaID: genbaID }
+    if (yearBase) { params.yearBase = yearBase }
+    if (yearBase) { resultAll.yearBase = yearBase }
 
     // get 原価
     siharaCostsOfPeriod(db, params, function (err, results) {
@@ -1557,8 +1561,6 @@ router.post('/sihara-ichiran-summary', urlencodedParser, async (req, res) => {
         if (results.length > 0) {
           resultAll.sales = results
         }
-
-        resultAll.yearBase = yearBase
 
         res.send(resultAll)
       })

@@ -234,16 +234,18 @@ $(document).ready(async function () {
             if (profitRate === undefined) profitRate = 'ー'
             else profitRate = numberFormat(profitRate) + '%'
             var budget = numberFormat(item.budget)
-            var _deposit = item.契約金額 || 0
+            var _deposit
+            if (item.契約金額) _deposit = parseInt(item.契約金額)
+            else _deposit = 0
             var deposit = numberFormat(_deposit)
             var dateFrom = item['工期(自)']
             var dateTo = item['工期(至)']
             // var status = item.status
             var status = item.完了状況 || '進行中'
 
-            depositSum += typeof _deposit == "string" ? parseInt(_deposit) : _deposit;
-            costSum += typeof _cost == "string" ? parseInt(_cost) : _cost;
-            profitSum += typeof _cost == "string" ? parseInt(_cost) : _cost;
+            depositSum += _deposit
+            costSum += _cost
+            profitSum += _profit
 
             var userName = ''
             if (item.userName) {
@@ -255,8 +257,8 @@ $(document).ready(async function () {
                     for (var i = 0; i < n-1; i++) {
                         userName += userNames[i] + '、'
                     }
-                    userName += userNames[n-1]
                 }
+                userName += userNames[n-1]
             }
 
             var statusSpan
@@ -284,7 +286,7 @@ $(document).ready(async function () {
             }
 
             html +=
-            '<li class="list-group-item mb-2 px-0" data-value="' + _id + '"><div class="d-flex"><div class="align-self-center px-sm-4"><input class="check-input genba-checkbox" onClick="updateSummaryTable()" type="checkbox" style="cursor:pointer" checked data-deposit="' + _deposit + '" data-cost="' + _cost + '" data-profit="' + _profit + '"></div><div class="listitem-body clickable-no-hover col px-0" data-link="/dashboard/daityou/genba?genbaID=' + _id + '&genbaName=' + genbaName + '"><h5 class="label-genba-name mb-3">' + genbaName +'</h5><div class="d-flex">' + statusSpan + '<div class="pl-sm-4 pr-0"><div class="d-flex text-right"><div class="flex-grow-1"><div class="d-md-flex p-2"><div class="flex-grow-1" style="width:100px">契約金額:</div><div class="label-deposit flex-grow-1" style="width:100px">' + deposit + '</div></div></div><div class="flex-grow-1"><div class="d-md-flex p-2"><div class="flex-grow-1 font-weight-bold" style="width:100px">粗利益:</div><div class="label-profit flex-grow-1 font-weight-bold" style="width:100px">' + profit + '</div></div></div></div><div class="d-flex text-right"><div class="flex-grow-1"><div class="d-md-flex p-2"><div class="flex-grow-1" style="width:100px">原価:</div><div class="label-cost flex-grow-1" style="width:100px">' + cost + '</div></div></div><div class="flex-grow-1"><div class="d-md-flex p-2"><div class="flex-grow-1" style="width:100px">粗利益率:</div><div class="label-profit-rate flex-grow-1 font-weight-bold" style="width:100px">' + profitRate + '</div></div></div></div><div class="d-flex text-right small"><div class="flex-grow-1"><div class="d-md-flex p-2"><div class="flex-grow-1" style="width:100px">実行予算:</div><div class="label-budget flex-grow-1" style="width:100px">' + budget + '</div></div></div><div class="flex-grow-1"><div class="d-md-flex p-2"><div class="flex-grow-1" style="width:100px"></div><div class="flex-grow-1" style="width:100px"></div></div></div></div><div class="d-flex mt-4 small text-center"><div class="flex-grow-1" style="width:100px">自</div><div class="flex-grow-1" style="width:100px">至</div><div class="flex-grow-1" style="width:100px">担当</div></div><div class="d-flex py-2 text-center"><div class="label-date-from flex-grow-1" style="width:100px">' + dateFrom + '</div><div class="label-date-to flex-grow-1" style="width:100px">' + dateTo + '</div><div class="label-user flex-grow-1" style="width:100px">' + userName + '</div></div></div></div></div></div></li>'
+            '<li class="list-group-item mb-2 px-0" data-value="' + _id + '"><div class="d-flex"><div class="align-self-center px-sm-4"><input class="check-input genba-checkbox" type="checkbox" style="cursor:pointer" checked data-deposit="' + _deposit + '" data-cost="' + _cost + '" data-profit="' + _profit + '"></div><div class="listitem-body clickable-no-hover col px-0" data-link="/dashboard/daityou/genba?genbaID=' + _id + '&genbaName=' + genbaName + '"><h5 class="label-genba-name mb-3">' + genbaName +'</h5><div class="d-flex">' + statusSpan + '<div class="pl-sm-4 pr-0"><div class="d-flex text-right"><div class="flex-grow-1"><div class="d-md-flex p-2"><div class="flex-grow-1" style="width:100px">契約金額:</div><div class="label-deposit flex-grow-1" style="width:100px">' + deposit + '</div></div></div><div class="flex-grow-1"><div class="d-md-flex p-2"><div class="flex-grow-1 font-weight-bold" style="width:100px">粗利益:</div><div class="label-profit flex-grow-1 font-weight-bold" style="width:100px">' + profit + '</div></div></div></div><div class="d-flex text-right"><div class="flex-grow-1"><div class="d-md-flex p-2"><div class="flex-grow-1" style="width:100px">原価:</div><div class="label-cost flex-grow-1" style="width:100px">' + cost + '</div></div></div><div class="flex-grow-1"><div class="d-md-flex p-2"><div class="flex-grow-1" style="width:100px">粗利益率:</div><div class="label-profit-rate flex-grow-1 font-weight-bold" style="width:100px">' + profitRate + '</div></div></div></div><div class="d-flex text-right small"><div class="flex-grow-1"><div class="d-md-flex p-2"><div class="flex-grow-1" style="width:100px">実行予算:</div><div class="label-budget flex-grow-1" style="width:100px">' + budget + '</div></div></div><div class="flex-grow-1"><div class="d-md-flex p-2"><div class="flex-grow-1" style="width:100px"></div><div class="flex-grow-1" style="width:100px"></div></div></div></div><div class="d-flex mt-4 small text-center"><div class="flex-grow-1" style="width:100px">自</div><div class="flex-grow-1" style="width:100px">至</div><div class="flex-grow-1" style="width:100px">担当</div></div><div class="d-flex py-2 text-center"><div class="label-date-from flex-grow-1" style="width:100px">' + dateFrom + '</div><div class="label-date-to flex-grow-1" style="width:100px">' + dateTo + '</div><div class="label-user flex-grow-1" style="width:100px">' + userName + '</div></div></div></div></div></div></li>'
 
             $('#batch-check').prop('checked', true)
         })
@@ -322,6 +324,26 @@ $(document).ready(async function () {
         })
     }
 
+    function updateSummaryTable() {
+        var depositSum = 0
+        var costSum = 0
+        var profitSum = 0
+
+        $.each($(".genba-checkbox:checked"), function () {
+            var deposit = $(this).attr('data-deposit')
+            var cost = $(this).attr('data-cost')
+            var profit = $(this).attr('data-profit')
+            if (deposit !== undefined) depositSum += parseInt(deposit)
+            if (cost !== undefined) costSum += parseInt(cost)
+            if (profit !== undefined) profitSum += parseInt(profit)
+        })
+
+        setSummaryTable(depositSum, costSum, profitSum)
+    }
+
+    function setSummaryTable(depositSum, costSum, profitSum) {
+        $('#summary-tbody').html('<tr class="text-right font-weight-bold"><td class="py-2 px-2" id="deposit-amount-all">' + numberFormat(depositSum) + '</td><td class="px-2" id="prime-cost-all">' + numberFormat(costSum) + '</td><td class="px-2" id="expect-profit-all">' + numberFormat(profitSum) + '</td></tr>')
+    }
 })
 
 function numberFormat(number) {
@@ -336,28 +358,6 @@ function paddingNumber(number, padding) {
 
 function formatedDateString(date) {
     return date.getFullYear() + '/' + paddingNumber(date.getMonth() + 1, 2) + '/' + paddingNumber(date.getDate(), 2)
-}
-
-function updateSummaryTable() {
-    var depositSum = 0
-    var costSum = 0
-    var profitSum = 0
-
-    // $.each($(".genba-checkbox:checked"), function () {
-    $('.genba-checkbox:checked').each(function() {
-        var deposit = $(this).attr('data-deposit')
-        var cost = $(this).attr('data-cost')
-        var profit = $(this).attr('data-profit')
-        if (deposit !== undefined) depositSum += parseInt(deposit)
-        if (cost !== undefined) costSum += parseInt(cost)
-        if (profit !== undefined) profitSum += parseInt(profit)
-    })
-
-    setSummaryTable(depositSum, costSum, profitSum)
-}
-
-function setSummaryTable(depositSum, costSum, profitSum) {
-    $('#summary-tbody').html('<tr class="text-right font-weight-bold"><td class="py-2 px-2" id="deposit-amount-all">' + numberFormat(depositSum) + '</td><td class="px-2" id="prime-cost-all">' + numberFormat(costSum) + '</td><td class="px-2" id="expect-profit-all">' + numberFormat(profitSum) + '</td></tr>')
 }
 
 // function _formatedDateString(year, month, date) {

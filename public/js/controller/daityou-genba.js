@@ -13,6 +13,10 @@ $(document).ready(async function () {
     let sale = 0
     let cost = 0
 
+    //
+    let useFlotChart = false
+    let useChartScroll = true
+
     if (!!document.querySelector('#daityouGenbaPage')) {
         initNavBar()
         initForm()
@@ -64,8 +68,22 @@ $(document).ready(async function () {
             initCostBarChart()
         }
 
-        if (document.querySelector('#spline-chart')) {
-            initSplineChart()
+        var selector
+        if (useFlotChart) {
+            selector = '#spline-chart-flot'
+            $('#spline-chart-container').remove()
+            $('#spline-chart-body').removeClass('pl-2 pr-0')
+            $('#spline-chart-body').addClass('pl-3 pr-2')
+        } else {
+            selector = '#spline-chart'
+            $('#spline-chart-flot').remove()
+        }
+        if (!useChartScroll) {
+            $('#spline-chart-body').removeClass('overflow-x-auto')
+        }
+
+        if (document.querySelector(selector)) {
+            initSplineChart(selector)
         }
     }
 
@@ -75,6 +93,7 @@ $(document).ready(async function () {
         }
 
         $.post('/api/genba-detail/', query, function (data) {
+            // console.log(data)
             updateUIByGenbaStatus(data.完了状況)
             updateGenbaTableOnResponse(data)
         })
@@ -111,36 +130,40 @@ $(document).ready(async function () {
         //     query.period = 'before'
         // }
         $.post('/api/sihara-ichiran/', query, function (data) {
-            console.log(data)
+            // console.log(data)
             drawCostBarChart('#cost-barchart', data)
         })
     }
 
-    function initSplineChart() {
+    function initSplineChart(selector) {
         var query = {
             genbaID: genbaID
         }
 
-        var now = new Date()
-        if ((now.getMonth() + 1) > 8) { // from 9月 to next-year.8月
-            query.period = 'now'
-        } else { // from prev-year.9月 to 8月
-            query.period = 'before'
-        }
+        // var now = new Date()
+        // if ((now.getMonth() + 1) > 8) { // from 9月 to next-year.8月
+        //     query.period = 'now'
+        // } else { // from prev-year.9月 to 8月
+        //     query.period = 'before'
+        // }
 
         $.post('/api/sihara-ichiran-summary/', query, function (data) {
             // console.log(data)
-            drawSplineChart('#spline-chart', data)
+            if (useFlotChart) {
+                drawSplineChartFlotJS(selector, data)
+            } else {
+                drawSplineChartChartJS(selector, data)
+            }
         })
     }
 
     function updateYosanTableOnResponse(data) {
-        deposit = data.契約金額 ? data.契約金額 : 0
-        budget = data.実行予算 ? data.実行予算 : 0
-        profit = data.予想粗利 ? data.予想粗利 : 0
+        deposit = data.契約金額 || 0
+        budget = data.実行予算 || 0
+        profit = data.予想粗利 || 0
         profitRate = data.粗利率
-        sale = data.売上 ? data.売上 : 0
-        cost = data.原価 ? data.原価 : 0
+        sale = data.売上 || 0
+        cost = data.原価 || 0
 
         $('#yosan-deposit').html(numberFormat(deposit))
         $('#yosan-sale').html(numberFormat(sale))
@@ -357,26 +380,106 @@ $(document).ready(async function () {
     
     }
 
-    function drawSplineChart(selector, data) {
+    function drawSplineChartFlotJS(selector, data) {
 
         let hasDrawn = false
 
-        let yearBase = data.yearBase
         let costs = data.costs
         let sales = data.sales
 
-        let datesHeader = periodHeaderDates(yearBase)
-        let dates = periodDates(yearBase)
+        // calculate date range
+        var yearMinCost = 10000, monthMinCost = 10000
+        var yearMaxCost = 0, monthMaxCost = 0
+        if (costs !== undefined && costs.length > 0) {
+            for (var i = 0; i < costs.length; i++) {
+                var element = costs[i]
+                var year = element._id.year
+                var month = element._id.month
+                if (year < yearMinCost) {
+                    yearMinCost = year
+                    monthMinCost = month
+                } else {
+                    if (year == yearMinCost && month < monthMinCost) {
+                        monthMinCost = month
+                    }
+                }
+
+                if (year > yearMaxCost) {
+                    yearMaxCost = year
+                    monthMaxCost = month
+                } else {
+                    if (year == yearMaxCost && month > monthMaxCost) {
+                        monthMaxCost = month
+                    }
+                }
+            }
+        }
+
+        var yearMinSale = 10000, monthMinSale = 10000
+        var yearMaxSale = 0, monthMaxSale = 0
+        if (sales !== undefined && sales.length > 0) {
+            for (var i = 0; i < sales.length; i++) {
+                var element = sales[i]
+                var year = element._id.year
+                var month = element._id.month
+                if (year < yearMinSale) {
+                    yearMinSale = year
+                    monthMinSale = month
+                } else {
+                    if (year == yearMinSale && month < monthMinSale) {
+                        monthMinSale = month
+                    }
+                }
+
+                if (year > yearMaxSale) {
+                    yearMaxSale = year
+                    monthMaxSale = month
+                } else {
+                    if (year == yearMaxSale && month > monthMaxSale) {
+                        monthMaxSale = month
+                    }
+                }
+            }
+        }
+
+        var yearMin = Math.min(yearMinCost, yearMinSale), monthMin = Math.min(monthMinCost, monthMinSale)
+        var yearMax = Math.max(yearMaxCost, yearMaxSale), monthMax = Math.max(monthMaxCost, monthMaxSale)
+
+        var dates = periodDates(yearMin, monthMin, yearMax, monthMax)
+        // console.log(dates)
+        var nRange = dates.length
+        if (nRange == 0) { // error
+            return
+        }
+        
+        var datesHeader
+        if (nRange > 12) {
+            datesHeader = periodHeaderDatesUniq(yearMin, monthMin, yearMax, monthMax)
+        } else {
+            datesHeader = periodHeaderDates(yearMin, monthMin, yearMax, monthMax)
+        }
+
+        if (useChartScroll) {
+            let rootWidth = $("#spline-chart-root").width() - 20
+            let width = nRange * 50
+            if (width > rootWidth) {
+                $(selector).removeClass('w-100')
+                $(selector).css("width", width + "px")
+            }
+        }
+
         let costsFull = paddingCosts(dates, costs)
         let salesFull = paddingSales(dates, sales)
 
         let costsGraphData = []
         let salesGraphData = []
-        for (var i = 0; i < 12; i++) {
+        for (var i = 0; i < nRange; i++) {
             var header = datesHeader[i]
             costsGraphData.push([header, costsFull[i]])
             salesGraphData.push([header, salesFull[i]])
         }
+        // console.log(categories)
+        // return
 
         $(selector).resize(() => {
             draw()
@@ -433,86 +536,326 @@ $(document).ready(async function () {
             })
         }
     }
-})
 
-function paddingCosts(dates, costs) {
-    var costsFull = []
-    if (costs === undefined || costs.length == 0) {
-        for (var i = 0; i < 12; i++) {
-            costsFull.push(0)
+    function drawSplineChartChartJS(selector, data) {
+
+        let hasDrawn = false
+
+        let costs = data.costs
+        let sales = data.sales
+
+        // calculate date range
+        var yearMinCost = 10000, monthMinCost = 10000
+        var yearMaxCost = 0, monthMaxCost = 0
+        if (costs !== undefined && costs.length > 0) {
+            for (var i = 0; i < costs.length; i++) {
+                var element = costs[i]
+                var year = element._id.year
+                var month = element._id.month
+                if (year < yearMinCost) {
+                    yearMinCost = year
+                    monthMinCost = month
+                } else {
+                    if (year == yearMinCost && month < monthMinCost) {
+                        monthMinCost = month
+                    }
+                }
+
+                if (year > yearMaxCost) {
+                    yearMaxCost = year
+                    monthMaxCost = month
+                } else {
+                    if (year == yearMaxCost && month > monthMaxCost) {
+                        monthMaxCost = month
+                    }
+                }
+            }
         }
-    } else {
-        var idxS = 0
-        var idxE = 0
-        for (var i = 0; i < costs.length; i++) {
-            var element = costs[i]
-            var cost = element.cost
-            var date = element._id.year + '' + element._id.month
-            while (dates[idxE] != date) idxE ++
-            for (var j = idxS; j < idxE; j++) costsFull.push(0)
-            idxE ++
-            idxS = idxE
-            if (!cost) cost = 0
-            costsFull.push(cost)
+
+        var yearMinSale = 10000, monthMinSale = 10000
+        var yearMaxSale = 0, monthMaxSale = 0
+        if (sales !== undefined && sales.length > 0) {
+            for (var i = 0; i < sales.length; i++) {
+                var element = sales[i]
+                var year = element._id.year
+                var month = element._id.month
+                if (year < yearMinSale) {
+                    yearMinSale = year
+                    monthMinSale = month
+                } else {
+                    if (year == yearMinSale && month < monthMinSale) {
+                        monthMinSale = month
+                    }
+                }
+
+                if (year > yearMaxSale) {
+                    yearMaxSale = year
+                    monthMaxSale = month
+                } else {
+                    if (year == yearMaxSale && month > monthMaxSale) {
+                        monthMaxSale = month
+                    }
+                }
+            }
         }
-        for (var i = idxS; i < 12; i++) {
-            costsFull.push(0)
+
+        var yearMin = Math.min(yearMinCost, yearMinSale), monthMin = Math.min(monthMinCost, monthMinSale)
+        var yearMax = Math.max(yearMaxCost, yearMaxSale), monthMax = Math.max(monthMaxCost, monthMaxSale)
+
+        var datesHeader = periodHeaderDates(yearMin, monthMin, yearMax, monthMax)
+        var dates = periodDates(yearMin, monthMin, yearMax, monthMax)
+        var nRange = dates.length
+        if (nRange == 0) { // error
+            return
         }
+
+        if (useChartScroll) {
+            // adjust the container bound
+            let rootWidth = $("#spline-chart-root").width() - 20
+            let width = nRange * 50
+            let minWidth = Math.min(rootWidth, width)
+            let maxWidth = Math.max(rootWidth, width)
+    
+            let canvasWidth
+            if (rootWidth < width) {
+                canvasWidth = width
+            } else {
+                canvasWidth = minWidth
+            }
+            $("#spline-chart-container").css("min-width", canvasWidth + "px")
+            
+            var canvasHeight = 2000 * 70 / maxWidth
+            $("#spline-chart").attr("height", canvasHeight + "")
+        }
+
+        // console.log(minWidth + " " + maxWidth + " " + width + " " + canvasWidth + " " + canvasHeight);
+
+        let costsFull = paddingCosts(dates, costs)
+        let salesFull = paddingSales(dates, sales)
+
+        let costsGraphData = []
+        let salesGraphData = []
+        for (var i = 0; i < nRange; i++) {
+            costsGraphData.push(costsFull[i])
+            salesGraphData.push(salesFull[i])
+        }
+        // console.log(categories)
+        // return
+
+        let chartData = {
+            labels: datesHeader,
+            datasets: [
+                {
+                    fill:false,
+                    tension:0,
+                    pointBackgroundColor:"#0093fb",
+                    pointBorderColor:"#fff",
+                    borderJoinStyle: 'miter',
+                    pointBorderWidth:"1",
+                    borderColor:"#0093fb",
+                    radius:"4",
+                    hitRadius:"2",
+                    borderWidth:"2",
+                    label:"原価合計",
+                    data : costsGraphData,
+                    backgroundColor:"#0093fb"
+                },
+                {
+                    fill:false,
+                    tension:0,
+                    pointBackgroundColor:"#3cd133",
+                    pointBorderColor:"#fff",
+                    borderJoinStyle: 'miter',
+                    pointBorderWidth:"1",
+                    borderColor:"#3cd133",
+                    radius:"4",
+                    hitRadius:"2",
+                    borderWidth:"2",
+                    label:"売上合計",
+                    data : salesGraphData,
+                    backgroundColor:"#3cd133"
+                }
+            ]
+        }
+
+        // $(selector).resize(() => {
+        //     draw()
+        // })
+        $(selector).on('resize', function () {
+            draw()
+        })
+        draw()
+
+        function draw() {
+            if ($(selector).width() == 0 || $(selector).height() == 0)
+                return
+    
+            if (hasDrawn)
+                return
+            
+            hasDrawn = true
+    
+            new MyChart($(selector), {
+                type: 'line',
+                data: chartData,
+                options: {
+                    title: {
+                        display: false,
+                        text: '月別　原価と売上'
+                    }
+                }
+            })
+        }
+    
     }
-    return costsFull
-}
+
+})
 
 function numberFormat(number) {
     return new Intl.NumberFormat('ja-JP').format(number)
 }
 
-function periodHeaderDates(yearBase) {
+function periodHeaderDates(yearMin, monthMin, yearMax, monthMax) {
     var dates = []
-    dates.push(yearBase + '年' + monthFrom + '月')
-    for (var i = monthFrom + 1; i <= 12; i++) {
-        dates.push(i + '月')
+    if (yearMin == 10000 || monthMin == 10000 || yearMax == 0 || monthMax == 0) {
+        return dates
     }
-    dates.push((yearBase + 1) + '年1月')
-    for (var i = 2; i <= monthTo; i++) {
-        dates.push(i + '月')
+    dates.push(yearMin + '年' + monthMin + '月')
+    if (yearMin == yearMax) {
+        for (var i = monthMin + 1; i <= monthMax; i++) {
+            dates.push(i + '月')
+        }
+    } else {
+
+        for (var i = monthMin + 1; i <= 12; i++) {
+            dates.push(i + '月')
+        }
+        for (var i = yearMin + 1; i < yearMax; i++) {
+            dates.push(i + '年1月')
+            for (var j = 2; j <= 12 ;j++) {
+                dates.push(j + '月')
+            }
+        }
+        dates.push(yearMax + '年1月')
+        for (var i = 2; i <= monthMax; i++) {
+            dates.push(i + '月')
+        }
+    }
+    
+    return dates
+}
+
+function periodHeaderDatesUniq(yearMin, monthMin, yearMax, monthMax) {
+    var dates = []
+    if (yearMin == 10000 || monthMin == 10000 || yearMax == 0 || monthMax == 0) {
+        return dates
+    }
+    if (yearMin == yearMax) {
+        for (var i = monthMin; i <= monthMax; i++) {
+            dates.push(formatYear(yearMin) + '/' + formatMonth(i,2))
+        }
+    } else {
+
+        for (var i = monthMin; i <= 12; i++) {
+            dates.push(formatYear(yearMin) + '/' + formatMonth(i,2))
+        }
+        for (var i = yearMin + 1; i < yearMax; i++) {
+            for (var j = 1; j <= 12 ;j++) {
+                dates.push(formatYear(i) + '/' + formatMonth(j,2))
+            }
+        }
+        for (var i = 1; i <= monthMax; i++) {
+            dates.push(formatYear(yearMax) + '/' + formatMonth(i,2))
+        }
+    }
+    
+    return dates
+}
+
+function periodDates(yearMin, monthMin, yearMax, monthMax) {
+    var dates = []
+    if (yearMin == 10000 || monthMin == 10000 || yearMax == 0 || monthMax == 0) {
+        return dates
+    }
+    if (yearMin == yearMax) {
+        for (var i = monthMin; i <= monthMax; i++) {
+            dates.push(yearMin + '' + i)
+        }
+    } else {
+        for (var i = monthMin; i <= 12; i++) {
+            dates.push(yearMin + '' + i)
+        }
+        for (var i = yearMin + 1; i < yearMax; i++) {
+            for (var j = 1; j <= 12 ;j++) {
+                dates.push(i + '' + j)
+            }
+        }
+        for (var i = 1; i <= monthMax; i++) {
+            dates.push(yearMax + '' + i)
+        }
     }
     return dates
 }
 
-function periodDates(yearBase) {
-    var dates = []
-    for (var i = monthFrom; i <= 12; i++) {
-        dates.push(yearBase + '' + i)
+function paddingCosts(dates, costs) {
+    var costsFull = []
+    if (costs === undefined || costs.length == 0) {
+        return costsFull
     }
-    for (var i = 1; i <= monthTo; i++) {
-        dates.push((yearBase + 1) + '' + i)
+
+    var idxS = 0
+    var idxE = 0
+    for (var i = 0; i < costs.length; i++) {
+        var element = costs[i]
+        var cost = element.cost
+        var date = element._id.year + '' + element._id.month
+        while (dates[idxE] != date) idxE ++
+        for (var j = idxS; j < idxE; j++) costsFull.push(0)
+        idxE ++
+        idxS = idxE
+        if (!cost) cost = 0
+        costsFull.push(cost)
     }
-    return dates
+    for (var i = idxS; i < dates.length; i++) {
+        costsFull.push(0)
+    }
+
+    return costsFull
 }
 
 function paddingSales(dates, sales) {
     var salesFull = []
     if (sales === undefined || sales.length == 0) {
-        for (var i = 0; i < 12; i++) {
-            salesFull.push(0)
-        }
-    } else {
-        var idxS = 0
-        var idxE = 0
-        for (var i = 0; i < sales.length; i++) {
-            var element = sales[i]
-            var sale = element.sale
-            var date = element._id.year + '' + element._id.month
-            while (dates[idxE] != date) idxE ++
-            for (var j = idxS; j < idxE; j++) salesFull.push(0)
-            idxE ++
-            idxS = idxE
-            if (!sale) sale = 0
-            salesFull.push(sale)
-        }
-        for (var i = idxS; i < 12; i++) {
-            salesFull.push(0)
-        }
+        return salesFull
     }
+
+    var idxS = 0
+    var idxE = 0
+    for (var i = 0; i < sales.length; i++) {
+        var element = sales[i]
+        var sale = element.sale
+        var date = element._id.year + '' + element._id.month
+        while (dates[idxE] != date) idxE ++
+        for (var j = idxS; j < idxE; j++) salesFull.push(0)
+        idxE ++
+        idxS = idxE
+        if (!sale) sale = 0
+        salesFull.push(sale)
+    }
+    for (var i = idxS; i < dates.length; i++) {
+        salesFull.push(0)
+    }
+
     return salesFull
+}
+
+function formatYear(year, padding) {
+    var num = year % 100
+    return num
+}
+
+function formatMonth(month, padding) {
+    var num = "" + month
+    while(num.length < padding) num = "0" + num
+    return num
 }

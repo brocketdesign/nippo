@@ -40,15 +40,16 @@ $(document).ready(async function () {
             genbaID: genbaID
         }
 
-        var now = new Date()
-        if ((now.getMonth() + 1) > 8) { // from 9月 to next-year.8月
-            query.period = 'now'
-        } else { // from prev-year.9月 to 8月
-            query.period = 'before'
-        }
+        // var now = new Date()
+        // if ((now.getMonth() + 1) > 8) { // from 9月 to next-year.8月
+        //     query.period = 'now'
+        // } else { // from prev-year.9月 to 8月
+        //     query.period = 'before'
+        // }
         
         $.post('/api/sihara-ichiran-summary/', query, function (data) {
-            // console.log(data)
+            console.log(data)
+            // updateSummaryTableOnResponse_period_old_version(data)
             updateSummaryTableOnResponse(data)
         })
     }
@@ -94,7 +95,6 @@ $(document).ready(async function () {
 
         if (items) {
             items.forEach(function (item) {
-                console.log('budget:'+item.budget+' type:'+typeof item.budget);
                 
                 var costSum = 0
                 
@@ -117,6 +117,51 @@ $(document).ready(async function () {
                 htmlBody += '</tr>'
             })
         }
+   
+        theader.html(htmlHeader)
+        tbody.html(htmlBody)
+    }
+
+    function updateSummaryTableOnResponse_period_old_version(data) {
+        var theader = $('#sihara-ichiran-summary-theader')
+        var tbody = $('#sihara-ichiran-summary-tbody')
+
+        var yearBase = data.yearBase
+        var costs = data.costs
+        var sales = data.sales
+        var costSum = 0
+        var saleSum = 0
+        var htmlHeader = ''
+        var htmlBody = ''
+
+        var datesHeader = periodHeaderDatesYearBase(yearBase)
+        var dates = periodDatesYearBase(yearBase)
+
+        htmlHeader += '<tr><th></th><th class="py-2">' + datesHeader[0] + '</th>'
+        for (var i = 1; i < 12; i++) {
+            htmlHeader += '<th>' + datesHeader[i] + '</th>'
+        }
+        htmlHeader += '<th class="bg-light" style="color:#212529">小計</th></tr>'
+
+        var costsFull = paddingCostsYearBase(dates, costs)
+        htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">原価合計</td>'
+        for (var i = 0; i < 12; i++) {
+            var cost = costsFull[i]
+            costSum += cost
+            htmlBody += '<td class="pr-1">' + numberFormat(cost) + '</td>'
+        }
+        htmlBody += '<td class="pr-1 bg-light">' + numberFormat(costSum) + '</td>'
+        htmlBody += '</tr>'
+
+        var salesFull = paddingSalesYearBase(dates, sales)
+        htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">売上合計</td>'
+        for (var i = 0; i < 12; i++) {
+            var sale = salesFull[i]
+            saleSum += sale
+            htmlBody += '<td class="pr-1">' + numberFormat(sale) + '</td>'
+        }
+        htmlBody += '<td class="pr-1 bg-light">' + numberFormat(saleSum) + '</td>'
+        htmlBody += '</tr>'
    
         theader.html(htmlHeader)
         tbody.html(htmlBody)
@@ -167,28 +212,26 @@ $(document).ready(async function () {
 
         var datesHeader = periodHeaderDates(yearMin, monthMin, yearMax, monthMax)
         var dates = periodDates(yearMin, monthMin, yearMax, monthMax)
-        console.log(datesHeader)
-        console.log(dates)
+        // console.log(datesHeader)
+        // console.log(dates)
         var nRange = dates.length
         if (nRange == 0) { // error
             return
         }
 
-        // htmlHeader += '<tr><th style="width:10%">業者名</th><th class="py-2">' + datesHeader[0] + '</th>'
         htmlHeader += '<tr><th class="col-title">業者名</th><th class="py-2">' + datesHeader[0] + '</th>'
         for (var i = 1; i < nRange; i++) {
             htmlHeader += '<th>' + datesHeader[i] + '</th>'
         }
         htmlHeader += '<th class="bg-light" style="color:#212529">小計</th><th class="bg-light" style="color:#212529">実行予算</th><th class="bg-light" style="color:#212529">進捗率</th></tr>'
-        console.log('items:');
-        console.log(items);
+
         items.forEach(function (item) {
             
             var costSum = 0
             
             var costs = item.costs
             var costsFull = paddingCosts(dates, costs)
-            console.log(costsFull)
+            // console.log(costsFull)
 
             htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">' + item.company_el + '</td>'
             for (var i = 0; i < nRange; i++) {
@@ -197,7 +240,6 @@ $(document).ready(async function () {
                 htmlBody += '<td class="pr-1">' + numberFormat(cost) + '</td>'
             }
             htmlBody += '<td class="pr-1 bg-light">' + numberFormat(costSum) + '</td>'
-            console.log('budget:'+item.budget+' type:'+typeof item.budget);
             htmlBody += '<td class="pr-1 bg-light">' + numberFormat(item.budget) + '</td>'
             if (item.budget == 0) {
                 htmlBody += '<td class="pr-1 bg-light">ー</td>'
@@ -215,7 +257,6 @@ $(document).ready(async function () {
         var theader = $('#sihara-ichiran-summary-theader')
         var tbody = $('#sihara-ichiran-summary-tbody')
 
-        var yearBase = data.yearBase
         var costs = data.costs
         var sales = data.sales
         var costSum = 0
@@ -223,18 +264,83 @@ $(document).ready(async function () {
         var htmlHeader = ''
         var htmlBody = ''
 
-        var datesHeader = periodHeaderDatesYearBase(yearBase)
-        var dates = periodDatesYearBase(yearBase)
+        // calculate date range
+        var yearMinCost = 10000, monthMinCost = 10000
+        var yearMaxCost = 0, monthMaxCost = 0
+        if (costs !== undefined && costs.length > 0) {
+            for (var i = 0; i < costs.length; i++) {
+                var element = costs[i]
+                var year = element._id.year
+                var month = element._id.month
+                if (year < yearMinCost) {
+                    yearMinCost = year
+                    monthMinCost = month
+                } else {
+                    if (year == yearMinCost && month < monthMinCost) {
+                        monthMinCost = month
+                    }
+                }
 
-        htmlHeader += '<tr><th></th><th class="py-2">' + datesHeader[0] + '</th>'
-        for (var i = 1; i < 12; i++) {
+                if (year > yearMaxCost) {
+                    yearMaxCost = year
+                    monthMaxCost = month
+                } else {
+                    if (year == yearMaxCost && month > monthMaxCost) {
+                        monthMaxCost = month
+                    }
+                }
+            }
+        }
+
+        var yearMinSale = 10000, monthMinSale = 10000
+        var yearMaxSale = 0, monthMaxSale = 0
+        if (sales !== undefined && sales.length > 0) {
+            for (var i = 0; i < sales.length; i++) {
+                var element = sales[i]
+                var year = element._id.year
+                var month = element._id.month
+                if (year < yearMinSale) {
+                    yearMinSale = year
+                    monthMinSale = month
+                } else {
+                    if (year == yearMinSale && month < monthMinSale) {
+                        monthMinSale = month
+                    }
+                }
+
+                if (year > yearMaxSale) {
+                    yearMaxSale = year
+                    monthMaxSale = month
+                } else {
+                    if (year == yearMaxSale && month > monthMaxSale) {
+                        monthMaxSale = month
+                    }
+                }
+            }
+        }
+
+        var yearMin = Math.min(yearMinCost, yearMinSale), monthMin = Math.min(monthMinCost, monthMinSale)
+        var yearMax = Math.max(yearMaxCost, yearMaxSale), monthMax = Math.max(monthMaxCost, monthMaxSale)
+
+        var datesHeader = periodHeaderDates(yearMin, monthMin, yearMax, monthMax)
+        var dates = periodDates(yearMin, monthMin, yearMax, monthMax)
+        // console.log(datesHeader)
+        // console.log(dates)
+        var nRange = dates.length
+        if (nRange == 0) { // error
+            return
+        }
+        // return;
+
+        htmlHeader += '<tr><th class="col-title-small"></th><th class="py-2">' + datesHeader[0] + '</th>'
+        for (var i = 1; i < nRange; i++) {
             htmlHeader += '<th>' + datesHeader[i] + '</th>'
         }
         htmlHeader += '<th class="bg-light" style="color:#212529">小計</th></tr>'
 
-        var costsFull = paddingCostsYearBase(dates, costs)
+        var costsFull = paddingCosts(dates, costs)
         htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">原価合計</td>'
-        for (var i = 0; i < 12; i++) {
+        for (var i = 0; i < nRange; i++) {
             var cost = costsFull[i]
             costSum += cost
             htmlBody += '<td class="pr-1">' + numberFormat(cost) + '</td>'
@@ -242,9 +348,9 @@ $(document).ready(async function () {
         htmlBody += '<td class="pr-1 bg-light">' + numberFormat(costSum) + '</td>'
         htmlBody += '</tr>'
 
-        var salesFull = paddingSalesYearBase(dates, sales)
+        var salesFull = paddingSales(dates, sales)
         htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">売上合計</td>'
-        for (var i = 0; i < 12; i++) {
+        for (var i = 0; i < nRange; i++) {
             var sale = salesFull[i]
             saleSum += sale
             htmlBody += '<td class="pr-1">' + numberFormat(sale) + '</td>'
@@ -341,6 +447,32 @@ function paddingCosts(dates, costs) {
     }
 
     return costsFull
+}
+
+function paddingSales(dates, sales) {
+    var salesFull = []
+    if (sales === undefined || sales.length == 0) {
+        return salesFull
+    }
+
+    var idxS = 0
+    var idxE = 0
+    for (var i = 0; i < sales.length; i++) {
+        var element = sales[i]
+        var sale = element.sale
+        var date = element._id.year + '' + element._id.month
+        while (dates[idxE] != date) idxE ++
+        for (var j = idxS; j < idxE; j++) salesFull.push(0)
+        idxE ++
+        idxS = idxE
+        if (!sale) sale = 0
+        salesFull.push(sale)
+    }
+    for (var i = idxS; i < dates.length; i++) {
+        salesFull.push(0)
+    }
+
+    return salesFull
 }
 
 function periodHeaderDatesYearBase(yearBase) {
