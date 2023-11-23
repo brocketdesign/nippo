@@ -13,9 +13,9 @@ $(document).ready(async function () {
 
         // Global Selectors
 
-        if (document.querySelector('.input-kouza')) {
-            initSelectKouza($(document).find('select.input-kouza'))
-        }
+        // if (document.querySelector('.input-kouza')) {
+        //     initSelectKouza($(document).find('select.input-kouza'))
+        // }
 
         if (document.querySelector('.input-torihiki')) {
             initSelectTorihiki($(document).find('select.input-torihiki'))
@@ -64,12 +64,18 @@ $(document).ready(async function () {
         if (document.querySelector('#inoutcome-filtered-tbody')) {
             initTable()
         }
+
+        // Filter
+        if (document.querySelector('#filter-panel')) {
+            initKanjoukamokuFilter()
+        }
+        
     }
 
     function initSelectKouza(allSelect) {
-        console.log({
-            event: 'kouzaInit'
-        })
+        // console.log({
+        //     event: 'kouzaInit'
+        // })
         allSelect.each(function () {
             let kouzaSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -100,9 +106,9 @@ $(document).ready(async function () {
     }
 
     function initSelectTorihiki(allSelect) {
-        console.log({
-            event: 'torihikiInit'
-        })
+        // console.log({
+            // event: 'torihikiInit'
+        // })
         allSelect.each(function () {
             let torihikiSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -141,9 +147,9 @@ $(document).ready(async function () {
     }
 
     function initSelectHattyu(allSelect) {
-        console.log({
-            event: 'hattyuInit'
-        })
+        // console.log({
+        //     event: 'hattyuInit'
+        // })
         allSelect.each(function () {
             let hattyuSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -172,9 +178,9 @@ $(document).ready(async function () {
     }
 
     function initSelectGyousha(allSelect) {
-        console.log({
-            event: 'gyoushaInit'
-        })
+        // console.log({
+        //     event: 'gyoushaInit'
+        // })
         allSelect.each(function () {
             let gyoushaSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -206,9 +212,9 @@ $(document).ready(async function () {
     }
 
     function initSelectKanjoukamoku(allSelect) {
-        console.log({
-            event: 'kanjoukamokuInit'
-        })
+        // console.log({
+        //     event: 'kanjoukamokuInit'
+        // })
         allSelect.each(function () {
             let kanjoukamokuSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -240,9 +246,9 @@ $(document).ready(async function () {
     }
 
     function initSelectGenba(allSelect) {
-        console.log({
-            event: 'genbaInit'
-        })
+        // console.log({
+        //     event: 'genbaInit'
+        // })
         allSelect.each(function () {
             let genbaSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -274,9 +280,9 @@ $(document).ready(async function () {
     }
 
     function initSelectZeiritu(allSelect) {
-        console.log({
-            event: 'zeirituInit'
-        })
+        // console.log({
+        //     event: 'zeirituInit'
+        // })
         allSelect.each(function () {
             let zeirituSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -308,28 +314,75 @@ $(document).ready(async function () {
         })
     }
 
+    function initKanjoukamokuFilter() {
+        var filterPanel = $('#filter-panel')
+        if (!filterPanel.hasClass('init-on')) {
+            $.get("/api/kanjoukamoku", function (data) {
+                console.log(data)
+                var inData = data.in
+                var outData = data.out
+                var mergedData = {}
+
+                var allHtml = '<label class="btn sub-filter nav-link-inoutcome-sub-filter active"><input class="toggle" type="radio" value="" checked="true">すべて</label>'
+                var inHtml = '<label class="btn sub-filter nav-link-inoutcome-sub-filter active"><input class="toggle" type="radio" value="" checked="true">すべて</label>'
+                var outHtml = '<label class="btn sub-filter nav-link-inoutcome-sub-filter active"><input class="toggle" type="radio" value="" checked="true">すべて</label>'
+
+                if (inData) {
+                    for (var i = 0; i < inData.length; i++) {
+                        var id = inData[i]._id
+                        var el = inData[i].el
+                        if (el) {
+                            mergedData[el] = el
+                            inHtml += '<label class="btn sub-filter nav-link-inoutcome-sub-filter"><input class="toggle" type="radio" value="' + el + '">' + el + '</label>'
+                        }
+                    }
+                }
+                if (outData) {
+                    for (var i = 0; i < outData.length; i++) {
+                        var id = outData[i]._id
+                        var el = outData[i].el
+                        if (el) {
+                            mergedData[el] = el
+                            outHtml += '<label class="btn sub-filter nav-link-inoutcome-sub-filter"><input class="toggle" type="radio" value="' + el + '">' + el + '</label>'
+                        }
+                    }
+                }
+                let keys = Object.keys(mergedData)
+                keys.forEach(item => {
+                    allHtml += '<label class="btn sub-filter nav-link-inoutcome-sub-filter"><input class="toggle" type="radio" value="' + item + '">' + item + '</label>'
+                })
+
+                console.log(mergedData);
+                $('#filter-all-group').html(allHtml)
+                $('#filter-in-group').html(inHtml)
+                $('#filter-out-group').html(outHtml)
+            })
+            filterPanel.addClass('init-on')
+        }
+    }
+
     function initLabelSubTotalPrice(allSelect) {
-        console.log({
-            event: 'subtotalInit'
-        })
+        // console.log({
+        //     event: 'subtotalInit'
+        // })
         allSelect.each(function () {
             $(this).text(currencyFormat(0))
         })
     }
 
     function initLabelTotalPrice(allSelect) {
-        console.log({
-            event: 'totalInit'
-        })
+        // console.log({
+        //     event: 'totalInit'
+        // })
         allSelect.each(function () {
             $(this).text(numberFormat(0) + ' 円')
         })
     }
 
     function initDate(allSelect) {
-        console.log({
-            event: 'dateInit'
-        })
+        // console.log({
+        //     event: 'dateInit'
+        // })
         allSelect.each(function () {
             let dateSelect = $(this)
             let today = formatedDateString(new Date())
@@ -367,6 +420,7 @@ $(document).ready(async function () {
     }
 
     function initTable() {
+        $('#batch-check').prop('checked', false)
         let query = { limit: 30 }
         request2GetFilteredData(query)
     }
@@ -551,10 +605,10 @@ $(document).ready(async function () {
             query.dateTo = dateTo
 
             // kouza selector
-            let kouza = $('#input-filter-kouza').val()
-            if (kouza) {
-                query.口座 = kouza
-            }
+            // let kouza = $('#input-filter-kouza').val()
+            // if (kouza) {
+            //     query.口座 = kouza
+            // }
 
             // torihiki selector
             let torihiki
@@ -604,26 +658,29 @@ $(document).ready(async function () {
 
         // Batch Delete
         $('body').on('click', '#filterAllBtn', function () {
-            if (confirm("本当に削除しますか？")) {
-                deleteCheckedList()
-            }
+            deleteCheckedList()
         })
 
         // Clear Filter Button
         $('body').on('click', '#clearFilterBtn', function () {
             clearFilterDate()
-            clearFilterKouza()
+            // clearFilterKouza()
             clearFilterHattyu()
             clearFilterGenba()
             clearFilterCategory()
+        })
+
+        // CSV import
+        $('body').on('change', '#importDialog', function () {
+            $('#importForm').submit()
         })
 
         $('body').on('click', '.ic-feather-x', function () {
             var dataId = $(this).attr('data-id')
             if (dataId == 'input-filter-date') {
                 clearFilterDate()
-            } else if (dataId == 'input-filter-kouza') {
-                clearFilterKouza()
+            // } else if (dataId == 'input-filter-kouza') {
+            //     clearFilterKouza()
             } else if (dataId == 'input-filter-httyu') {
                 clearFilterHattyu()
             } else if (dataId == 'input-filter-genba') {
@@ -858,7 +915,7 @@ $(document).ready(async function () {
             var type = item.type
             var kanjoukamoku = item.勘定科目
             var date = item.日付
-            var kouza = item.口座
+            // var kouza = item.口座
             var torihiki = item.取引先
             var genba = item.現場名
             var bikou = item.備考
@@ -893,19 +950,20 @@ $(document).ready(async function () {
     function saveToDB(formSelect, callback) {
         let formId = '.form-container.' + formSelect
 
-        let selectKouza = $(formId).find('.input-kouza')
+        // let selectKouza = $(formId).find('.input-kouza')
         let selectTorihiki = formSelect == 'income' ? $(formId).find('.input-hattyu') : $(formId).find('.input-gyousha')
         let torihikiID = selectTorihiki.find('option:checked').attr('data-id')
         let selectDate = $(formId).find('.input-date-inoutcome')
 
-        let kouza = selectKouza.val()
+        // let kouza = selectKouza.val()
         let torihiki = selectTorihiki.val()
         let date = selectDate.attr('data-date')
 
         let result = {}
 
-        if (kouza && torihiki && date) {
-            result.口座 = kouza
+        // if (kouza && torihiki && date) {
+        if (torihiki && date) {
+            // result.口座 = kouza
             result.torihiki_id = torihikiID
             result.取引先 = torihiki
             result.日付 = date
@@ -982,7 +1040,7 @@ $(document).ready(async function () {
         if (ids.length > 0) {
             var query = {ids: ids}
             $.post('/api/delete/inoutcome/', query, function (data) {
-                console.log(data)
+                // console.log(data)
                 initTable()
             })
         }

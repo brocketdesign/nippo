@@ -14,6 +14,7 @@ const genbaModule = require('../modules/genbaModule'); // Import the refactored 
 const urlencodedParser = bodyParser.urlencoded({ extended: true })
 const {siharaCostsOfPeriod, siharaSalesOfPeriod, siharaBudgetSumOfPeriod, siharaCompanies} = require('../public/js/helper/sihara-ichiran-helper')
 const { yosanKeiyakukingaku, yosanYosanTable, yosanYosan, yosanUriage, yosanGenka } = require('../public/js/helper/yosan-helper')
+const readline = require("readline")
 
 require('dotenv').config({ path: './.env' });
 router.use(cookieParser('horiken'));
@@ -1068,7 +1069,7 @@ router.post('/delete/inoutcome', urlencodedParser, async (req, res) => {
 router.post('/update/inoutcome', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {
-    let kouza = req.body.口座
+    // let kouza = req.body.口座
     let torihikiID = new ObjectId(req.body.torihiki_id)
     let torihiki = req.body.取引先
     let date = req.body.日付
@@ -1077,7 +1078,7 @@ router.post('/update/inoutcome', urlencodedParser, async (req, res) => {
     
     items.forEach(item => {
       item.genba_id = new ObjectId(item.genba_id)
-      item.口座 = kouza
+      // item.口座 = kouza
       item.torihiki_id = torihikiID
       item.取引先 = torihiki
       item.日付 = date
@@ -1091,6 +1092,252 @@ router.post('/update/inoutcome', urlencodedParser, async (req, res) => {
     
   } else {
     res.sendStatus(403);
+  }
+});
+
+// import csv
+router.post('/import-csv/inoutcome', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+
+    if (!req.files) {
+      res.redirect('/dashboard/inoutcome')
+    } else {
+      // console.log("file", req.files)
+      let files = req.files
+      let n = files.length
+      for (let i = 0; i < n; i++) {
+        let file = files[i]
+        var rlFirst = readline.createInterface({
+          input: fs.createReadStream(file.path),
+          output: null,
+          terminal: false
+        })
+        
+        let genbaName
+        let genbaID = 0
+        let genbaHattyu = null
+        var lines = []
+
+        var nLine = 0
+        rlFirst.on("line", function(line) {
+          nLine ++
+          
+          if (nLine == 8) {
+            var cols = line.split(',')
+            // genba name
+            genbaName = cols[1]
+          } else if (nLine > 8) {
+            lines.push(line)
+          }
+          
+        })
+
+        await new Promise((resolve, reject) => {
+          rlFirst.on("close", function () {
+            resolve()
+          })
+        })
+
+        console.log("file: " + file.path);
+        var result
+        result = await db.collection('genba').findOne({ '工事名': genbaName })
+        if (result) {
+          genbaID = new ObjectId(result._id)
+          genbaHattyu = result.発注者
+          console.log("genbaID: " + genbaID);
+        } else {
+          console.log("No genba")
+          continue
+        }
+
+        // if (genbaID == 0) {
+        //   var newGenba = {'工事名': genbaName}
+        //   result = await db.collection('genba').insertOne(newGenba)
+        //   if (result) {
+        //     genbaID = result.insertedId
+        //   }
+        // }
+
+        nLine = lines.length
+        for (var j = 0; j < nLine; j++) {
+          let error = false
+          var line = lines[j]
+
+          let cols = line.split(',')
+          let date = cols[0]
+          if (!date.startsWith('令和')) {
+            continue
+          }
+
+          let year = date.substring(2, 4)
+          year = parseInt(year) + 2018
+          let month = date.substring(5, 7)
+          let day = date.substring(8, 10)
+
+          // date
+          date = year + "/" + month + "/" + day
+          // console.log("date: " + date)
+
+          // torihiki
+          let torihiki
+          let bikou = cols[11] // L
+          var re = /^[0-9０１２３４５６７８９]/
+          if (re.test(bikou)) {
+            re = /[0-9０１２３４５６７８９]+[／/][0-9０１２３４５６７８９]+[ 　]/g
+            torihiki = bikou.replace(re, '')
+            if (!torihiki) {
+              errror = true
+              console.log("torihiki error")
+            } else {
+              torihiki = torihiki.split(/[　 ]/)
+              torihiki = torihiki[0]
+            }
+          } else {
+            torihiki = bikou.split(/[　 ]/)
+            torihiki = torihiki[0]
+          }
+
+          // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          if (false) {
+            torihiki = bikou
+          }
+          // TODO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+          if (error) {
+            console.log("error")
+            continue
+          }
+          
+          if ('鬼塚道矢他' == torihiki) { // 労務費
+            // ignore
+          } else {
+
+            // genbaName, bikou, date, torihiki
+            let item = {
+              genba_id: genbaID,
+              現場名: genbaName,
+              備考: bikou,
+              日付: date
+            }
+            // res.send(JSON.stringify({item:item}))
+            // return
+
+            // let colI = cols[8] // I
+            // if ('未成工事受入金' == colI) {
+              // let income = cols[18] // 売上
+            let colS = cols[18] // S
+            let income = parseInt(colS)
+            if (income > 0) {
+              item.type = '収入'
+              item.勘定科目 = '売上'
+              item.査定金額 = parseInt((income / 1.1).toFixed(0))
+              item.税率 = 10
+              item.取引先 = genbaHattyu
+              item.torihiki_id = genbaID
+              await db.collection('inoutcomeDaityou').insertOne(item)
+            }
+// continue
+            let outZaryou = cols[13] // 材料費 // N
+            let outGaityuu = cols[15] // 外注費 // P
+            let outGei = cols[16] // 経費 // Q
+            outZaryou = parseInt(outZaryou)
+            outGaityuu = parseInt(outGaityuu)
+            outGei = parseInt(outGei)
+            if (outZaryou > 0) {
+              item.type = '支出'
+              item.勘定科目 = '材料費'
+              item.査定金額 = outZaryou
+              item.税率 = 0
+              result = await db.collection('company').findOne({ 'el': torihiki })
+              if (result) {
+                item.取引先 = torihiki
+                item.torihiki_id = result._id
+                // db.collection('inoutcomeDaityou').update({取引先: torihiki}, {$set: {torihiki_id: result._id}}, {multi: true})
+              } else {
+                var newCompany = {'el': torihiki}
+                result = await db.collection('company').insertOne(newCompany)
+                if (result) {
+                  item.取引先 = torihiki
+                  item.torihiki_id = result.insertedId
+                  // db.collection('inoutcomeDaityou').update({取引先: torihiki}, {$set: {torihiki_id: torihiki_id}}, {multi: true})
+                } else {
+                  console.log("error on inserting new company")
+                  continue
+                }
+              }
+              await db.collection('inoutcomeDaityou').insertOne(item)
+            }
+            // continue
+
+            if (outGaityuu > 0) {
+              item.type = '支出'
+              item.勘定科目 = '外注費'
+              item.査定金額 = outGaityuu
+              item.税率 = 0
+              result = await db.collection('company').findOne({ 'el': torihiki })
+              if (result) {
+                item.取引先 = torihiki
+                item.torihiki_id = result._id
+                // db.collection('inoutcomeDaityou').update({取引先: torihiki}, {$set: {torihiki_id: result._id}}, {multi: true})
+              } else {
+                var newCompany = {'el': torihiki}
+                result = await db.collection('company').insertOne(newCompany)
+                if (result) {
+                  item.取引先 = torihiki
+                  item.torihiki_id = result.insertedId
+                  // db.collection('inoutcomeDaityou').update({取引先: torihiki}, {$set: {torihiki_id: torihiki_id}}, {multi: true})
+                } else {
+                  console.log("error on inserting new company")
+                  continue
+                }
+              }
+              await db.collection('inoutcomeDaityou').insertOne(item)
+            }
+
+            if (outGei > 0) {
+              item.type = '支出'
+              item.勘定科目 = '経費'
+              item.査定金額 = outGei
+              item.税率 = 0
+              result = await db.collection('company').findOne({ 'el': torihiki })
+              if (result) {
+                item.取引先 = torihiki
+                item.torihiki_id = result._id
+                // db.collection('inoutcomeDaityou').update({取引先: torihiki}, {$set: {torihiki_id: result._id}}, {multi: true})
+              } else {
+                var newCompany = {'el': torihiki}
+                result = await db.collection('company').insertOne(newCompany)
+                if (result) {
+                  item.取引先 = torihiki
+                  item.torihiki_id = result.insertedId
+                  // db.collection('inoutcomeDaityou').update({取引先: torihiki}, {$set: {torihiki_id: torihiki_id}}, {multi: true})
+                } else {
+                  console.log("error on inserting new company")
+                  continue
+                }
+              }
+              db.collection('inoutcomeDaityou').insertOne(item)
+            }
+          }
+        }
+        console.log("file: " + file.path + " done!")
+      
+      }
+
+      for (var j = 0; j < n; j++) {
+        let file = files[j]
+        fs.unlink(file.path, function (err) {
+          if (err)
+            console.log("cannot delete file: " + err)
+          else
+            console.log("deleted: " + file.path)
+        })
+      }
+      console.log("all done!")
+
+      res.redirect('/dashboard/inoutcome')
+    }
   }
 });
 
@@ -1386,6 +1633,7 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
   if (dbData.isLogin) {
 
     let genbaID = req.body.genbaID
+    let genbaName = req.body.genbaName
     let period = req.body.period
     let need_budgets = req.body.need_budgets
     let need_cost_sum = req.body.need_cost_sum
@@ -1404,7 +1652,10 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
       }
     }
 
-    let params = { genbaID: genbaID }
+    let params = {
+      genbaID: genbaID,
+      genbaName: genbaName
+    }
     if (yearBase) { params.yearBase = yearBase }
     if (yearBase) { resultAll.yearBase = yearBase }
 
@@ -1452,6 +1703,7 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
                 let params = {
                   genbaID: genbaID,
                   company_id: company.data._id
+                  // company_el: company._id
                 }
 
                 if (yearBase) {
@@ -1521,6 +1773,7 @@ router.post('/sihara-ichiran-summary', urlencodedParser, async (req, res) => {
   if (dbData.isLogin) {
 
     let genbaID = req.body.genbaID
+    let genbaName = req.body.genbaName
     let period = req.body.period
     let resultAll = {}
 
@@ -1536,12 +1789,22 @@ router.post('/sihara-ichiran-summary', urlencodedParser, async (req, res) => {
       }
     }
 
-    let params = { genbaID: genbaID }
+    let params = {
+      genbaID: genbaID,
+      genbaName: genbaName
+    }
     if (yearBase) { params.yearBase = yearBase }
     if (yearBase) { resultAll.yearBase = yearBase }
 
+    // res.send(params)
+    // return
+
     // get 原価
     siharaCostsOfPeriod(db, params, function (err, results) {
+
+      // res.send(results)
+      // return
+
       if (err) {
         res.sendStatus(300)
         return
@@ -1580,10 +1843,26 @@ router.get('/kanjoukamoku', urlencodedParser, async (req, res) => {
       db.collection('kanjoukamokuIn').find().toArray((err, results) => {
         res.send(results)
       });
-    } else { // out
+    } else if (type == '支出') { // out
       db.collection('kanjoukamokuOut').find().toArray((err, results) => {
         res.send(results)
       });
+    } else {
+      let resultIn
+      let resultOut
+      await new Promise((resolve, reject) => {
+        db.collection('kanjoukamokuIn').find().toArray((err, results) => {
+          resultIn = results
+          resolve()
+        });
+      })
+      await new Promise((resolve, reject) => {
+        db.collection('kanjoukamokuOut').find().toArray((err, results) => {
+          resultOut = results
+          resolve()
+        });
+      })
+      res.send({in:resultIn, out:resultOut})
     }
   } else {
     res.sendStatus(403);

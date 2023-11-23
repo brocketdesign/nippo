@@ -86,12 +86,14 @@ block content
                             .progress(style="height:2rem;background-color:#ea4335")
                                 .progress-bar#progress-chart(style="background-color:#00b0f0;width:0%")
 
-                    .card.border-secondary.mb-3.w-100
+                    .card#cost-barchart-root.border-secondary.mb-3.w-100
                         .card-header.py-1.font-weight-bold
                             .col-12.text-center
                                 span.pt-1 原価内訳
-                        .card-body.py-3.pl-3.pr-0
-                            #cost-barchart
+                        .card-body#cost-barchart-body.py-3.pl-2.pr-0.overflow-x-auto
+                            div#cost-barchart-container.pr-3
+                                canvas#cost-barchart
+                            #cost-barchart-flot.w-100
 
                     .card#spline-chart-root.border-secondary.mb-3.w-100
                         .card-header.py-1.font-weight-bold

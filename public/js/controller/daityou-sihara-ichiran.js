@@ -37,7 +37,8 @@ $(document).ready(async function () {
     function initSummaryTable() {
         
         var query = {
-            genbaID: genbaID
+            genbaID: genbaID,
+            genbaName: genbaName
         }
 
         // var now = new Date()
@@ -48,7 +49,7 @@ $(document).ready(async function () {
         // }
         
         $.post('/api/sihara-ichiran-summary/', query, function (data) {
-            console.log(data)
+            // console.log({summary:data})
             // updateSummaryTableOnResponse_period_old_version(data)
             updateSummaryTableOnResponse(data)
         })
@@ -58,6 +59,7 @@ $(document).ready(async function () {
         
         var query = {
             genbaID: genbaID,
+            genbaName: genbaName,
             need_budgets: 1
         }
 
@@ -69,7 +71,7 @@ $(document).ready(async function () {
         // }
 
         $.post('/api/sihara-ichiran/', query, function (data) {
-            // console.log(data)
+            // console.log({full:data})
             // updateFullTableOnResponse_period_old_version(data)
             updateFullTableOnResponse(data)
         })
@@ -339,24 +341,28 @@ $(document).ready(async function () {
         htmlHeader += '<th class="bg-light" style="color:#212529">小計</th></tr>'
 
         var costsFull = paddingCosts(dates, costs)
-        htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">原価合計</td>'
-        for (var i = 0; i < nRange; i++) {
-            var cost = costsFull[i]
-            costSum += cost
-            htmlBody += '<td class="pr-1">' + numberFormat(cost) + '</td>'
+        if (costsFull.length > 0) {
+            htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">原価合計</td>'
+            for (var i = 0; i < nRange; i++) {
+                var cost = costsFull[i]
+                costSum += cost
+                htmlBody += '<td class="pr-1">' + numberFormat(cost) + '</td>'
+            }
+            htmlBody += '<td class="pr-1 bg-light">' + numberFormat(costSum) + '</td>'
+            htmlBody += '</tr>'
         }
-        htmlBody += '<td class="pr-1 bg-light">' + numberFormat(costSum) + '</td>'
-        htmlBody += '</tr>'
 
         var salesFull = paddingSales(dates, sales)
-        htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">売上合計</td>'
-        for (var i = 0; i < nRange; i++) {
-            var sale = salesFull[i]
-            saleSum += sale
-            htmlBody += '<td class="pr-1">' + numberFormat(sale) + '</td>'
+        if (salesFull.length > 0) {
+            htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">売上合計</td>'
+            for (var i = 0; i < nRange; i++) {
+                var sale = salesFull[i]
+                saleSum += sale
+                htmlBody += '<td class="pr-1">' + numberFormat(sale) + '</td>'
+            }
+            htmlBody += '<td class="pr-1 bg-light">' + numberFormat(saleSum) + '</td>'
+            htmlBody += '</tr>'
         }
-        htmlBody += '<td class="pr-1 bg-light">' + numberFormat(saleSum) + '</td>'
-        htmlBody += '</tr>'
    
         theader.html(htmlHeader)
         tbody.html(htmlBody)

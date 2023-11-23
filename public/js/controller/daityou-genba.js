@@ -14,8 +14,10 @@ $(document).ready(async function () {
     let cost = 0
 
     //
-    let useFlotChart = false
-    let useChartScroll = true
+    let useFlotBarChart = true
+    let useBarChartScroll = false
+    let useFlotSplineChart = false
+    let useSplineChartScroll = true
 
     if (!!document.querySelector('#daityouGenbaPage')) {
         initNavBar()
@@ -64,26 +66,40 @@ $(document).ready(async function () {
 
     function chartInit() {
 
-        if (document.querySelector('#cost-barchart')) {
-            initCostBarChart()
+        var costBarChartSelector
+        if (useFlotBarChart) {
+            costBarChartSelector = '#cost-barchart-flot'
+            $('#cost-barchart-container').remove()
+            $('#cost-barchart-body').removeClass('pl-2 pr-0')
+            $('#cost-barchart-body').addClass('pl-3 pr-2')
+        } else {
+            costBarChartSelector = '#cost-barchart'
+            $('#cost-barchart-flot').remove()
+        }
+        if (!useBarChartScroll) {
+            $('#cost-barchart-body').removeClass('overflow-x-auto')
         }
 
-        var selector
-        if (useFlotChart) {
-            selector = '#spline-chart-flot'
+        if (document.querySelector(costBarChartSelector)) {
+            initCostBarChart(costBarChartSelector)
+        }
+
+        var splineChartSelector
+        if (useFlotSplineChart) {
+            splineChartSelector = '#spline-chart-flot'
             $('#spline-chart-container').remove()
             $('#spline-chart-body').removeClass('pl-2 pr-0')
             $('#spline-chart-body').addClass('pl-3 pr-2')
         } else {
-            selector = '#spline-chart'
+            splineChartSelector = '#spline-chart'
             $('#spline-chart-flot').remove()
         }
-        if (!useChartScroll) {
+        if (!useSplineChartScroll) {
             $('#spline-chart-body').removeClass('overflow-x-auto')
         }
 
-        if (document.querySelector(selector)) {
-            initSplineChart(selector)
+        if (document.querySelector(splineChartSelector)) {
+            initSplineChart(splineChartSelector)
         }
     }
 
@@ -117,7 +133,7 @@ $(document).ready(async function () {
         })
     }
 
-    function initCostBarChart() {
+    function initCostBarChart(selector) {
         var query = {
             genbaID: genbaID,
             need_cost_sum: 1
@@ -131,7 +147,11 @@ $(document).ready(async function () {
         // }
         $.post('/api/sihara-ichiran/', query, function (data) {
             // console.log(data)
-            drawCostBarChart('#cost-barchart', data)
+            if (useFlotBarChart) {
+                drawCostBarFlotJS(selector, data)
+            } else {
+                drawCostBarChartJS(selector, data)
+            }
         })
     }
 
@@ -149,10 +169,10 @@ $(document).ready(async function () {
 
         $.post('/api/sihara-ichiran-summary/', query, function (data) {
             // console.log(data)
-            if (useFlotChart) {
-                drawSplineChartFlotJS(selector, data)
+            if (useFlotSplineChart) {
+                drawSplineFlotJS(selector, data)
             } else {
-                drawSplineChartChartJS(selector, data)
+                drawSplineChartJS(selector, data)
             }
         })
     }
@@ -297,7 +317,7 @@ $(document).ready(async function () {
         }
     }
 
-    function drawCostBarChart(selector, data) {
+    function drawCostBarFlotJS(selector, data) {
         let hasDrawn = false;
         
         var items = data.items
@@ -380,7 +400,7 @@ $(document).ready(async function () {
     
     }
 
-    function drawSplineChartFlotJS(selector, data) {
+    function drawSplineFlotJS(selector, data) {
 
         let hasDrawn = false
 
@@ -459,7 +479,7 @@ $(document).ready(async function () {
             datesHeader = periodHeaderDates(yearMin, monthMin, yearMax, monthMax)
         }
 
-        if (useChartScroll) {
+        if (useSplineChartScroll) {
             let rootWidth = $("#spline-chart-root").width() - 20
             let width = nRange * 50
             if (width > rootWidth) {
@@ -537,7 +557,7 @@ $(document).ready(async function () {
         }
     }
 
-    function drawSplineChartChartJS(selector, data) {
+    function drawSplineChartJS(selector, data) {
 
         let hasDrawn = false
 
@@ -609,7 +629,7 @@ $(document).ready(async function () {
             return
         }
 
-        if (useChartScroll) {
+        if (useSplineChartScroll) {
             // adjust the container bound
             let rootWidth = $("#spline-chart-root").width() - 20
             let width = nRange * 50

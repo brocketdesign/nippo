@@ -8,6 +8,7 @@ const api = require('./routes/api.js');
 const dashboard = require('./routes/dashboard');
 const users = require('./routes/users.js');
 require('dotenv').config({ path: './.env' });
+const multer = require("multer");
 
 // Initialize Express app
 const app = express();
@@ -31,6 +32,8 @@ connectToDatabase()
 
 function configureApp(app) {
   app.use(express.static('public'));
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(multer({dest:'./uploads/'}).any());
   app.set('view engine', 'pug');
   app.use((req, res, next) => {
     if (req.headers.host === 'nippov100.herokuapp.com') {
