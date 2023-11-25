@@ -1056,7 +1056,6 @@ router.post('/delete/inoutcome', urlencodedParser, async (req, res) => {
           resolve()
         });
       })
-
     }
     res.sendStatus(200)
     
@@ -1126,11 +1125,19 @@ router.post('/import-csv/inoutcome', urlencodedParser, async (req, res) => {
           if (nLine == 8) {
             var cols = line.split(',')
             // genba name
-            genbaName = cols[1]
+            if (cols.length > 0 && cols[1].length > 0) {
+              genbaName = (cols[1][0] == '"') ? cols[1].substring(1, cols[1].length - 1) : cols[1];
+              // genba ID
+              genbaID = cols[2]
+            }
+            else {
+              genbaName = ''
+            }
+            // genba hattyu
+            genbaHattyu
           } else if (nLine > 8) {
             lines.push(line)
           }
-          
         })
 
         await new Promise((resolve, reject) => {
@@ -1139,7 +1146,8 @@ router.post('/import-csv/inoutcome', urlencodedParser, async (req, res) => {
           })
         })
 
-        console.log("file: " + file.path);
+        // console.log("file: " + file.path);
+        if (genbaName == '') continue;
         var result
         result = await db.collection('genba').findOne({ '工事名': genbaName })
         if (result) {
@@ -1181,7 +1189,7 @@ router.post('/import-csv/inoutcome', urlencodedParser, async (req, res) => {
 
           // torihiki
           let torihiki
-          let bikou = cols[11] // L
+          let bikou = (cols.length > 0 && cols[11].length > 0 && cols[11][0] == '"') ? cols[11].substring(1, cols[11].length - 1) : cols[11]; // L
           var re = /^[0-9０１２３４５６７８９]/
           if (re.test(bikou)) {
             re = /[0-9０１２３４５６７８９]+[／/][0-9０１２３４５６７８９]+[ 　]/g
@@ -1217,7 +1225,7 @@ router.post('/import-csv/inoutcome', urlencodedParser, async (req, res) => {
             let item = {
               genba_id: genbaID,
               現場名: genbaName,
-              備考: bikou,
+              備考: '',
               日付: date
             }
             // res.send(JSON.stringify({item:item}))
