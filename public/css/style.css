@@ -964,9 +964,9 @@ input:disabled {
   height: 300px;
 }
 
-#cost-barchart {
+#cost-barchart-flot {
   width: 100%;
-  height: 350px;
+  height: 500px;
 }
 
 /* #spline-chart {
