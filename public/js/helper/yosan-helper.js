@@ -78,17 +78,24 @@ var yosanYosan = function (db, params, callback) {
 var yosanUriage = function (db, params, callback) {
 
   let match = { genba_id: new ObjectId(params.genbaID), type: '収入' }
+  let _sum // 売上 = SUM(収入)
+  if (params.includeTax === 'true') {
+    _sum = {
+      $add: [ '$査定金額',
+        { $trunc: { $divide: [ { $multiply: [ '$査定金額', '$税率' ] }, 100 ] } }
+      ] }
+  } else {
+    _sum = '$査定金額'
+  }
+
+  // console.log({uriage:_sum, includeTax:params.includeTax})
   db.collection('inoutcomeDaityou').aggregate([
 
     { $match: match },
     {
       $group: {
         _id: null,
-        sale: { $sum: {
-          $add: [ '$査定金額',
-                  { $divide: [ { $multiply: [ '$査定金額', '$税率' ] }, 100 ] }
-          ] }, // 売上 = SUM(収入)
-        }
+        sale: { $sum: _sum }
       }
     },
 
@@ -114,17 +121,24 @@ var yosanUriage = function (db, params, callback) {
 var yosanGenka = function (db, params, callback) {
 
   let match = { genba_id: new ObjectId(params.genbaID), type: '支出' }
+  let _sum // 原価 = SUM(支出)
+  if (params.includeTax === 'true') {
+    _sum = {
+      $add: [ '$査定金額',
+        { $trunc: { $divide: [ { $multiply: [ '$査定金額', '$税率' ] }, 100 ] } }
+      ] }
+  } else {
+    _sum = '$査定金額'
+  }
+
+  // console.log({genka:_sum, includeTax:params.includeTax})
   db.collection('inoutcomeDaityou').aggregate([
 
     { $match: match },
     {
       $group: {
         _id: null,
-        cost: { $sum: {
-          $add: [ '$査定金額',
-                  { $divide: [ { $multiply: [ '$査定金額', '$税率' ] }, 100 ] }
-          ] }, // 原価 = SUM(支出)
-        }
+        cost: { $sum: _sum }
       }
     }
   

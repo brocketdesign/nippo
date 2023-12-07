@@ -1,6 +1,10 @@
 $(document).ready(async function () {
 
-    let prevQuery = null
+    const LIMIT = 30
+    let initQuery = {offset: 0, limit: LIMIT}
+    let currQuery = {}
+    let prevQuery = {}
+    let currRows = 0
 
     //NIPPO FORM PAGE
     if (!!document.querySelector('#inoutcomePage')) {
@@ -421,8 +425,9 @@ $(document).ready(async function () {
 
     function initTable() {
         $('#batch-check').prop('checked', false)
-        let query = { limit: 30 }
-        request2GetFilteredData(query)
+        currQuery = Object.assign({}, initQuery)
+        currRows = 0
+        request2GetFilteredData(currQuery)
     }
 
     function initForm() {
@@ -560,9 +565,9 @@ $(document).ready(async function () {
         // Filter Button
         $('body').on('click', '#filterBtn', function () {
 
-            let query = {}
             let inoutType
             let kanjoukamoku
+            currQuery = Object.assign({}, initQuery)
 
             // Main Tab(type)
             if ($('#filter-income-tab').hasClass('active') == true) { // in
@@ -572,7 +577,7 @@ $(document).ready(async function () {
             }
 
             if (inoutType) { // type = all
-                query.inoutType = inoutType
+                currQuery.inoutType = inoutType
             }
 
             // Sub Tab(kanjoukamoku)
@@ -595,19 +600,19 @@ $(document).ready(async function () {
             })
 
             if (kanjoukamoku) { // kanjoukamoku = all
-                query.勘定科目 = kanjoukamoku
+                currQuery.勘定科目 = kanjoukamoku
             }
 
             // date from/to
             let dateFrom = $('#date-from').attr('data-date')
             let dateTo = $('#date-to').attr('data-date')
-            query.dateFrom = dateFrom
-            query.dateTo = dateTo
+            dateFrom !== undefined && (currQuery.dateFrom = dateFrom)
+            dateTo !== undefined && (currQuery.dateTo = dateTo)
 
             // kouza selector
             // let kouza = $('#input-filter-kouza').val()
             // if (kouza) {
-            //     query.口座 = kouza
+            //     currQuery.口座 = kouza
             // }
 
             // torihiki selector
@@ -621,37 +626,39 @@ $(document).ready(async function () {
             }
 
             if (torihiki) {
-                query.取引先 = torihiki
+                currQuery.取引先 = torihiki
             }
 
             // genba selector
             let genba = $('#input-filter-genba').val()
             if (genba) {
-                query.現場名 = genba
+                currQuery.現場名 = genba
             }
 
             // bikou input
             let bikou = $('#input-filter-bikou').val()
             if (bikou) {
-                query.備考 = bikou
+                currQuery.備考 = bikou
             }
 
             // satei price from/to
             let priceFrom = $('#input-filter-price-from').val()
             let priceTo = $('#input-filter-price-to').val()
             if (priceFrom) {
-                query.priceFrom = priceFrom
+                currQuery.priceFrom = priceFrom
             }
             if (priceTo) {
-                query.priceTo = priceTo
+                currQuery.priceTo = priceTo
             }
 
-            if (prevQuery && JSON.stringify(prevQuery) == JSON.stringify(query)) {
+            if (prevQuery && JSON.stringify(prevQuery) == JSON.stringify(currQuery)) {
                 // console.log("same query")
             } else {
-                // console.log(query)
-                prevQuery = query
-                request2GetFilteredData(query)
+                // console.log(currQuery)
+                prevQuery = Object.assign({}, currQuery)
+                currRows = 0
+
+                request2GetFilteredData(currQuery)
             }
 
         })
@@ -722,6 +729,15 @@ $(document).ready(async function () {
                 $(this).val('')
                 $(this).attr('data-date', '')
             }
+        })
+
+        // Show More
+        $('body').on('click', '#showMoreBtn', function (e) {
+            let tbody = $('#inoutcome-filtered-tbody')
+            let currOffset = currQuery.offset
+            // currQuery = Object.assign({}, initQuery)
+            currQuery.offset = currOffset + LIMIT
+            request2GetFilteredData(currQuery, true)
         })
     }
 
@@ -907,7 +923,7 @@ $(document).ready(async function () {
         })
     }
 
-    function updateTableOnResponse(data) {
+    function updateTableOnResponse(data, append = false) {
         let tbody = $('#inoutcome-filtered-tbody')
 
         var html = ''
@@ -933,14 +949,18 @@ $(document).ready(async function () {
                     '</td><td class="pr-1">' + numberFormat(tax) + '</td><td class="pr-1">' + numberFormat(priceWithTax) +
                     '</td></tr>'
         })
-        tbody.html(html)
+        if (append) {
+            tbody.append(html)
+        } else {
+            tbody.html(html)
+        }
     }
 
-    function request2GetFilteredData(query, callback) {
+    function request2GetFilteredData(query, append = false) {
         $('#searching-progress').fadeIn(500)
         $.post('/api/inoutcome/', query, function (data) {
             // console.log(data)
-            updateTableOnResponse(data)
+            updateTableOnResponse(data, append)
             setTimeout(() => {
                 $('#searching-progress').fadeOut(500)
             }, 1000);

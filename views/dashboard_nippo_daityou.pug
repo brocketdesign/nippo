@@ -1,6 +1,9 @@
 extends new_dashboard
 block content
     script(src='/js/controller/daityou.js')
+    script(src='/plugins/bootstrap-switch/js/bootstrap-switch.min.js')
+    link(rel='stylesheet' href='/plugins/bootstrap-switch/css/bootstrap-switch.min.css')
+    
     #daityouPage.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
         h3.d-block.title.font-weight-light.mb-2.pb-2.border-bottom #{title}
         #daityouview
@@ -10,21 +13,23 @@ block content
                     span#inprogress-count.pl-1
                 a#nav-finished-tab.nav-link-ex(data-toggle="tab" data-target="#nav-finished" type="button" role="tab" aria-controls="nav-finished" aria-selected="false" data-name="finished") 完了・未受注
         div(class="tab-content")
-            .col-12.mt-3.py-3
+            .col-12.col-xxl-8.mt-3.pt-3
                 .row
-                    .col-7.col-sm-7.col-md-6.col-lg-7.col-xl-5.col-xxl-4.px-0
+                    .col-sm-12.col-md-8.col-lg-8.col-xl-6.col-xxl-6.px-0.mb-3
                         .input-group
                             input#input-keyword.filter.form-control(type="text" placeholder="キーワードを入カ" autoFocus)
                             span.input-group-append 
                                 .input-group-text 
                                     span(data-feather="search") 検索する
+                            button#searchBtn.ml-4.sendForm.btn.btn-dark.rounded.shadow-sm.s-el.w-auto(style="cursor:pointer;")
+                                span.pt-1 絞り込む
+                                span.ml-2(data-feather='arrow-right' style="width: 15px;height: 15px;")
                     .col.px-0
-                        button#searchBtn.ml-4.sendForm.btn.btn-dark.rounded.shadow-sm.s-el.w-auto(style="cursor:pointer;")
-                            span.pt-1 絞り込む
-                            span.ml-2(data-feather='arrow-right' style="width: 15px;height: 15px;")
+                        div.text-right
+                            input#switchTax(type="checkbox" data-on-text="税込" data-off-text="税抜" data-size="normal" checked)
 
             div(class="tab-pane fade show active" id="nav-all" role="tabpanel" aria-labelledby="nav-all-tab")
-                .col-12.col-xxl-10.px-0
+                .col-12.col-xxl-8.px-0
                     .card.border-secondary.my-3.w-100
                         .card-header.py-1.bg-primary.text-white.font-weight-bold.collapsed(id="toggle-filter-all" data-toggle="collapse" data-target="#filter-panel-all" aria-expanded="false" aria-controls="filter-panel-all" style="cursor:pointer")
                             .row.pl-3
@@ -70,7 +75,7 @@ block content
                                 button.filterBtn.btn.btn-primary.rounded(data-name='all') 絞り込む
 
             div(class="tab-pane fade" id="nav-inprogress" role="tabpanel" aria-labelledby="nav-inprogress-tab")
-                .col-12.col-xxl-10.px-0
+                .col-12.col-xxl-8.px-0
                     .card.border-secondary.my-3.w-100
                         .card-header.py-1.bg-success.text-white.font-weight-bold.collapsed(id="toggle-filter-inprogress" data-toggle="collapse" data-target="#filter-panel-inprogress" aria-expanded="false" aria-controls="filter-panel-inprogress" style="cursor:pointer")
                             .row.pl-3

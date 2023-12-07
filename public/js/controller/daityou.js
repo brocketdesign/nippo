@@ -9,6 +9,10 @@ const pThisPeriod = 4
 const pPrevPeriod = 5
 const pPPrevPeriod = 6
 
+$(function() {
+    $("#switchTax").bootstrapSwitch();
+});
+
 $(document).ready(async function () {
     let userID =  $('#userID').attr('data-value')
     let userLevel = $('#user-level').attr('data-value') // 1: admin, others: not admin
@@ -53,6 +57,11 @@ $(document).ready(async function () {
             search(status, true)
         })
 
+        $('#switchTax').on('switchChange.bootstrapSwitch',function (e,data) {
+            var status = currentStatus()
+            search(status, true)
+        });
+
         initListItems()
         initCheckGroup()
 
@@ -78,12 +87,14 @@ $(document).ready(async function () {
 
     function search(status, isFilter) {
         var keyword = $('#input-keyword').val()
+        var includeTax = $('#switchTax').prop('checked')
 
-        var query = { status: status, today: today }
+        var query = { status: status, today: today, includeTax: includeTax }
         if (userLevel != 1) {
             query.userID = userID
         }
-        if (keyword) query.keyword = keyword
+        keyword && (query.keyword = keyword)
+
 
         if (isFilter) {
             var formID = '#filter-panel-' + status
@@ -184,12 +195,11 @@ $(document).ready(async function () {
             }
         }
 
-        // console.log({message:'query', query:query})
         if (prevQuery && JSON.stringify(prevQuery) == JSON.stringify(query)) {
             // console.log("same query")
         } else {
             // console.log(query)
-            prevQuery = query
+            prevQuery = Object.assign({}, query)
             request2GetFilteredData(status, query)
         }
     }
@@ -302,7 +312,7 @@ $(document).ready(async function () {
     function initListItems() {
         $('body').on('click', '.listitem-body', function () {
             if ($(this).attr('data-link')) {
-                window.location = new URL(window.location.origin + $(this).attr('data-link'))
+                window.location = new URL(window.location.origin + $(this).attr('data-link') + '&includeTax=' + $('#switchTax').prop('checked'))
             }
         })
     }

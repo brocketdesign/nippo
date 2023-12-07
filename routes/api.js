@@ -1,4 +1,5 @@
 var express = require('express');
+const app = express();
 var router = express.Router();
 const fs = require('fs');
 const converter = require('json-2-csv');
@@ -13,6 +14,7 @@ const moment = require('moment');
 const genbaModule = require('../modules/genbaModule'); // Import the refactored module
 const urlencodedParser = bodyParser.urlencoded({ extended: true })
 const {siharaCostsOfPeriod, siharaSalesOfPeriod, siharaBudgetSumOfPeriod, siharaCompanies} = require('../public/js/helper/sihara-ichiran-helper')
+const {rouhiOfPeriod} = require('../public/js/helper/sihara-ichiran-rouhi-helper')
 const { yosanKeiyakukingaku, yosanYosanTable, yosanYosan, yosanUriage, yosanGenka } = require('../public/js/helper/yosan-helper')
 const readline = require("readline")
 
@@ -784,6 +786,7 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
     var userID = body.userID
     var status = body.status
     var today = body.today
+    var includeTax = body.includeTax
     var keyword = body.keyword
     var period_min = body.period_min
     var period_max = body.period_max
@@ -966,7 +969,7 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
       let count = 0
       for (let i = 0; i < nResult; i++) {
         let item = results[i]
-        var params = { genbaID: item._id, type: '収入' }
+        var params = { genbaID: item._id, type: '収入', includeTax: includeTax }
         yosanUriage(db, params, function (err, sale) {
           item.sale = sale
           count ++
@@ -983,7 +986,7 @@ router.post('/daityou', urlencodedParser, async (req, res) => {
       let count = 0
       for (let i = 0; i < nResult; i++) {
         let item = results[i]
-        var params = { genbaID: item._id, type: '支出' }
+        var params = { genbaID: item._id, type: '支出', includeTax: includeTax }
         yosanGenka(db, params, function (err, cost) {
           item.cost = cost
           item.profit = item.sale - cost
@@ -1366,6 +1369,7 @@ router.post('/inoutcome', urlencodedParser, async (req, res) => {
     let bikou = body.備考
     let priceFrom = body.priceFrom
     let priceTo = body.priceTo
+    let offset = body.offset
     let limit = body.limit
 
     // res.send(body)
@@ -1438,16 +1442,20 @@ router.post('/inoutcome', urlencodedParser, async (req, res) => {
     // res.send(criteria)
     // return
 
+    if (!limit) limit = 0
+    else limit = parseInt(limit)
+
+    if (!offset) offset = 0
+    else offset = parseInt(offset)
+
     if (Object.keys(criteria).length == 0) {
       // res.send('non condition')
-      if (!limit) limit = 0
-      else limit = parseInt(limit)
-      db.collection('inoutcomeDaityou').find().sort({日付: -1}).limit(limit).toArray((err, results) => {
+      db.collection('inoutcomeDaityou').find().sort({日付: -1}).skip(offset).limit(limit).toArray((err, results) => {
         res.send(results)
       })
     } else {
       // res.send(JSON.stringify(criteria))
-      db.collection('inoutcomeDaityou').find(criteria).sort({日付: -1}).toArray((err, results) => {
+      db.collection('inoutcomeDaityou').find(criteria).sort({日付: -1}).skip(offset).limit(limit).toArray((err, results) => {
         // res.send(JSON.stringify(criteria))
         res.send(results)
       })
@@ -1566,10 +1574,11 @@ router.post('/yosan-summary', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {
     let genbaID = req.body.genbaID
+    let includeTax = req.body.includeTax
     let resultAll = {}
     let isEstimate = req.body.estimate
 
-    let params = { genbaID: genbaID }
+    let params = { genbaID: genbaID, includeTax: includeTax }
 
     // get 契約金額
     let deposit = await yosanKeiyakukingaku(db, params)
@@ -1634,6 +1643,31 @@ router.post('/yosan-summary', urlencodedParser, async (req, res) => {
   }
 });
 
+router.post('/sihara-ichiran-rouhi', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+
+    let params = {
+      genbaID: req.body.genbaID,
+      genbaName: req.body.genbaName,
+      yearMin: req.body.yearMin,
+      monthMin: req.body.monthMin,
+      yearMax: req.body.yearMax,
+      monthMax: req.body.monthMax
+    }
+
+    rouhiOfPeriod(db, params, function (err, results) {
+      if (err) {
+        res.sendStatus(300)
+        return
+      }
+
+      res.send(results)
+    })
+
+  }
+})
+
 // Get 支払一覧 full table: daityou-sihara-ichiran bottom table
 // Get 現場まとめ cost graph: daityou-genba cost bar chart
 router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
@@ -1642,6 +1676,7 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
 
     let genbaID = req.body.genbaID
     let genbaName = req.body.genbaName
+    let includeTax = req.body.includeTax
     let period = req.body.period
     let need_budgets = req.body.need_budgets
     let need_cost_sum = req.body.need_cost_sum
@@ -1662,7 +1697,8 @@ router.post('/sihara-ichiran', urlencodedParser, async (req, res) => {
 
     let params = {
       genbaID: genbaID,
-      genbaName: genbaName
+      genbaName: genbaName,
+      includeTax: includeTax
     }
     if (yearBase) { params.yearBase = yearBase }
     if (yearBase) { resultAll.yearBase = yearBase }
@@ -1782,6 +1818,7 @@ router.post('/sihara-ichiran-summary', urlencodedParser, async (req, res) => {
 
     let genbaID = req.body.genbaID
     let genbaName = req.body.genbaName
+    let includeTax = req.body.includeTax
     let period = req.body.period
     let resultAll = {}
 
@@ -1799,7 +1836,8 @@ router.post('/sihara-ichiran-summary', urlencodedParser, async (req, res) => {
 
     let params = {
       genbaID: genbaID,
-      genbaName: genbaName
+      genbaName: genbaName,
+      includeTax: includeTax
     }
     if (yearBase) { params.yearBase = yearBase }
     if (yearBase) { resultAll.yearBase = yearBase }

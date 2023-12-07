@@ -5,6 +5,7 @@ $(document).ready(async function () {
 
     let genbaID = getUrlParameter('genbaID')
     let genbaName = getUrlParameter('genbaName')
+    let includeTax = getUrlParameter('includeTax')
     // let genbaID = "610c7d73c3640304088b6735"
 
     //NIPPO FORM PAGE
@@ -16,7 +17,7 @@ $(document).ready(async function () {
 
     function initNavBar() {
         $('#title').html(genbaName)
-        var urlParams = 'genbaID=' + genbaID + '&genbaName=' + genbaName
+        var urlParams = 'genbaID=' + genbaID + '&genbaName=' + genbaName + '&includeTax=' + includeTax
         $('#nav-genba').attr('href', '/dashboard/daityou/genba?' + urlParams)
         // $('#nav-sihara').attr('href', '/dashboard/daityou/sihara_ichiran?' + urlParams)
         $('#nav-ichiran').attr('href', '/dashboard/daityou/genba_ichiran?' + urlParams)
@@ -38,7 +39,8 @@ $(document).ready(async function () {
         
         var query = {
             genbaID: genbaID,
-            genbaName: genbaName
+            genbaName: genbaName,
+            includeTax: includeTax
         }
 
         // var now = new Date()
@@ -60,6 +62,7 @@ $(document).ready(async function () {
         var query = {
             genbaID: genbaID,
             genbaName: genbaName,
+            includeTax: includeTax,
             need_budgets: 1
         }
 
@@ -178,8 +181,8 @@ $(document).ready(async function () {
             return
         }
 
-        var htmlHeader = ''
-        var htmlBody = ''
+        let htmlHeader = ''
+        let htmlBody = ''
 
         // calculate date range
         var yearMin = 10000, monthMin = 10000
@@ -232,6 +235,7 @@ $(document).ready(async function () {
             var costSum = 0
             
             var costs = item.costs
+            // console.log(costs)
             var costsFull = paddingCosts(dates, costs)
             // console.log(costsFull)
 
@@ -249,10 +253,43 @@ $(document).ready(async function () {
                 htmlBody += '<td class="pr-1 bg-light">' + numberFormat(parseFloat((costSum * 100 / item.budget).toFixed(2))) + '%</td>'
             }
             htmlBody += '</tr>'
+
+            // <tr><td class="py-2 pl-1 bg-light text-left">㈱グッドバレーカンパニー</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">550</td><td class="pr-1">0</td><td class="pr-1 bg-light">550</td><td class="pr-1 bg-light">0</td><td class="pr-1 bg-light">ー</td></tr>
+            // <td class="py-2 pl-1 bg-light text-left">㈱グッドバレーカンパニー</td>
+            // htmlBody +=
         })
-   
+
         theader.html(htmlHeader)
         tbody.html(htmlBody)
+
+        let query = {
+            genbaID: genbaID,
+            genbaName: genbaName,
+            yearMin: yearMin,
+            monthMin: monthMin,
+            yearMax: yearMax,
+            monthMax: monthMax
+        }
+        $.post('/api/sihara-ichiran-rouhi/', query, function (data) {
+            let rouhis_by_month = data.rouhis_by_month
+            let rouhis_by_user = data.rouhis_by_user
+            let total = data.total
+            console.log(rouhis_by_month)
+            var rouhis = paddingRouhis(dates, rouhis_by_month)
+            console.log(rouhis)
+
+            var htmlBodyRouhi = '<tr class="bg-secondary"><td class="py-2 pl-1 text-left text-white">労務費</td>'
+            // for (var i = 0; i < nRange; i++) {
+            //     htmlBodyRouhi += '<td></td>'
+            // }
+            Object.keys(rouhis).forEach(key => {
+                var rouhi = rouhis[key]
+                htmlBodyRouhi += '<td class="pr-1 bg-light">' + numberFormat(rouhi) + '</td>'
+            })
+            htmlBodyRouhi += '<td class="pr-1 bg-secondary text-white">' + numberFormat(total) + '</td>'
+            htmlBodyRouhi += '<td class="bg-secondary"></td><td class="bg-secondary"></td></tr>'
+            tbody.append(htmlBodyRouhi)
+        })
     }
 
     function updateSummaryTableOnResponse(data) {
@@ -411,19 +448,19 @@ function periodDates(yearMin, monthMin, yearMax, monthMax) {
     }
     if (yearMin == yearMax) {
         for (var i = monthMin; i <= monthMax; i++) {
-            dates.push(yearMin + '' + i)
+            dates.push(yearMin + ('' + i).padStart(2, '0', i))
         }
     } else {
         for (var i = monthMin; i <= 12; i++) {
-            dates.push(yearMin + '' + i)
+            dates.push(yearMin + ('' + i).padStart(2, '0', i))
         }
         for (var i = yearMin + 1; i < yearMax; i++) {
             for (var j = 1; j <= 12 ;j++) {
-                dates.push(i + '' + j)
+                dates.push(i + ('' + i).padStart(2, '0', i))
             }
         }
         for (var i = 1; i <= monthMax; i++) {
-            dates.push(yearMax + '' + i)
+            dates.push(yearMax + ('' + i).padStart(2, '0', i))
         }
     }
     return dates
@@ -440,7 +477,7 @@ function paddingCosts(dates, costs) {
     for (var i = 0; i < costs.length; i++) {
         var element = costs[i]
         var cost = element.cost
-        var date = element._id.year + '' + element._id.month
+        var date = element._id.year + ('' + element._id.month).padStart(2, '0', element._id.month)
         while (dates[idxE] != date) idxE ++
         for (var j = idxS; j < idxE; j++) costsFull.push(0)
         idxE ++
@@ -466,7 +503,7 @@ function paddingSales(dates, sales) {
     for (var i = 0; i < sales.length; i++) {
         var element = sales[i]
         var sale = element.sale
-        var date = element._id.year + '' + element._id.month
+        var date = element._id.year + ('' + element._id.month).padStart(2, '0', element._id.month)
         while (dates[idxE] != date) idxE ++
         for (var j = idxS; j < idxE; j++) salesFull.push(0)
         idxE ++
@@ -479,6 +516,29 @@ function paddingSales(dates, sales) {
     }
 
     return salesFull
+}
+
+function paddingRouhis(dates, rouhis) {
+    if (rouhis === undefined) {
+        return {}
+    }
+
+    var keys = Object.keys(rouhis)
+    if (keys.length == 0) {
+        return {}
+    }
+    
+    var rouhisFull = {}
+    for (var i = 0; i < dates.length; i++) {
+        var date = dates[i]
+        if (rouhis[date]) {
+            rouhisFull[date] = rouhis[date]
+        } else {
+            rouhisFull[date] = 0
+        }
+    }
+
+    return rouhisFull
 }
 
 function periodHeaderDatesYearBase(yearBase) {

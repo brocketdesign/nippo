@@ -20,11 +20,17 @@ var siharaCostsOfPeriod = function (db, params, callback) {
   }
 
   var group
-  var groupCostField = { $sum: {
-    $add: [ '$査定金額',
-      { $trunc: { $divide: [ { $multiply: [ '$査定金額', '$税率' ] }, 100 ] } }
-    ] }, // 原価 = SUM(支出)
+  var groupCostField
+  if (params.includeTax === 'true') {
+    groupCostField = { $sum: {
+      $add: [ '$査定金額',
+        { $trunc: { $divide: [ { $multiply: [ '$査定金額', '$税率' ] }, 100 ] } }
+      ] }, // 原価 = SUM(支出)
+    }
+  } else {
+    groupCostField = { $sum: '$査定金額' }
   }
+  
   if (params.need_cost_sum) {
     group = { $group: {
       _id: null,
@@ -95,6 +101,15 @@ var siharaSalesOfPeriod = function (db, params, callback) {
   }
   match = { $match: match }
   
+  let _sum // 売上 = SUM(収入)
+  if (params.includeTax === 'true') {
+    _sum = {
+      $add: [ '$査定金額',
+        { $trunc: { $divide: [ { $multiply: [ '$査定金額', '$税率' ] }, 100 ] } }
+      ] }
+  } else {
+    _sum = '$査定金額'
+  }
   // {
     //   $project: { month: { $month: new Date('$日付') } }
     // },
@@ -121,11 +136,7 @@ var siharaSalesOfPeriod = function (db, params, callback) {
           }
         } }
       },
-      sale: { $sum: {
-        $add: [ '$査定金額',
-          { $trunc: { $divide: [ { $multiply: [ '$査定金額', '$税率' ] }, 100 ] } }
-        ] }, // 売上 = SUM(収入)
-      }
+      sale: { $sum: _sum }
     }
   }
 

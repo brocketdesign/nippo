@@ -3050,6 +3050,9 @@ function SettingsGlobal() {
             $('#SettingsGlobal select').each(function () {
                 $(this).val(data[0][$(this).attr('name')])
             })
+            $('#SettingsGlobal input').each(function () {
+                $(this).val(data[0][$(this).attr('name')])
+            })
             displayPeriodList(data[0].period)
         }
     });
