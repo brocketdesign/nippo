@@ -16,7 +16,8 @@ const urlencodedParser = bodyParser.urlencoded({ extended: true })
 const {siharaCostsOfPeriod, siharaSalesOfPeriod, siharaBudgetSumOfPeriod, siharaCompanies} = require('../public/js/helper/sihara-ichiran-helper')
 const {rouhiOfPeriod} = require('../public/js/helper/sihara-ichiran-rouhi-helper')
 const { yosanKeiyakukingaku, yosanYosanTable, yosanYosan, yosanUriage, yosanGenka } = require('../public/js/helper/yosan-helper')
-const readline = require("readline")
+const readline = require("readline");
+const { resolve } = require('path');
 
 require('dotenv').config({ path: './.env' });
 router.use(cookieParser('horiken'));
@@ -1647,6 +1648,22 @@ router.post('/sihara-ichiran-rouhi', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {
 
+    let rouhi = await new Promise((resolve, reject) => {
+      db.collection('globalsetting').aggregate([{$project: {
+        _id: 0, rouhi: 1 }}]).toArray((err, results) => {
+          if (err || results == undefined || results.length == 0) {
+
+            reject();
+          }
+          else {
+            resolve(results[0]['rouhi'])
+          }
+        })
+    })
+    if (rouhi == 0) {
+      rouhi = 30000;
+    }
+
     let params = {
       genbaID: req.body.genbaID,
       genbaName: req.body.genbaName,
@@ -1661,7 +1678,7 @@ router.post('/sihara-ichiran-rouhi', urlencodedParser, async (req, res) => {
         res.sendStatus(300)
         return
       }
-
+      results.rouhi = rouhi;
       res.send(results)
     })
 

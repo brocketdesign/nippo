@@ -271,6 +271,7 @@ $(document).ready(async function () {
             monthMax: monthMax
         }
         $.post('/api/sihara-ichiran-rouhi/', query, function (data) {
+            let rouhi_ = data.rouhi;
             let rouhis_by_month = data.rouhis_by_month
             let rouhis_by_user = data.rouhis_by_user
             let total = data.total
@@ -283,10 +284,10 @@ $(document).ready(async function () {
             //     htmlBodyRouhi += '<td></td>'
             // }
             Object.keys(rouhis).forEach(key => {
-                var rouhi = rouhis[key]
+                var rouhi = rouhis[key] * rouhi_
                 htmlBodyRouhi += '<td class="pr-1 bg-light">' + numberFormat(rouhi) + '</td>'
             })
-            htmlBodyRouhi += '<td class="pr-1 bg-secondary text-white">' + numberFormat(total) + '</td>'
+            htmlBodyRouhi += '<td class="pr-1 bg-secondary text-white">' + numberFormat(total * rouhi_) + '</td>'
             htmlBodyRouhi += '<td class="bg-secondary"></td><td class="bg-secondary"></td></tr>'
             tbody.append(htmlBodyRouhi)
         })
