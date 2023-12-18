@@ -8,11 +8,28 @@ $(document).ready(async function () {
     let includeTax = getUrlParameter('includeTax')
     // let genbaID = "610c7d73c3640304088b6735"
 
+    let costsFull = null;
+    let salesFull = null;
+    let rouhisFull = null;
+
     //NIPPO FORM PAGE
     if (!!document.querySelector('#daityouSiharaIchiran')) {
         initNavBar()
         tableInit()
         SUA({ event: '支払一覧ページ' })
+    }
+
+    if (!!document.querySelector('#includeTaxNotify')) {
+        if (includeTax == "true") {
+            $('#includeTaxNotify').html('税込')
+            $('#includeTaxNotify').removeClass('badge-danger')
+            $('#includeTaxNotify').addClass('badge-primary')
+        }
+        else {
+            $('#includeTaxNotify').html('税抜')
+            $('#includeTaxNotify').removeClass('badge-primary')
+            $('#includeTaxNotify').addClass('badge-danger')
+        }
     }
 
     function initNavBar() {
@@ -275,21 +292,28 @@ $(document).ready(async function () {
             let rouhis_by_month = data.rouhis_by_month
             let rouhis_by_user = data.rouhis_by_user
             let total = data.total
-            console.log(rouhis_by_month)
+            // console.log(rouhis_by_month)
             var rouhis = paddingRouhis(dates, rouhis_by_month)
-            console.log(rouhis)
+            // console.log(rouhis)
 
-            var htmlBodyRouhi = '<tr class="bg-secondary"><td class="py-2 pl-1 text-left text-white">労務費</td>'
+            var htmlBodyRouhi = '<tr class="bg-light"><td class="py-2 pl-1 text-left">労務費</td>'
             // for (var i = 0; i < nRange; i++) {
             //     htmlBodyRouhi += '<td></td>'
             // }
+            if (rouhisFull == null)
+                rouhisFull = []
             Object.keys(rouhis).forEach(key => {
                 var rouhi = rouhis[key] * rouhi_
-                htmlBodyRouhi += '<td class="pr-1 bg-light">' + numberFormat(rouhi) + '</td>'
+                rouhisFull.push(rouhi)
+                // htmlBodyRouhi += '<td class="pr-1 bg-light">' + numberFormat(rouhi) + '</td>'
+                htmlBodyRouhi += '<td class="pr-1">' + numberFormat(rouhi) + '</td>'
             })
-            htmlBodyRouhi += '<td class="pr-1 bg-secondary text-white">' + numberFormat(total * rouhi_) + '</td>'
-            htmlBodyRouhi += '<td class="bg-secondary"></td><td class="bg-secondary"></td></tr>'
+            // htmlBodyRouhi += '<td class="pr-1 bg-secondary text-white">' + numberFormat(total * rouhi_) + '</td>'
+            htmlBodyRouhi += '<td class="pr-1 bg-light">' + numberFormat(total * rouhi_) + '</td>'
+            // htmlBodyRouhi += '<td class="bg-secondary"></td><td class="bg-secondary"></td></tr>'
+            htmlBodyRouhi += '<td class="bg-light"></td><td class="bg-light"></td></tr>'
             tbody.append(htmlBodyRouhi)
+            setSummaryData(nRange)
         })
     }
 
@@ -299,8 +323,8 @@ $(document).ready(async function () {
 
         var costs = data.costs
         var sales = data.sales
-        var costSum = 0
-        var saleSum = 0
+        // var costSum = 0
+        // var saleSum = 0
         var htmlHeader = ''
         var htmlBody = ''
 
@@ -378,32 +402,48 @@ $(document).ready(async function () {
         }
         htmlHeader += '<th class="bg-light" style="color:#212529">小計</th></tr>'
 
-        var costsFull = paddingCosts(dates, costs)
-        if (costsFull.length > 0) {
-            htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">原価合計</td>'
-            for (var i = 0; i < nRange; i++) {
-                var cost = costsFull[i]
-                costSum += cost
-                htmlBody += '<td class="pr-1">' + numberFormat(cost) + '</td>'
-            }
-            htmlBody += '<td class="pr-1 bg-light">' + numberFormat(costSum) + '</td>'
-            htmlBody += '</tr>'
-        }
+        // var costsFull = paddingCosts(dates, costs)
+        costsFull = paddingCosts(dates, costs)
+        salesFull = paddingSales(dates, sales)
 
-        var salesFull = paddingSales(dates, sales)
-        if (salesFull.length > 0) {
-            htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">売上合計</td>'
-            for (var i = 0; i < nRange; i++) {
-                var sale = salesFull[i]
-                saleSum += sale
-                htmlBody += '<td class="pr-1">' + numberFormat(sale) + '</td>'
-            }
-            htmlBody += '<td class="pr-1 bg-light">' + numberFormat(saleSum) + '</td>'
-            htmlBody += '</tr>'
-        }
-   
         theader.html(htmlHeader)
-        tbody.html(htmlBody)
+        setSummaryData(nRange)
+    }
+
+    function setSummaryData(nRange) {
+        if (costsFull != null && salesFull != null && rouhisFull != null) {
+
+            var costSum = 0;
+            var saleSum = 0;
+            var htmlBody = "";
+            if (costsFull.length > 0) {
+                htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">原価合計</td>'
+                for (var i = 0; i < nRange; i++) {
+                    // var cost = costsFull[i]
+                    var cost = costsFull[i] + rouhisFull[i]
+                    costSum += cost
+                    htmlBody += '<td class="pr-1">' + numberFormat(cost) + '</td>'
+                }
+                htmlBody += '<td class="pr-1 bg-light">' + numberFormat(costSum) + '</td>'
+                htmlBody += '</tr>'
+            }
+
+            // var salesFull = paddingSales(dates, sales)
+            if (salesFull.length > 0) {
+                htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">売上合計</td>'
+                for (var i = 0; i < nRange; i++) {
+                    var sale = salesFull[i]
+                    saleSum += sale
+                    htmlBody += '<td class="pr-1">' + numberFormat(sale) + '</td>'
+                }
+                htmlBody += '<td class="pr-1 bg-light">' + numberFormat(saleSum) + '</td>'
+                htmlBody += '</tr>'
+            }
+    
+            // theader.html(htmlHeader)
+            // tbody.html(htmlBody)
+            $('#sihara-ichiran-summary-tbody').append(htmlBody)
+        }
     }
 
 })
