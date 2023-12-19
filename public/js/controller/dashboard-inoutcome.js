@@ -1,6 +1,10 @@
 $(document).ready(async function () {
 
-    let prevQuery = null
+    const LIMIT = 30
+    let initQuery = {offset: 0, limit: LIMIT}
+    let currQuery = {}
+    let prevQuery = {}
+    let currRows = 0
 
     //NIPPO FORM PAGE
     if (!!document.querySelector('#inoutcomePage')) {
@@ -13,9 +17,9 @@ $(document).ready(async function () {
 
         // Global Selectors
 
-        if (document.querySelector('.input-kouza')) {
-            initSelectKouza($(document).find('select.input-kouza'))
-        }
+        // if (document.querySelector('.input-kouza')) {
+        //     initSelectKouza($(document).find('select.input-kouza'))
+        // }
 
         if (document.querySelector('.input-torihiki')) {
             initSelectTorihiki($(document).find('select.input-torihiki'))
@@ -64,12 +68,18 @@ $(document).ready(async function () {
         if (document.querySelector('#inoutcome-filtered-tbody')) {
             initTable()
         }
+
+        // Filter
+        if (document.querySelector('#filter-panel')) {
+            initKanjoukamokuFilter()
+        }
+        
     }
 
     function initSelectKouza(allSelect) {
-        console.log({
-            event: 'kouzaInit'
-        })
+        // console.log({
+        //     event: 'kouzaInit'
+        // })
         allSelect.each(function () {
             let kouzaSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -100,9 +110,9 @@ $(document).ready(async function () {
     }
 
     function initSelectTorihiki(allSelect) {
-        console.log({
-            event: 'torihikiInit'
-        })
+        // console.log({
+            // event: 'torihikiInit'
+        // })
         allSelect.each(function () {
             let torihikiSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -141,9 +151,9 @@ $(document).ready(async function () {
     }
 
     function initSelectHattyu(allSelect) {
-        console.log({
-            event: 'hattyuInit'
-        })
+        // console.log({
+        //     event: 'hattyuInit'
+        // })
         allSelect.each(function () {
             let hattyuSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -172,9 +182,9 @@ $(document).ready(async function () {
     }
 
     function initSelectGyousha(allSelect) {
-        console.log({
-            event: 'gyoushaInit'
-        })
+        // console.log({
+        //     event: 'gyoushaInit'
+        // })
         allSelect.each(function () {
             let gyoushaSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -206,9 +216,9 @@ $(document).ready(async function () {
     }
 
     function initSelectKanjoukamoku(allSelect) {
-        console.log({
-            event: 'kanjoukamokuInit'
-        })
+        // console.log({
+        //     event: 'kanjoukamokuInit'
+        // })
         allSelect.each(function () {
             let kanjoukamokuSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -240,9 +250,9 @@ $(document).ready(async function () {
     }
 
     function initSelectGenba(allSelect) {
-        console.log({
-            event: 'genbaInit'
-        })
+        // console.log({
+        //     event: 'genbaInit'
+        // })
         allSelect.each(function () {
             let genbaSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -274,9 +284,9 @@ $(document).ready(async function () {
     }
 
     function initSelectZeiritu(allSelect) {
-        console.log({
-            event: 'zeirituInit'
-        })
+        // console.log({
+        //     event: 'zeirituInit'
+        // })
         allSelect.each(function () {
             let zeirituSelect = $(this)
             if (!$(this).hasClass('init-on')) {
@@ -308,28 +318,75 @@ $(document).ready(async function () {
         })
     }
 
+    function initKanjoukamokuFilter() {
+        var filterPanel = $('#filter-panel')
+        if (!filterPanel.hasClass('init-on')) {
+            $.get("/api/kanjoukamoku", function (data) {
+                console.log(data)
+                var inData = data.in
+                var outData = data.out
+                var mergedData = {}
+
+                var allHtml = '<label class="btn sub-filter nav-link-inoutcome-sub-filter active"><input class="toggle" type="radio" value="" checked="true">すべて</label>'
+                var inHtml = '<label class="btn sub-filter nav-link-inoutcome-sub-filter active"><input class="toggle" type="radio" value="" checked="true">すべて</label>'
+                var outHtml = '<label class="btn sub-filter nav-link-inoutcome-sub-filter active"><input class="toggle" type="radio" value="" checked="true">すべて</label>'
+
+                if (inData) {
+                    for (var i = 0; i < inData.length; i++) {
+                        var id = inData[i]._id
+                        var el = inData[i].el
+                        if (el) {
+                            mergedData[el] = el
+                            inHtml += '<label class="btn sub-filter nav-link-inoutcome-sub-filter"><input class="toggle" type="radio" value="' + el + '">' + el + '</label>'
+                        }
+                    }
+                }
+                if (outData) {
+                    for (var i = 0; i < outData.length; i++) {
+                        var id = outData[i]._id
+                        var el = outData[i].el
+                        if (el) {
+                            mergedData[el] = el
+                            outHtml += '<label class="btn sub-filter nav-link-inoutcome-sub-filter"><input class="toggle" type="radio" value="' + el + '">' + el + '</label>'
+                        }
+                    }
+                }
+                let keys = Object.keys(mergedData)
+                keys.forEach(item => {
+                    allHtml += '<label class="btn sub-filter nav-link-inoutcome-sub-filter"><input class="toggle" type="radio" value="' + item + '">' + item + '</label>'
+                })
+
+                console.log(mergedData);
+                $('#filter-all-group').html(allHtml)
+                $('#filter-in-group').html(inHtml)
+                $('#filter-out-group').html(outHtml)
+            })
+            filterPanel.addClass('init-on')
+        }
+    }
+
     function initLabelSubTotalPrice(allSelect) {
-        console.log({
-            event: 'subtotalInit'
-        })
+        // console.log({
+        //     event: 'subtotalInit'
+        // })
         allSelect.each(function () {
             $(this).text(currencyFormat(0))
         })
     }
 
     function initLabelTotalPrice(allSelect) {
-        console.log({
-            event: 'totalInit'
-        })
+        // console.log({
+        //     event: 'totalInit'
+        // })
         allSelect.each(function () {
             $(this).text(numberFormat(0) + ' 円')
         })
     }
 
     function initDate(allSelect) {
-        console.log({
-            event: 'dateInit'
-        })
+        // console.log({
+        //     event: 'dateInit'
+        // })
         allSelect.each(function () {
             let dateSelect = $(this)
             let today = formatedDateString(new Date())
@@ -367,8 +424,10 @@ $(document).ready(async function () {
     }
 
     function initTable() {
-        let query = { limit: 30 }
-        request2GetFilteredData(query)
+        $('#batch-check').prop('checked', false)
+        currQuery = Object.assign({}, initQuery)
+        currRows = 0
+        request2GetFilteredData(currQuery)
     }
 
     function initForm() {
@@ -506,9 +565,9 @@ $(document).ready(async function () {
         // Filter Button
         $('body').on('click', '#filterBtn', function () {
 
-            let query = {}
             let inoutType
             let kanjoukamoku
+            currQuery = Object.assign({}, initQuery)
 
             // Main Tab(type)
             if ($('#filter-income-tab').hasClass('active') == true) { // in
@@ -518,7 +577,7 @@ $(document).ready(async function () {
             }
 
             if (inoutType) { // type = all
-                query.inoutType = inoutType
+                currQuery.inoutType = inoutType
             }
 
             // Sub Tab(kanjoukamoku)
@@ -541,20 +600,20 @@ $(document).ready(async function () {
             })
 
             if (kanjoukamoku) { // kanjoukamoku = all
-                query.勘定科目 = kanjoukamoku
+                currQuery.勘定科目 = kanjoukamoku
             }
 
             // date from/to
             let dateFrom = $('#date-from').attr('data-date')
             let dateTo = $('#date-to').attr('data-date')
-            query.dateFrom = dateFrom
-            query.dateTo = dateTo
+            dateFrom !== undefined && (currQuery.dateFrom = dateFrom)
+            dateTo !== undefined && (currQuery.dateTo = dateTo)
 
             // kouza selector
-            let kouza = $('#input-filter-kouza').val()
-            if (kouza) {
-                query.口座 = kouza
-            }
+            // let kouza = $('#input-filter-kouza').val()
+            // if (kouza) {
+            //     currQuery.口座 = kouza
+            // }
 
             // torihiki selector
             let torihiki
@@ -567,63 +626,68 @@ $(document).ready(async function () {
             }
 
             if (torihiki) {
-                query.取引先 = torihiki
+                currQuery.取引先 = torihiki
             }
 
             // genba selector
             let genba = $('#input-filter-genba').val()
             if (genba) {
-                query.現場名 = genba
+                currQuery.現場名 = genba
             }
 
             // bikou input
             let bikou = $('#input-filter-bikou').val()
             if (bikou) {
-                query.備考 = bikou
+                currQuery.備考 = bikou
             }
 
             // satei price from/to
             let priceFrom = $('#input-filter-price-from').val()
             let priceTo = $('#input-filter-price-to').val()
             if (priceFrom) {
-                query.priceFrom = priceFrom
+                currQuery.priceFrom = priceFrom
             }
             if (priceTo) {
-                query.priceTo = priceTo
+                currQuery.priceTo = priceTo
             }
 
-            if (prevQuery && JSON.stringify(prevQuery) == JSON.stringify(query)) {
+            if (prevQuery && JSON.stringify(prevQuery) == JSON.stringify(currQuery)) {
                 // console.log("same query")
             } else {
-                // console.log(query)
-                prevQuery = query
-                request2GetFilteredData(query)
+                // console.log(currQuery)
+                prevQuery = Object.assign({}, currQuery)
+                currRows = 0
+
+                request2GetFilteredData(currQuery)
             }
 
         })
 
         // Batch Delete
         $('body').on('click', '#filterAllBtn', function () {
-            if (confirm("本当に削除しますか？")) {
-                deleteCheckedList()
-            }
+            deleteCheckedList()
         })
 
         // Clear Filter Button
         $('body').on('click', '#clearFilterBtn', function () {
             clearFilterDate()
-            clearFilterKouza()
+            // clearFilterKouza()
             clearFilterHattyu()
             clearFilterGenba()
             clearFilterCategory()
+        })
+
+        // CSV import
+        $('body').on('change', '#importDialog', function () {
+            $('#importForm').submit()
         })
 
         $('body').on('click', '.ic-feather-x', function () {
             var dataId = $(this).attr('data-id')
             if (dataId == 'input-filter-date') {
                 clearFilterDate()
-            } else if (dataId == 'input-filter-kouza') {
-                clearFilterKouza()
+            // } else if (dataId == 'input-filter-kouza') {
+            //     clearFilterKouza()
             } else if (dataId == 'input-filter-httyu') {
                 clearFilterHattyu()
             } else if (dataId == 'input-filter-genba') {
@@ -665,6 +729,15 @@ $(document).ready(async function () {
                 $(this).val('')
                 $(this).attr('data-date', '')
             }
+        })
+
+        // Show More
+        $('body').on('click', '#showMoreBtn', function (e) {
+            let tbody = $('#inoutcome-filtered-tbody')
+            let currOffset = currQuery.offset
+            // currQuery = Object.assign({}, initQuery)
+            currQuery.offset = currOffset + LIMIT
+            request2GetFilteredData(currQuery, true)
         })
     }
 
@@ -850,7 +923,7 @@ $(document).ready(async function () {
         })
     }
 
-    function updateTableOnResponse(data) {
+    function updateTableOnResponse(data, append = false) {
         let tbody = $('#inoutcome-filtered-tbody')
 
         var html = ''
@@ -858,7 +931,7 @@ $(document).ready(async function () {
             var type = item.type
             var kanjoukamoku = item.勘定科目
             var date = item.日付
-            var kouza = item.口座
+            // var kouza = item.口座
             var torihiki = item.取引先
             var genba = item.現場名
             var bikou = item.備考
@@ -876,14 +949,18 @@ $(document).ready(async function () {
                     '</td><td class="pr-1">' + numberFormat(tax) + '</td><td class="pr-1">' + numberFormat(priceWithTax) +
                     '</td></tr>'
         })
-        tbody.html(html)
+        if (append) {
+            tbody.append(html)
+        } else {
+            tbody.html(html)
+        }
     }
 
-    function request2GetFilteredData(query, callback) {
+    function request2GetFilteredData(query, append = false) {
         $('#searching-progress').fadeIn(500)
         $.post('/api/inoutcome/', query, function (data) {
             // console.log(data)
-            updateTableOnResponse(data)
+            updateTableOnResponse(data, append)
             setTimeout(() => {
                 $('#searching-progress').fadeOut(500)
             }, 1000);
@@ -893,19 +970,20 @@ $(document).ready(async function () {
     function saveToDB(formSelect, callback) {
         let formId = '.form-container.' + formSelect
 
-        let selectKouza = $(formId).find('.input-kouza')
+        // let selectKouza = $(formId).find('.input-kouza')
         let selectTorihiki = formSelect == 'income' ? $(formId).find('.input-hattyu') : $(formId).find('.input-gyousha')
         let torihikiID = selectTorihiki.find('option:checked').attr('data-id')
         let selectDate = $(formId).find('.input-date-inoutcome')
 
-        let kouza = selectKouza.val()
+        // let kouza = selectKouza.val()
         let torihiki = selectTorihiki.val()
         let date = selectDate.attr('data-date')
 
         let result = {}
 
-        if (kouza && torihiki && date) {
-            result.口座 = kouza
+        // if (kouza && torihiki && date) {
+        if (torihiki && date) {
+            // result.口座 = kouza
             result.torihiki_id = torihikiID
             result.取引先 = torihiki
             result.日付 = date
@@ -982,7 +1060,7 @@ $(document).ready(async function () {
         if (ids.length > 0) {
             var query = {ids: ids}
             $.post('/api/delete/inoutcome/', query, function (data) {
-                console.log(data)
+                // console.log(data)
                 initTable()
             })
         }

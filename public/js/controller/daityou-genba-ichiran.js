@@ -2,6 +2,7 @@ $(document).ready(async function () {
 
   let genbaID = getUrlParameter('genbaID')
   let genbaName = getUrlParameter('genbaName')
+  let includeTax = getUrlParameter('includeTax')
   // let genbaID = "610c7d73c3640304088b6735"
 
   if (!!document.querySelector('#daityouGenbaIchiran')) {
@@ -11,7 +12,7 @@ $(document).ready(async function () {
 
   function initNavBar() {
     $('#title').html(genbaName)
-    var urlParams = 'genbaID=' + genbaID + '&genbaName=' + genbaName
+    var urlParams = 'genbaID=' + genbaID + '&genbaName=' + genbaName + '&includeTax=' + includeTax
     $('#nav-genba').attr('href', '/dashboard/daityou/genba?' + urlParams)
     $('#nav-sihara').attr('href', '/dashboard/daityou/sihara_ichiran?' + urlParams)
     // $('#nav-ichiran').attr('href', '/dashboard/daityou/genba_ichiran?' + urlParams)

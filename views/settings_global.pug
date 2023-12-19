@@ -20,7 +20,7 @@ block content
                                             option(value="30") 30日
                     .col-12.col-sm-6.d-flex
                         span.mr-1.pt-2 期間一覧
-                        select.period-list   
+                        select.period-list
                     .col-12.col-sm-6
                         form(method="POST" data-name="globalsetting" data-value="1")
                             .form-container
@@ -38,6 +38,12 @@ block content
                                         while i<=10
                                             option(value=`${i}`) #{i}枠
                                             - i++
+                    .col-12.col-sm-6
+                        form(method="POST" data-name="globalsetting" data-value="1").d-flex.mt-2
+                            span.mr-1.pt-2 労務費
+                            .row.ml-1
+                                input.form-control(type="text" value='30000' name="rouhi")
+
         //- new[monkey]
         each elementType in elementTypes
             .card.mb-3.w-100(id=`${elementType.name}Selector`)

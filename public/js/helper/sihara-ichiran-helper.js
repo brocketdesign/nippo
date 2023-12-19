@@ -7,6 +7,7 @@ var siharaCostsOfPeriod = function (db, params, callback) {
 
   // get 原価
   var match = { genba_id: new ObjectId(params.genbaID), type: '支出' }
+  // var match = { 現場名: params.genbaName, type: '支出' }
   if (params.company_el) {
     match.取引先 = params.company_el
   }
@@ -19,11 +20,17 @@ var siharaCostsOfPeriod = function (db, params, callback) {
   }
 
   var group
-  var groupCostField = { $sum: {
-    $add: [ '$査定金額',
-      { $trunc: { $divide: [ { $multiply: [ '$査定金額', '$税率' ] }, 100 ] } }
-    ] }, // 原価 = SUM(支出)
+  var groupCostField
+  if (params.includeTax === 'true') {
+    groupCostField = { $sum: {
+      $add: [ '$査定金額',
+        { $trunc: { $divide: [ { $multiply: [ '$査定金額', '$税率' ] }, 100 ] } }
+      ] }, // 原価 = SUM(支出)
+    }
+  } else {
+    groupCostField = { $sum: '$査定金額' }
   }
+  
   if (params.need_cost_sum) {
     group = { $group: {
       _id: null,
@@ -70,6 +77,9 @@ var siharaCostsOfPeriod = function (db, params, callback) {
   if (resultMatch) aggregation.push(resultMatch)
   if (sort) aggregation.push(sort)
 
+  // callback(null, aggregation)
+  // return
+
   var aggregated = db.collection('inoutcomeDaityou').aggregate(aggregation)
   if (params.need_cost_sum) {
     aggregated.next((err, result) => {
@@ -85,11 +95,21 @@ var siharaCostsOfPeriod = function (db, params, callback) {
 var siharaSalesOfPeriod = function (db, params, callback) {
 
   var match = { genba_id: new ObjectId(params.genbaID), type: '収入' }
+  // var match = { 現場名: params.genbaName, type: '収入' }
   if (params.company_el) {
     match.取引先 = params.company_el
   }
   match = { $match: match }
   
+  let _sum // 売上 = SUM(収入)
+  if (params.includeTax === 'true') {
+    _sum = {
+      $add: [ '$査定金額',
+        { $trunc: { $divide: [ { $multiply: [ '$査定金額', '$税率' ] }, 100 ] } }
+      ] }
+  } else {
+    _sum = '$査定金額'
+  }
   // {
     //   $project: { month: { $month: new Date('$日付') } }
     // },
@@ -116,11 +136,7 @@ var siharaSalesOfPeriod = function (db, params, callback) {
           }
         } }
       },
-      sale: { $sum: {
-        $add: [ '$査定金額',
-          { $trunc: { $divide: [ { $multiply: [ '$査定金額', '$税率' ] }, 100 ] } }
-        ] }, // 売上 = SUM(収入)
-      }
+      sale: { $sum: _sum }
     }
   }
 
@@ -157,8 +173,9 @@ var siharaBudgetSumOfPeriod = function (db, params, callback) {
 
   let match = {
     genba: new ObjectId(params.genbaID),
+    // 'company.el': params.company_el,
     'company._id': new ObjectId(params.company_id),
-    // date: { $gte: params.dateFrom, $lte: params.dateTo }
+    date: { $gte: params.dateFrom, $lte: params.dateTo }
   }
 
   // get 実行予算
@@ -192,10 +209,12 @@ var siharaBudgetSumOfPeriod = function (db, params, callback) {
 var siharaCompanies = function (db, params, callback) {
   db.collection('inoutcomeDaityou').aggregate([
     { $match: { genba_id: new ObjectId(params.genbaID), type: '支出' } },
+    // { $match: { 現場名: params.genbaName, type: '支出' } },
     {
       $group: {
         _id: '$取引先',
         data: { $first: { _id: '$torihiki_id'}}
+        // data: { $first: { _id: '$取引先'}}
       }
     }
   ]).toArray((err, results) => {

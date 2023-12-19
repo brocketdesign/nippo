@@ -964,14 +964,25 @@ input:disabled {
   height: 300px;
 }
 
-#cost-barchart {
+#cost-barchart-flot {
   width: 100%;
-  height: 350px;
+  height: 500px;
 }
 
-#spline-chart {
+/* #spline-chart {
   width: 100%;
   height: 300px;
+} */
+
+#spline-chart-flot {
+  width: 100%;
+  height: 400px;
+}
+
+.overflow-x-auto {
+  overflow-x:auto;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: -ms-autohiding-scrollbar;
 }
 
 .nav-link-ex {
@@ -1141,6 +1152,10 @@ input:disabled {
   width: 40px;
 }
 
+.scrollable-table thead tr th.col-title-small {
+  width: 25px;
+}
+
 .scrollable-table thead tr th,
 .scrollable-table tbody tr th {
   width: 30px;
@@ -1149,6 +1164,10 @@ input:disabled {
 @media (min-width: 575.98px) {
   .scrollable-table thead tr th.col-title {
     width: 50px;
+  }
+
+  .scrollable-table thead tr th.col-title-small {
+    width: 30px;
   }
 
   .scrollable-table thead tr th,
@@ -1162,6 +1181,10 @@ input:disabled {
     width: 80px;
   }
 
+  .scrollable-table thead tr th.col-title-small {
+    width: 60px;
+  }
+
   .scrollable-table thead tr th,
   .scrollable-table tbody tr th {
     width: 50px;
@@ -1173,6 +1196,10 @@ input:disabled {
     width: 120px;
   }
 
+  .scrollable-table thead tr th.col-title-small {
+    width: 70px;
+  }
+
   .scrollable-table thead tr th,
   .scrollable-table tbody tr th {
     width: 75px;
@@ -1182,6 +1209,10 @@ input:disabled {
 @media (min-width: 1199.98px) {
   .scrollable-table thead tr th.col-title {
     width: 150px;
+  }
+
+  .scrollable-table thead tr th.col-title-small {
+    width: 80px;
   }
 
   .scrollable-table thead tr th,

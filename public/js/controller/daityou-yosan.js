@@ -2,6 +2,7 @@ $(document).ready(async function () {
 
     let genbaID = getUrlParameter('genbaID')
     let genbaName = getUrlParameter('genbaName')
+    let includeTax = getUrlParameter('includeTax')
     // let genbaID = "610c7d73c3640304088b6735"
 
     let koushuData = null;
@@ -17,7 +18,7 @@ $(document).ready(async function () {
 
     function initNavBar() {
         $('#title').html(genbaName)
-        var urlParams = 'genbaID=' + genbaID + '&genbaName=' + genbaName
+        var urlParams = 'genbaID=' + genbaID + '&genbaName=' + genbaName + '&includeTax=' + includeTax
         $('#nav-genba').attr('href', '/dashboard/daityou/genba?' + urlParams)
         $('#nav-sihara').attr('href', '/dashboard/daityou/sihara_ichiran?' + urlParams)
         $('#nav-ichiran').attr('href', '/dashboard/daityou/genba_ichiran?' + urlParams)
@@ -120,6 +121,7 @@ $(document).ready(async function () {
     function initSummaryTable() {
         var query = {
             genbaID: genbaID,
+            includeTax: includeTax,
             estimate: 1 // estimation of profit
         }
         request2GetSummaryData(query)
@@ -301,8 +303,6 @@ $(document).ready(async function () {
         })
 
         $('body').on('click', '.ic-td-trash', function () {
-            if (!confirm("本当に削除しますか？")) return;
-
             var _id = $(this).parent().attr('data-id')
             var query = {_id: _id}
             $.post('/api/delete/yosan', query, function (data) {
@@ -543,9 +543,9 @@ $(document).ready(async function () {
     function updateSummaryTableOnResponse(data) {
         var tbody = $('#yosan-summary-tbody')
 
-        var deposit = data.契約金額 ? data.契約金額 : 0
-        var budget = data.実行予算 ? data.実行予算 : 0
-        var profit = data.予想粗利 ? data.予想粗利 : 0
+        var deposit = data.契約金額 || 0
+        var budget = data.実行予算 || 0
+        var profit = data.予想粗利 || 0
         var _profitRate = data.粗利率
         var profitRate = data.粗利率 ? numberFormat(_profitRate) + '%' : 'ー'
         var html = '<tr><td class="py-2 pr-1">' + numberFormat(deposit) + '</td><td class="pr-1">' + numberFormat(budget) + '</td><td class="pr-1">' + numberFormat(profit) + '</td><td class="pr-1">' + profitRate + '</td></tr>'
