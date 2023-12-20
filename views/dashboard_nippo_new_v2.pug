@@ -107,15 +107,15 @@ block content
                         span.d-none(style="font-size: 12px;") 表示形式
                         .d-flex.justify-content-end
                             .switchview 
-                                button.switcher.btn.btn-outline-secondary.rounded-0.mx-1(data-value="view-table" style="display:none")
+                                button.btn.btn-light.switcher.rounded-0.mx-1(data-value="view-table" data-toggle="tooltip" data-placement="top" title="表示切り替え" style="display:none")
                                     span(data-feather="columns")
-                                button.switcher.btn.rounded-0.btn-outline-secondary.on.mx-1(data-value="view-list")
+                                button.switcher.btn.rounded-0.btn-light.on.mx-1(data-value="view-list" data-toggle="tooltip" data-placement="top" title="表示切り替え")
                                     span(data-feather="list")
-                                span.mx-1.d-none.d-sm-inline(style="font-size: 12px;") 表示切り替え
+                                span.mx-1.d-none.d-sm-inline(style="font-size: 12px;")
                             .ms-toggle
-                                button.btn.btn-outline-secondary.rounded-0.showall.mx-1(data-ms-base="ms-nippoichiran")
+                                button.btn.btn-light.rounded-0.showall.mx-1(data-ms-base="ms-nippoichiran" data-toggle="tooltip" data-placement="top" title="全て表示")
                                     span(data-feather="eye")
-                                span.mx-1.d-none.d-sm-inline(style="font-size: 12px;") 全て
+                                span.mx-1.d-none.d-sm-inline(style="font-size: 12px;")
                 .row 
                     .col-12.col-sm-4
                         .card.border-secondary.my-3(style="width:100%;")
@@ -158,6 +158,9 @@ block content
                         .row 
                             .col-12.text-start
                                 a.text-danger(href=`/dashboard/settings/users/edit/${userID}`) 現場を選択してください
+                    .col-12.reset-form.col-12.col-lg-auto.py-2.ms-auto.d-none
+                        button.btn.btn-danger(data-name="genbanippo" onclick="resetForm(this)")
+                            i.fa.fa-trash
                 .card.border-secondary.my-3(style="width:100%")
                     .card-header.py-1.bg-warning.font-weight-bold.text-white
                         .row
@@ -216,15 +219,15 @@ block content
                         span.d-none(style="font-size: 12px;") 表示形式
                         .d-flex.justify-content-end
                             .switchview 
-                                button.switcher.btn.btn-outline-secondary.rounded-0.mx-1(data-value="view-table" style="display:none")
+                                button.switcher.btn.btn-light.rounded-0.mx-1(data-value="view-table" data-toggle="tooltip" data-placement="top" title="表示切り替え" style="display:none")
                                     span(data-feather="columns")
-                                button.switcher.btn.rounded-0.btn-outline-secondary.on.mx-1(data-value="view-list")
+                                button.switcher.btn.rounded-0.btn-light.on.mx-1(data-value="view-list" data-toggle="tooltip" data-placement="top" title="表示切り替え" )
                                     span(data-feather="list")
-                                span.mx-1.d-none.d-sm-inline(style="font-size: 12px;") 表示切り替え
+                                span.mx-1.d-none.d-sm-inline(style="font-size: 12px;")
                             .ms-toggle
-                                button.btn.btn-outline-secondary.rounded-0.showall.mx-1(data-ms-base="ms-genbanippo")
+                                button.btn.btn-light.rounded-0.showall.mx-1(data-ms-base="ms-genbanippo" data-toggle="tooltip" data-placement="top" title="全て表示")
                                     span(data-feather="eye")
-                                span.mx-1.d-none.d-sm-inline(style="font-size: 12px;") 全て
+                                span.mx-1.d-none.d-sm-inline(style="font-size: 12px;") 
                 .alert(style="display:none")
                     .row 
                         .col-12.text-start

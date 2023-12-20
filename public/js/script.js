@@ -40,6 +40,7 @@ const Before10 = (prevDate.getMonth() + 1) + '/' + prevDate.getDate() + '/' + pr
 
 $(document).ready(async function () {
     feather.replace()
+    handleTooltip()
     initGlobalSelector();
     //NEW DASHBOARD PAGE
     if (!!document.querySelector('#new_dashoboard_content')) {
@@ -983,6 +984,7 @@ $(document).ready(async function () {
 
 
     //TOOLS
+    createScrollToTopButton();
     updateUserInfo();
     adminOnly();
     navigationActive();
@@ -998,6 +1000,37 @@ $(document).ajaxStop(function () {
     displayMainContent()
     feather.replace();
 });
+
+
+function handleTooltip(){
+    $(document).find('[data-toggle="tooltip"]').tooltip()
+}
+function createScrollToTopButton() {
+    // Create the button element
+    var button = $('<button>', {
+        id: 'scrollToTopButton',
+        class: 'btn btn-dark',
+        style: 'position: fixed; bottom: 20px; right: 20px; z-index: 1000; opacity: 0.5; display: none;'
+    }).html('<i class="fa fa-arrow-up"></i>');
+
+    // Append the button to the body
+    $('body').append(button);
+
+    // Scroll to top logic
+    button.on('click', function() {
+        $('html, body').animate({ scrollTop: 0 }, 'slow');
+    });
+
+    // Show button when page is scrolled down
+    $(window).scroll(function() {
+        if ($(this).scrollTop() > 100) { // 100px from top
+            button.fadeIn();
+        } else {
+            button.fadeOut();
+        }
+    });
+}
+
 function reloadNiceselect(){
     // First, destroy the current niceSelect instance
     $('body').find('select').niceSelect('destroy');
@@ -1575,6 +1608,124 @@ async function nippoIchiranInit(userID, today, start, end) {
     }else{
         //console.log(`Nippo ichiran is loading`)
     }
+}
+function resetForm(el){
+    const formId = $(el).attr('data-name')
+    const formSelect =  $(`form.${formId}`)
+    if(alertCheck()){
+        resetGroupForm(formSelect)
+    }
+}
+
+function handleFormTemplate(el){
+    const formId = $(el).attr('data-name')
+    const formSelect =  $(`form.${formId}`)
+    const day = $(el).attr('data-date')
+    if(formSelect){
+        if(alertCheck('日報を上書きしますがよろしいですか？')){
+            resetGroupForm(formSelect)
+            getNippoData(day,formId,function(result){
+                doCustomForm(formSelect, result)
+                scrollTo(formSelect)
+            })
+        }
+    }else{
+        console.log('Form not founded')
+    }
+
+}
+function scrollTo(jquerySelector) {
+    // Ensure the element exists and is not empty
+    if (jquerySelector.length) {
+        // Animate the scroll
+        $('html, body').animate({
+            scrollTop: jquerySelector.offset().top
+        }, 1000); // 1000 milliseconds for the animation speed
+    } else {
+        console.log("Element not found: ", jquerySelector);
+    }
+}
+function doCustomForm(formSelect, element){
+    const avoidThis = ['userID', 'userName', '日付', 'genbaID', 'genbaName']
+    $.each(formSelect.find('.input-temp'), function () {
+        $(this).remove()
+    })
+    if (element && (element.totalLine > 0)) {
+        console.log({
+            event: 'doForm',
+            data: element
+        })
+        let statut = element.statut
+        let totalLine = element.totalLine
+        for (let i = 1; i < totalLine; i++) {
+            let formId = formSelect.attr('data-name')
+            addGroupForm(formId, 1)
+        }
+        $.each(formSelect.find('input'), function () {
+            let name = $(this).attr('name')
+            let newVal = element[name]
+            if(!avoidThis.includes(name)){
+                formSelect.find('input[name="' + name + '"]').val(newVal).change()
+                formSelect.find('input[name="' + name + '"]').attr('value', newVal)
+            }
+        })
+        $.each(formSelect.find('select'), function () {
+            let name = $(this).attr('name')
+            let newVal = element[name]
+            formSelect.find('select[name="' + name + '"]').val(newVal).change()
+            formSelect.find('select[name="' + name + '"]').attr('value', newVal)
+            formSelect.find('select[name="' + name + '"]').niceSelect('update')
+        })
+        $.each(formSelect.find('textarea'), function () {
+            let name = $(this).attr('name')
+            let newVal = element[name]
+            formSelect.find('textarea[name="' + name + '"]').val(newVal).change()
+            formSelect.find('textarea[name="' + name + '"]').attr('value', newVal)
+        })
+    }
+}
+function alertCheck(message) {
+    var userResponse = confirm(message || "Are you sure you want to continue? This action may overwrite existing data.");
+    if (userResponse) {
+        return true;
+    } else {
+        return false;
+    }
+}
+function getNippoData(day,formId,callback){
+    const userID = getUserID()
+    const genbaID = getGenbaId()
+
+    if(userID){
+        let dataId
+        if(formId == 'genbanippo'){
+            dataId = genbaID
+        }else{
+            dataId = userID
+        }
+        UserNippoData(dataId, userID, formId, day, function(result) {
+            if(callback){
+                callback(result)
+            }
+        });
+    }else{
+        console.log('User ID is not founded.')
+    }
+   
+}
+function UserNippoData(dataId, userID, formId, day, callback) {
+    $.get('/api/' + dataId + '_' + formId + '?day=' + day, function (result) {
+        callback(result[0]);
+    });
+}
+
+
+
+function getGenbaId(){
+    return $('.input-genba[data-name="genbanippo"]').find('option:checked').attr('data-id')
+}
+function getUserID(){
+    return  $('.input-responsible.globalselector').val() || $('#userID').attr('data-value')
 }
 function initFormField(userID, day, editForm) {
     if (editForm == undefined) {
@@ -2185,7 +2336,14 @@ async function genbaIchiranInit(today, start, end) {
                                 if (!document.querySelector('#genbaichiran .list-group-item[data-value="' + data['todayJP'] + '"]')) {
                                     let header_content = ''
                                     header_content += '<li class="list-group-item bg-transparent border-0 p-0 mb-2" data-id="' + data._id + '" data-value="' + data['todayJP'] + '">'
-                                    header_content += '<div class="col-12 rounded-0 p-3 isweekend-' + data['todayJP'].substring(data['todayJP'].indexOf('(')).replace('(', '').replace(')', '') + '" style="font-size: 31px;">' + data['todayJP'] + '</div>'                            //content += '<td><select style="display:none" data-type="input-koushu" data-field="工種-'+n+'" data-name="'+genbaID+'_genbanippo" data-id="'+data._id+'" data-userid="'+data.userID+'" class="editor input-koushu px-2 bg-white border border-secondary rounded" placeholder="'+col1+'" value="'+col1+'" name="工種-'+n+'" onchange="updateField(this)"></select></td>'
+                                    header_content += '<div class="row justify-content-between">';
+                                    header_content += '<div class="col-12 col-md-auto rounded-0 p-3 isweekend-' + data['todayJP'].substring(data['todayJP'].indexOf('(')).replace('(', '').replace(')', '') + '" style="font-size: 31px; display: inline-block;">' + data['todayJP'] + '</div>';
+                                    if(isNippoEditPage()){
+                                        header_content += '<div class="col-12 col-md-auto p-3" style="display: inline-block;">' +
+                                        '<button class="btn btn-light p-3" style="width:auto;"  data-toggle="tooltip" data-placement="top" data-name="genbanippo" data-date="'+data['today']+'" onclick="handleFormTemplate(this)" title="この日の日報をコピーする">' +
+                                        '<i class="fa fa-clone"></i></button></div>';                      
+                                    }
+                                    header_content += '</div>';                                    
                                     header_content += '</li>'
                                     $('#genbaichiran ul.ichiran').append(header_content)
                                 }
@@ -2218,6 +2376,7 @@ async function genbaIchiranInit(today, start, end) {
                     }
                     $('#genbaichiran .ichiran tbody').append(res_content)
                     feather.replace();
+                    handleTooltip()
                 });
                 if ($('#genbaichiran .ichiran tbody tr').length == 0) {
                     if ($('#noResult').hasClass('d-none')) {
@@ -2359,6 +2518,9 @@ async function genbaIchiranInit(today, start, end) {
         $('.nice-select.input-genba.globalselector').removeClass('disabled')
     }
 
+}
+function isNippoEditPage(){
+    return !!document.querySelector('#formPage')
 }
 //NIPPO SHUKEI
 function nipposhukeiInit() {
