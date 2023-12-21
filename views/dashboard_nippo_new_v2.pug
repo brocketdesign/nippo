@@ -158,8 +158,8 @@ block content
                         .row 
                             .col-12.text-start
                                 a.text-danger(href=`/dashboard/settings/users/edit/${userID}`) 現場を選択してください
-                    .col-12.reset-form.col-12.col-lg-auto.py-2.ms-auto.d-none
-                        button.btn.btn-danger(data-name="genbanippo" onclick="resetForm(this)")
+                    .col-12.reset-form.col-12.col-lg-auto.py-2.ms-auto
+                        button.btn.btn-danger(data-name="genbanippo" onclick="resetForm(this)" data-toggle="tooltip" data-placement="top" title="すべて削除")
                             i.fa.fa-trash
                 .card.border-secondary.my-3(style="width:100%")
                     .card-header.py-1.bg-warning.font-weight-bold.text-white

@@ -39,8 +39,8 @@ prevDate.setDate(date.getDate() - 10);
 const Before10 = (prevDate.getMonth() + 1) + '/' + prevDate.getDate() + '/' + prevDate.getFullYear();
 
 $(document).ready(async function () {
-    feather.replace()
-    handleTooltip()
+    feather.replace();
+    handleTooltip();
     initGlobalSelector();
     //NEW DASHBOARD PAGE
     if (!!document.querySelector('#new_dashoboard_content')) {
@@ -990,14 +990,13 @@ $(document).ready(async function () {
     navigationActive();
     updateDate();
     miniTools();
-
     inputInit();
 
 });
 $(document).ajaxStop(function () {
     formInitCompany();
     reloadNiceselect();
-    displayMainContent()
+    displayMainContent();
     feather.replace();
 });
 
@@ -1441,8 +1440,15 @@ $(document).on('change', '.input-responsible.globalselector', function () {
         }
         genbatoday(userID, ct)
     }
-})
+    saveInLocalStorage("responsible-globalselector",userID)
 
+})
+function saveInLocalStorage(name,value){
+    if(value){
+        localStorage.setItem(name, value);
+
+    }
+}
 function ichiranManage() {
     let userID = $('.input-responsible.globalselector').val() || $('#userID').attr('data-value')
     let $selectedOption = $('.period-list.globalselector').find('option:checked');
@@ -1528,10 +1534,17 @@ async function nippoIchiranInit(userID, today, start, end) {
                             let content = ''
                             let list_content_item = ''
                             if (!((col1 == '-') && (col2 == '-') && (col4 == '-') && (col5 == '-'))) {
-                                if (!document.querySelector('.list-group-item[data-value="' + data['todayJP'] + '"]')) {
+                                if (!document.querySelector('#nippoichiran .list-group-item[data-value="' + data['todayJP'] + '"]')) {
                                     let header_content = ''
                                     header_content += '<li class="list-group-item bg-transparent border-0 p-0 mb-2" data-id="' + data._id + '" data-value="' + data['todayJP'] + '">'
-                                    header_content += '<div class="col-12 rounded-0 p-3 isweekend-' + data['todayJP'].substring(data['todayJP'].indexOf('(')).replace('(', '').replace(')', '') + '" style="font-size: 31px;">' + data['todayJP'] + '</div>'                            //content += '<td><select style="display:none" data-type="input-koushu" data-field="工種-'+n+'" data-name="'+genbaID+'_genbanippo" data-id="'+data._id+'" data-userid="'+data.userID+'" class="editor input-koushu px-2 bg-white border border-secondary rounded" placeholder="'+col1+'" value="'+col1+'" name="工種-'+n+'" onchange="updateField(this)"></select></td>'
+                                    header_content += '<div class="row justify-content-between">';
+                                    header_content += '<div class="col-12 col-md-auto rounded-0 p-3 isweekend-' + data['todayJP'].substring(data['todayJP'].indexOf('(')).replace('(', '').replace(')', '') + '" style="font-size: 31px;">' + data['todayJP'] + '</div>'                            //content += '<td><select style="display:none" data-type="input-koushu" data-field="工種-'+n+'" data-name="'+genbaID+'_genbanippo" data-id="'+data._id+'" data-userid="'+data.userID+'" class="editor input-koushu px-2 bg-white border border-secondary rounded" placeholder="'+col1+'" value="'+col1+'" name="工種-'+n+'" onchange="updateField(this)"></select></td>'
+                                    if(isNippoEditPage()){
+                                        header_content += '<div class="col-12 col-md-auto p-3" style="display: inline-block;">' +
+                                        '<button class="btn btn-light p-3" style="width:auto;"  data-toggle="tooltip" data-placement="top" data-name="nippo" data-date="'+data['today']+'" onclick="handleFormTemplate(this)" title="この日の日報をコピーする">' +
+                                        '<i class="fa fa-clone"></i></button></div>';                      
+                                    }
+                                    header_content += '</div>';   
                                     header_content += '</li>'
                                     $('#nippoichiran ul.ichiran').append(header_content)
                                 }
@@ -1612,7 +1625,7 @@ async function nippoIchiranInit(userID, today, start, end) {
 function resetForm(el){
     const formId = $(el).attr('data-name')
     const formSelect =  $(`form.${formId}`)
-    if(alertCheck()){
+    if(alertCheck('入力内容がすべて削除されますがよろしいですか？')){
         resetGroupForm(formSelect)
     }
 }
@@ -1626,7 +1639,7 @@ function handleFormTemplate(el){
             resetGroupForm(formSelect)
             getNippoData(day,formId,function(result){
                 doCustomForm(formSelect, result)
-                scrollTo(formSelect)
+                scrollTo($('body'))
             })
         }
     }else{
@@ -1891,6 +1904,7 @@ function resetGroupForm(formSelectQuery) {
             groupContainer.find('.removeGroup').attr('data-value', formIndex)
             groupContainer.find('.addGroop').attr('data-value', formIndex)
             $('.addGroupContainer').attr('data-value', formIndex)
+
             $.each(groupContainer.find('input'), function () {
                 if ($(this).attr('name')) {
                     let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
@@ -1903,6 +1917,7 @@ function resetGroupForm(formSelectQuery) {
                     let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
                     $(this).attr('name', name + '1')
                     $(this).val('').change()
+                    $(this).niceSelect('update')
                 }
             })
             $.each(groupContainer.find('textarea'), function () {
@@ -1930,6 +1945,7 @@ function resetGroupForm(formSelectQuery) {
                     let name = $(this).attr('name').substring(0, $(this).attr('name').indexOf('-') + 1)
                     $(this).attr('name', name + '1')
                     $(this).val('').change()
+                    $(this).niceSelect('update')
                 }
             })
             $.each(group.find('textarea'), function () {
@@ -1940,6 +1956,9 @@ function resetGroupForm(formSelectQuery) {
                 }
             })
         }
+        $.each($this.find('.input-temp'), function () {
+            $(this).remove()
+        })
     }
 }
 function addGroupForm(formSelect, formIndex) {
@@ -3255,6 +3274,8 @@ function displayPeriodList(period) {
 
         // Set the checked option as selected and trigger change event
         $globalSelector.find('option:checked').prop('selected', true).change();
+
+        handlePeriodChange()
     }
 }
 
@@ -3303,8 +3324,13 @@ function mainPeriodList(shimebi) {
                 }
             }
         }
-
         $('select.period-list').niceSelect('update')
+    }
+    function updatePeriod(){
+        const periodVal = localStorage.getItem("period-list-globalselector");
+        if(periodVal){
+            $('select.period-list.globalselector').val(periodVal).change()
+        }
     }
 function userLevelEdit() {
     if ($('#user-level').attr('data-value') != '1') {
@@ -3425,16 +3451,24 @@ function getTotal() {
         })
     })
 }
+function handlePeriodChange(){
+    //UPDATE ICHIRAN FROM SELECT
+    $(document).on('change', '.period-list.globalselector', function () {
+        console.log({ event: 'change .period-list.globalselector' })
+        saveInLocalStorage('period-list-globalselector',$(this).val())
+        ichiranManage()
+    })
+
+    updatePeriod();
+}
+
 function miniTools() {
     genbaOptionSelect()
     
     displayMainContent()
+
     displayPeriodList(20)
-    //UPDATE ICHIRAN FROM SELECT
-    $(document).on('change', '.period-list.globalselector', function () {
-        console.log({ event: 'change .period-list.globalselector' })
-        ichiranManage()
-    })
+
     setNippoView()
     $('.s-el[aria-labelledby="' + $('.nav-link.active').attr('id') + '"]').show()
 
@@ -4135,7 +4169,12 @@ function loadinput(types) {
     }
 }
  
-
+function updateResponsible(){
+    const userID = localStorage.getItem("responsible-globalselector");
+    if(userID){
+        $('select.input-responsible.globalselector').val(userID).change()
+    }
+}
 function initGlobalSelector() {
 
     if (!!document.querySelector('.input-responsible')) {
@@ -4153,6 +4192,7 @@ function initGlobalSelector() {
                 if (userID == element._id) { selected = 'selected' }
                 $('select.input-responsible').append('<option value="' + element._id + '" ' + selected + ' >' + element.lname + ' ' + element.fname + '</option>')
             });
+            updateResponsible()
             $('select.input-responsible').niceSelect('update')
         });
     }
