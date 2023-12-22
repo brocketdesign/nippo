@@ -4195,7 +4195,9 @@ function updateResponsible(){
     const userID = localStorage.getItem("responsible-globalselector");
     if(userID){
         $('select.input-responsible.globalselector').val(userID).change()
+        return
     }
+    $('select.input-responsible.globalselector').change()
 }
 function initGlobalSelector() {
 
