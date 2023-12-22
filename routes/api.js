@@ -182,11 +182,18 @@ router.get('/nippoichiran', urlencodedParser, async (req, res) => {
                 const end_month = parseInt(end_full_date[0]) - 1;
                 const end_date = parseInt(end_full_date[1]);
                 const end_year = parseInt(end_full_date[2]);
-                if ((new Date(element.日付).getFullYear() == new Date(start_period).getFullYear() && (new Date(element.日付).getMonth() > new Date(start_period).getMonth() || new Date(element.日付).getMonth() == new Date(start_period).getMonth() && new Date(element.日付).getDate() >= new Date(start_period).getDate()))
-                && (new Date(element.日付).getFullYear() == end_year && (new Date(element.日付).getMonth() < end_month || new Date(element.日付).getMonth() == end_month && new Date(element.日付).getDate() <= end_date))) {
-                  data.push(element)
-                  //console.log(element)
-                  //count.push(element.日付)
+                
+                let elementYear = new Date(element.日付).getFullYear();
+                let startYear = new Date(start_period).getFullYear();
+                let endYear = end_year; // assuming this is already a year number
+                
+                if ((elementYear > startYear && elementYear < endYear) || 
+                    (elementYear === startYear && (new Date(element.日付).getMonth() > new Date(start_period).getMonth() || (new Date(element.日付).getMonth() === new Date(start_period).getMonth() && new Date(element.日付).getDate() >= new Date(start_period).getDate()))) ||
+                    (elementYear === endYear && (new Date(element.日付).getMonth() < end_month || (new Date(element.日付).getMonth() === end_month && new Date(element.日付).getDate() <= end_date)))) {
+                    // This element is within the date range
+                    data.push(element)
+                    //console.log(element)
+                    //count.push(element.日付)
                 }
               } else {
                 //data.push(element)
