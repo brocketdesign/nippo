@@ -1422,10 +1422,10 @@ function saveToDB(formSelect, index, callback) {
 //UPDATE USERID FROM SELECT & RESET FORM & INIT ENTRIES
 $(document).on('change', '.input-responsible.globalselector', function () {
     let userID = $(this).val()
-    console.log({
+    if(false){console.log({
         event: 'onChange .input-responsible',
         userID: userID
-    })
+    })}
     if (!!document.querySelector('#formPage')) {
         $('.input-genba.globalselector').attr('data-userid', userID)
         resetGroupForm()
@@ -1496,7 +1496,7 @@ async function nippoIchiranInit(userID, today, start, end) {
     if(
         (isUserAdmin() && !isElementVisibleAndLoaded(".input-responsible.globalselector") )
         || !isElementVisibleAndLoaded(".period-list.globalselector")){
-        console.log('Selector not ready yet')
+        //console.log('Selector not ready yet')
         return
     }
     if (!$('#nippoichiran').hasClass('ongoing')) {
