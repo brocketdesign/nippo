@@ -42,6 +42,10 @@ block content
                                 .savingPointer.spinner-border.text-dark.spinner-border-sm.ml-2(style="display:none" role="status" data-value="0")
                                     .sr-only ローディング...
             div(class="tab-pane fade show active" id="nav-nippo" role="tabpanel" aria-labelledby="nav-nippo-tab")
+                .row.mt-3.pt-3.border-top.justify-content-end
+                    .col-12.reset-form.col-12.col-lg-auto.py-2.ms-auto
+                        button.btn.btn-danger(data-name="nippo" onclick="resetForm(this)" data-toggle="tooltip" data-placement="top" title="すべて削除")
+                            i.fa.fa-trash
                 .card.border-secondary.my-3.w-100
                     .card-header.py-1.bg-primary.text-white.font-weight-bold
                         .row

@@ -920,7 +920,7 @@ $(document).ready(async function () {
     }
     //ICHIRAN PAGE
     if (!!document.querySelector('.period-list') || !!document.querySelector('.ichiranPage')) {        
-        handleNippoIchiran()
+        //handleNippoIchiran()
     }
     //NIPPO SHUKEI
     if (!!document.querySelector('#nipposhukei')) {
@@ -1465,13 +1465,26 @@ function ichiranManage() {
         }
     }
 
-    if (!!document.querySelector('#nippoichiran') && start && end) {
+    if (isElementVisible('#nippoichiran')  && start && end) {
         nippoIchiranInit(userID, today, start, end);
     }
-    if (!!document.querySelector('#genbaichiran')  && start && end) {
+    if (isElementVisible('#genbaichiran') && start && end) {
         $('.input-genba.globalselector').attr('data-userid', userID)
         genbaIchiranInit(today, start, end)
     }
+}
+function isElementVisible(selector) {
+    return $(selector).is(':visible');
+}
+function isLoaded(selector) {
+    return $(selector).hasClass('loaded');
+}
+function isElementVisibleAndLoaded(selector) {
+    var $element = $(selector);
+    return $element.is(':visible') && $element.hasClass('loaded');
+}
+function isUserAdmin(){
+    return $('#user-level').attr('data-value') == '1'
 }
 //DISPLAY NIPPO UNTIL YESTERDAY
 async function nippoIchiranInit(userID, today, start, end) {
@@ -1479,6 +1492,12 @@ async function nippoIchiranInit(userID, today, start, end) {
     if ((!start) && (!end)) {
         start = $('#start-period').attr('data-value')
         end = $('#end-period').attr('data-value')
+    }
+    if(
+        (isUserAdmin() && !isElementVisibleAndLoaded(".input-responsible.globalselector") )
+        || !isElementVisibleAndLoaded(".period-list.globalselector")){
+        console.log('Selector not ready yet')
+        return
     }
     if (!$('#nippoichiran').hasClass('ongoing')) {
         $('#nippoichiran').addClass('ongoing')
@@ -3324,13 +3343,16 @@ function mainPeriodList(shimebi) {
                 }
             }
         }
+        $('select.period-list').addClass('loaded')
         $('select.period-list').niceSelect('update')
     }
     function updatePeriod(){
         const periodVal = localStorage.getItem("period-list-globalselector");
         if(periodVal){
             $('select.period-list.globalselector').val(periodVal).change()
+            return
         }
+        $('select.period-list.globalselector').change()
     }
 function userLevelEdit() {
     if ($('#user-level').attr('data-value') != '1') {
@@ -3454,7 +3476,7 @@ function getTotal() {
 function handlePeriodChange(){
     //UPDATE ICHIRAN FROM SELECT
     $(document).on('change', '.period-list.globalselector', function () {
-        console.log({ event: 'change .period-list.globalselector' })
+        if(false){console.log({ event: 'change .period-list.globalselector' })}
         saveInLocalStorage('period-list-globalselector',$(this).val())
         ichiranManage()
     })
@@ -4080,10 +4102,10 @@ function populateSelectOptions(userGenbaList, allSelect, genbaYesterday, callbac
 
 // Function to initialize Genba if no user IDs are found
 function genbaInit(allSelect) {
-    console.log({
+    if(false){console.log({
         event: 'genbaInit',
         allSelect: allSelect
-    });
+    });}
     
     allSelect.each(function () {
         let genbaSelect = $(this);
@@ -4192,6 +4214,7 @@ function initGlobalSelector() {
                 if (userID == element._id) { selected = 'selected' }
                 $('select.input-responsible').append('<option value="' + element._id + '" ' + selected + ' >' + element.lname + ' ' + element.fname + '</option>')
             });
+            $('select.input-responsible').addClass('loaded')
             updateResponsible()
             $('select.input-responsible').niceSelect('update')
         });
