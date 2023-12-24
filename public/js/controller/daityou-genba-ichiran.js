@@ -189,7 +189,7 @@ $(document).ready(async function () {
                     //     });
                     let ctodayJP = data[0].todayJP
                     let genbaList = await $.get("/api/genba");
-                    let preGenba = genbaList.filter(genba => genba._id === genbaName);
+                    let preGenba = genbaList.filter(genba => genba._id === genbaID);
                     let genba = '-';
                     if (preGenba[0]) {
                         genba = preGenba[0].工事名
