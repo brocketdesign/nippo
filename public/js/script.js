@@ -4054,7 +4054,8 @@ function populateSelectOptions(userGenbaList, allSelect, genbaYesterday, callbac
                 for (let index = 0; index < data.length; index++) {
                     let element = data[index];
                     // new[monkey]
-                    if (element.工事名 && userGenbaList.some(genba => genba === element.工事名)) {
+
+                    if (element._id && userGenbaList.some(genba => genba.id === element._id)) {
                         if (genbaYesterdayIDs.includes(element._id)) {
                             genbaSelect.prepend(`<option value="${element._id}" data-id="${element._id}">${element.工事名}</option>`);
                         } else {
