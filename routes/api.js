@@ -34,11 +34,21 @@ const getNippoList = async (db, genbaId) => {
 };
 
 const filterNippoByDate = (nippoList, start_period, end_period) => {
-  if (start_period !== 'false' && end_period !== 'false') {
-      return nippoList.filter(element => new Date(element.today) >= new Date(start_period) && new Date(element.today) <= new Date(end_period));
+  
+  const isValidDate = (dateStr) => !isNaN(new Date(dateStr).getTime());
+  
+  if (isValidDate(start_period) && isValidDate(end_period)) {
+    const startDate = new Date(start_period);
+    const endDate = new Date(end_period);
+
+    return nippoList.filter(element => {
+      const elementDate = new Date(element.today);
+      return elementDate >= startDate && elementDate <= endDate;
+    });
   }
   return nippoList;
 };
+
 
 router.get('/genbaStatistic', urlencodedParser, async (req, res) => {
   try {
@@ -61,6 +71,7 @@ router.get('/genbaStatistic', urlencodedParser, async (req, res) => {
       const result = await Promise.all(genbaList10.map(async genba => {
           const nippoList = await getNippoList(db, genba._id);
           const filteredNippo = filterNippoByDate(nippoList, start, end);
+
           return {
               label: genba.工事名,
               data: filteredNippo
@@ -119,17 +130,9 @@ router.get('/userStatistic', urlencodedParser, async (req, res) => {
         if(userNippoData) {
           let data = [];
           userNippoData.forEach((element, index) => {
-            if (element.日付) {
-              if ((start_period != 'false') && (end_period != 'false')) {
-                const end_full_date = end_period.split('/');
-                const end_month = parseInt(end_full_date[0]) - 1;
-                const end_date = parseInt(end_full_date[1]);
-                const end_year = parseInt(end_full_date[2]);
-                if ((new Date(element.日付).getFullYear() == new Date(start_period).getFullYear() && (new Date(element.日付).getMonth() > new Date(start_period).getMonth() || new Date(element.日付).getMonth() == new Date(start_period).getMonth() && new Date(element.日付).getDate() >= new Date(start_period).getDate()))
-                && (new Date(element.日付).getFullYear() == end_year && (new Date(element.日付).getMonth() < end_month || new Date(element.日付).getMonth() == end_month && new Date(element.日付).getDate() <= end_date))) {
-                  data.push(element)
-                }
-              }
+            const elementisBetweenPeriod = isBetweenPeriod(start_period,end_period,element)
+            if(elementisBetweenPeriod){
+              data.push(elementisBetweenPeriod)
             }
           });
           result.push({user: users[i], nippo:data })
@@ -176,30 +179,12 @@ router.get('/nippoichiran', urlencodedParser, async (req, res) => {
         if (results.length > 0) {
           let data = count = []
           results.forEach((element, index) => {
-            if ((count.includes(element.日付) == false) && (element.日付)) {
-              if ((start_period != 'false') && (end_period != 'false')) {
-                const end_full_date = end_period.split('/');
-                const end_month = parseInt(end_full_date[0]) - 1;
-                const end_date = parseInt(end_full_date[1]);
-                const end_year = parseInt(end_full_date[2]);
-                
-                let elementYear = new Date(element.日付).getFullYear();
-                let startYear = new Date(start_period).getFullYear();
-                let endYear = end_year; // assuming this is already a year number
-                
-                if ((elementYear > startYear && elementYear < endYear) || 
-                    (elementYear === startYear && (new Date(element.日付).getMonth() > new Date(start_period).getMonth() || (new Date(element.日付).getMonth() === new Date(start_period).getMonth() && new Date(element.日付).getDate() >= new Date(start_period).getDate()))) ||
-                    (elementYear === endYear && (new Date(element.日付).getMonth() < end_month || (new Date(element.日付).getMonth() === end_month && new Date(element.日付).getDate() <= end_date)))) {
-                    // This element is within the date range
-                    data.push(element)
-                    //console.log(element)
-                    //count.push(element.日付)
-                }
-              } else {
-                //data.push(element)
-                //count.push(element.日付)
-              }
+            
+            const elementisBetweenPeriod = isBetweenPeriod(start_period,end_period,element)
+            if(elementisBetweenPeriod){
+              data.push(elementisBetweenPeriod)
             }
+
             if ((index + 1) >= results.length) {
               if (data.length > 0) {
                 resolve(data)
@@ -2335,6 +2320,28 @@ router.get('/', urlencodedParser, (req, res) => {
 
 });
 
+function isBetweenPeriod(start_period,end_period,element){
+  if (element.日付) {
+    if ((start_period != 'false') && (end_period != 'false')) {
+      const end_full_date = end_period.split('/');
+      const end_month = parseInt(end_full_date[0]) - 1;
+      const end_date = parseInt(end_full_date[1]);
+      const end_year = parseInt(end_full_date[2]);
+
+      let elementYear = new Date(element.日付).getFullYear();
+      let startYear = new Date(start_period).getFullYear();
+      let endYear = end_year; // assuming this is already a year number
+      
+      if ((elementYear > startYear && elementYear < endYear) || 
+          (elementYear === startYear && (new Date(element.日付).getMonth() > new Date(start_period).getMonth() || (new Date(element.日付).getMonth() === new Date(start_period).getMonth() && new Date(element.日付).getDate() >= new Date(start_period).getDate()))) ||
+          (elementYear === endYear && (new Date(element.日付).getMonth() < end_month || (new Date(element.日付).getMonth() === end_month && new Date(element.日付).getDate() <= end_date)))) {
+
+            return element
+      }
+    }
+  }
+  return false
+}
 //DB UTILIZATION
 function HowToUseMongoDB() {
 
