@@ -139,8 +139,8 @@ $(document).ready(async function () {
         let formID = '#responsible-group'
         let group = $(formID + ' .form-row').last().clone()
         let currVal = parseInt(group.attr('data-value')) + 1
-        if (currVal > 10) {
-            alert('Maximum entry is 10')
+        if (currVal > 20) {
+            alert('Maximum entry is 20')
         } else {
             group.attr('data-value', currVal)
             group.find('.removeGroup').attr('data-value', currVal)
