@@ -1136,7 +1136,10 @@ router.post('/update/inoutcome', urlencodedParser, async (req, res) => {
       item.取引先 = torihiki
       item.日付 = date
       item.査定金額 = parseInt(item.査定金額)
-      item.税率 = parseInt(item.税率)
+      if (item.消費税)
+        item.消費税 = parseInt(item.消費税)
+      else
+        item.税率 = parseInt(item.税率)
 
       db.collection('inoutcomeDaityou').insert(item)
     })
@@ -1145,6 +1148,49 @@ router.post('/update/inoutcome', urlencodedParser, async (req, res) => {
     
   } else {
     res.sendStatus(403);
+  }
+});
+
+router.post('/update/inoutcome/element', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+
+    console.log(req.body)
+    // let items = req.body.data
+    let _id = new ObjectId(req.body._id)
+    var _set = {}
+    if (req.body.取引先)
+        _set['取引先'] = req.body.取引先
+    if (req.body.torihiki_id)
+        _set['torihiki_id'] = req.body.torihiki_id
+    if (req.body.勘定科目)
+        _set['勘定科目'] = req.body.勘定科目
+    if (req.body.現場名)
+        _set['現場名'] = req.body.現場名
+    if (req.body.genba_id)
+        _set['genba_id'] = req.body.genba_id
+    if (req.body.査定金額)
+        _set['査定金額'] = parseInt(req.body.査定金額)
+    if (req.body.消費税)
+        _set['消費税'] = parseInt(req.body.消費税)
+    if (req.body.日付)
+        _set['日付'] = req.body.日付
+
+    if (Object.keys(_set).length > 0) {
+
+      await new Promise((resolve, reject) => {
+        db.collection('inoutcomeDaityou').updateOne({ '_id': _id }, { $set: _set }, (err, result) => {
+          resolve()
+        });
+      })
+      res.sendStatus(200)
+
+    } else {
+      res.sendStatus(300)
+    }
+
+  } else {
+    res.sendStatus(403)
   }
 });
 

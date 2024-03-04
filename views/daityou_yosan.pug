@@ -1,6 +1,8 @@
 extends new_dashboard
 
 block content
+    script(src='/plugins/jquery-mask-plugin/jquery.mask.min.js')
+    script(src='/plugins/autonumeric/autoNumeric-min.js')
     script(src='/js/controller/daityou-yosan.js')
     #daityouYosanPage.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
         //- .d-flex.flex-wrap
@@ -78,7 +80,7 @@ block content
                                 .col-12.col-md-8.col-lg-7.text-center.pb-2
                                     input.input-tekiyou.border.rounded.py-2.px-2.w-100(placeholder="摘要" name="摘要-1")
                                 .col-12.col-md-6.col-lg-2.text-center
-                                    input.input-subtotal.text-right.py-2.px-2.border.rounded.w-100(placeholder="小計" name="小計-1")
+                                    input.input-subtotal.text-right.py-2.px-2.border.rounded.w-100(placeholder="小計" name="小計-1" data-toggle="input-mask" data-mask-format="00,000,000,000,000" data-reverse="true")
                                 .col-12.col-md-6.col-lg-1.text-right.pt-2.d-sm-block.d-none
                                     .settingOptions
                                         .removeGroup(style="cursor:pointer;" data-value="1")

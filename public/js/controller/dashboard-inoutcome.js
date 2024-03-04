@@ -55,6 +55,10 @@ $(document).ready(async function () {
             initLabelTotalPrice($(document).find('.label-totalprice'))
         }
 
+        if (document.querySelector('.input-sateiprice')) {
+            initInputMask();
+        }
+
         // Date
 
         if (document.querySelector('.input-date-inoutcome')) {
@@ -315,7 +319,15 @@ $(document).ready(async function () {
                     }
                 })
             }
+            // zeirituSelect.on('change', function () {
+            //     $(this).parent().parent().find('.input-tax').val('')
+            // })
         })
+        // $('.input-tax').on('keypress', function () {
+        //     var zeirituSelect = $(this).parent().parent().find('.input-zeiritu')
+        //     zeirituSelect.val('')
+        //     zeirituSelect.niceSelect('update')
+        // })
     }
 
     function initKanjoukamokuFilter() {
@@ -430,6 +442,15 @@ $(document).ready(async function () {
         request2GetFilteredData(currQuery)
     }
 
+    function initInputMask() {
+        $('[data-toggle="input-mask"]').each(function(a, e) {
+            var t = $(e).data("maskFormat"), n = $(e).data("reverse");
+            null != n ? $(e).mask(t, {
+                reverse: n
+            }) : $(e).mask(t)
+        })
+    }
+
     function initForm() {
 
         //
@@ -454,13 +475,22 @@ $(document).ready(async function () {
         // Input Sattei Price
         $('body').on('keyup', '.input-sateiprice', function () {
             let element = $(this).parent().parent()
-            updateSubTotal($(this), element.find('.input-zeiritu'), element.find('.label-subtotal'), element.parent())
+            updateSubTotal($(this), element.find('.input-zeiritu'), element.find('.input-tax'), element.find('.label-subtotal'), element.parent())
+        })
+
+        $('body').on('keyup', '.input-tax', function () {
+            let element = $(this).parent().parent()
+            var zeirituSelect = element.find('.input-zeiritu')
+            zeirituSelect.val('')
+            zeirituSelect.niceSelect('update')
+            updateSubTotal(element.find('.input-sateiprice'), element.find('.input-zeiritu'), $(this), element.find('.label-subtotal'), element.parent())
         })
 
         // Selector Zeirutu
         $('body').on('change', 'select.input-zeiritu', function () {
             let element = $(this).parent().parent()
-            updateSubTotal(element.find('.input-sateiprice'), $(this), element.find('.label-subtotal'), element.parent())
+            element.find('.input-tax').val('')
+            updateSubTotal(element.find('.input-sateiprice'), $(this), element.find('.input-tax'), element.find('.label-subtotal'), element.parent())
         })
 
         // Save Form
@@ -492,6 +522,7 @@ $(document).ready(async function () {
                             let selectGenba = element.find('.input-genba-daityou')
                             let inputBikou = element.find('.input-bikou')
                             let inputSateiprice = element.find('.input-sateiprice')
+                            let inputTax = element.find('.input-tax')
                             let selectZeiritu = element.find('.input-zeiritu')
 
                             selectKanjoukamoku.val('')
@@ -500,6 +531,7 @@ $(document).ready(async function () {
                             selectGenba.niceSelect('update')
                             inputBikou.val('')
                             inputSateiprice.val('')
+                            inputTax.val('')
                             selectZeiritu.val('')
                             selectZeiritu.niceSelect('update')
 
@@ -514,7 +546,7 @@ $(document).ready(async function () {
                     }
                 })
 
-                updateSubTotal(firstElement.find('.input-sateiprice'), firstElement.find('.input-zeiritu'), firstElement.find('.label-subtotal'), firstElement.parent())
+                updateSubTotal(firstElement.find('.input-sateiprice'), firstElement.find('.input-zeiritu'), firstElement.find('.input-tax'), firstElement.find('.label-subtotal'), firstElement.parent())
 
                 // update table with new elements
                 initTable()
@@ -739,6 +771,344 @@ $(document).ready(async function () {
             currQuery.offset = currOffset + LIMIT
             request2GetFilteredData(currQuery, true)
         })
+
+        // table edit mode
+        $('body').on('click', '.td-date', function () {
+            if ($(this).hasClass('in-edit-date')) {
+                return    
+            }
+
+            finishItemEdit()
+            $(this).addClass('in-edit-date')
+
+            var currDate = $(this).html()
+            $(this).html('<input class="border rounded py-2 w-100" type="text" name="item-date">')
+
+            // const todayJP = date.toLocaleDateString('ja-JP', options)
+            var date = new Date(currDate)
+            var dateStr = date.toLocaleDateString('ja-JP', options)
+            var dateSelect = $('.in-edit-date input')
+            // dateSelect.val(dateStr)
+            dateSelect.val(currDate)
+            dateSelect.attr('data-date', currDate)
+            dateSelect.addClass('isweekend-' + dateStr.substring(dateStr.indexOf('(')).replace('(', '').replace(')', ''))
+            
+            dateSelect.datepicker({
+                language: "ja",
+                format: 'yyyy/mm/dd',
+                autoclose: true,
+                // startDate: null,
+                endDate: new Date(),
+                orientation: "right"
+            }).on('changeDate', function (e) {
+                let dd = new Date(e.date)
+                let ct = formatedDateString(dd)
+                let options = {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    weekday: 'short',
+                }
+                const dJP = dd.toLocaleDateString('ja-JP', options)
+                console.log(ct);
+                dateSelect.val(ct)
+                isweekendClass(dateSelect)
+                dateSelect.addClass('isweekend-' + dJP.substring(dJP.indexOf('(')).replace('(', '').replace(')', ''))
+                dateSelect.attr('data-date', ct)
+                finishItemEdit()
+            })
+        })
+
+        $('body').on('click', '.td-torihiki', function() {
+            if ($(this).hasClass('in-edit-torihiki')) {
+                return    
+            }
+
+            finishItemEdit()
+            $(this).addClass('in-edit-torihiki')
+
+            var currTorihiki = $(this).html()
+            $(this).html('')
+
+            var selector = '';
+            if ($(this).hasClass('td-income'))
+                selector = '.input-hattyu';
+            else
+                selector = '.input-gyousha';
+
+            var inputTorihiki = $('select' + selector).first().clone()
+            var selectTorihiki = $('div.nice-select' + selector).first().clone()
+            inputTorihiki.attr('name', 'item-torihiki')
+            inputTorihiki.val(currTorihiki)
+            selectTorihiki.find('.current').html(currTorihiki)
+            // selectTorihiki.css({
+            //     'max-height': '27px',
+            //     'font-size': '0.8rem',
+            //     'line-height': '22px',
+            //     'margin-left': '0.25rem'
+            // })
+
+            $(this).append(inputTorihiki)
+            $(this).append(selectTorihiki)
+        })
+
+        $('body').on('click', '.td-kamoku', function() {
+            if ($(this).hasClass('in-edit-kamoku')) {
+                return    
+            }
+
+            finishItemEdit()
+            $(this).addClass('in-edit-kamoku')
+
+            var formID = '';
+            if ($(this).hasClass('td-income'))
+                formID = '.form-container.income';
+            else
+                formID = '.form-container.outcome';
+
+            var currKamoku = $(this).html()
+            $(this).html('')
+
+            var inputKamoku = $(formID + ' select.input-kanjoukamoku').first().clone()
+            var selectKamoku = $(formID + ' div.nice-select.input-kanjoukamoku').first().clone()
+            inputKamoku.attr('name', 'item-kamoku')
+            inputKamoku.val(currKamoku)
+            selectKamoku.find('.current').html(currKamoku)
+            // selectKamoku.css({
+            //     'max-height': '27px',
+            //     'font-size': '0.8rem',
+            //     'line-height': '22px',
+            //     'margin-left': '0.25rem'
+            // })
+
+            $(this).append(inputKamoku)
+            $(this).append(selectKamoku)
+            $(this).css('max-height', '27px')
+        })
+
+        $('body').on('click', '.td-genba', function() {
+            if ($(this).hasClass('in-edit-genba')) {
+                return    
+            }
+
+            finishItemEdit()
+            $(this).addClass('in-edit-genba')
+
+            var currGenba = $(this).html()
+            $(this).html('')
+
+            var inputGenba = $('select.input-genba-daityou').first().clone()
+            var selectGenba = $('div.nice-select.input-genba-daityou').first().clone()
+            inputGenba.attr('name', 'item-genba')
+            inputGenba.val(currGenba)
+            selectGenba.find('.current').html(currGenba)
+
+            $(this).append(inputGenba)
+            $(this).append(selectGenba)
+        })
+
+        $('body').on('click', '.td-price', function () {
+            if ($(this).hasClass('in-edit-price')) {
+                return    
+            }
+
+            finishItemEdit()
+            $(this).addClass('in-edit-price')
+
+            var currPrice = $(this).html()
+            $(this).html('<input class="border-0 form-control text-right pr-1 m-1 w-100" style="font-size:0.8rem;max-height:27px" data-toggle="input-mask" data-mask-format="00,000,000,000,000" data-reverse="true" name="item-price" value="' + currPrice + '">')
+            $('.in-edit-price input').focus()
+
+            $('[data-toggle="input-mask"]').each(function(a, e) {
+                var t = $(e).data("maskFormat"), n = $(e).data("reverse");
+                null != n ? $(e).mask(t, {
+                    reverse: n
+                }) : $(e).mask(t)
+            })
+        })
+
+        $('body').on('click', '.td-tax', function () {
+            if ($(this).hasClass('in-edit-tax')) {
+                return    
+            }
+
+            finishItemEdit()
+            $(this).addClass('in-edit-tax')
+
+            var currTax = $(this).html()
+            $(this).html('<input class="border-0 form-control text-right pr-1 m-1 w-100" style="font-size:0.8rem;max-height:27px" data-toggle="input-mask" data-mask-format="00,000,000,000,000" data-reverse="true" name="item-tax" value="' + currTax + '">')
+            $('.in-edit-tax input').focus()
+
+            $('[data-toggle="input-mask"]').each(function(a, e) {
+                var t = $(e).data("maskFormat"), n = $(e).data("reverse");
+                null != n ? $(e).mask(t, {
+                    reverse: n
+                }) : $(e).mask(t)
+            })
+        })
+
+        $('body').on('blur', '.in-edit-price, .in-edit-tax', function () {
+            finishItemEdit()
+        })
+
+        $('body').on({
+            mouseenter: function () {
+                $(this).find('.settingOptions1').css('display','inline-block')
+            },
+            mouseleave: function () {
+                $(this).find('.settingOptions1').css('display','none')
+            }
+        }, '.form-row')
+
+        setItemEditFinishEvent()
+    }
+
+    function setItemEditFinishEvent() {
+        $('body').on('change', 'select[name="item-torihiki"],select[name="item-kamoku"],select[name="item-genba"]', function () {
+            finishItemEdit()
+        })
+        $('body').on('keyup', 'input[name="item-price"],input[name="item-tax"]', function (e) {
+            if (e.which == 13)
+                finishItemEdit()
+            else {
+                var tr = $(this).parent().parent()
+                var tdRealPrice = tr.find('.td-real-price')
+                var tax = 0, price = 0
+
+                if ($(this).attr('name') == 'item-price') {
+                    var tdTax = tr.find('.td-tax')
+                    var tax = parseInt(stringFormatedNumber(tdTax.html()))
+                    var price = parseInt(stringFormatedNumber($(this).val()))
+                } else {
+                    var tdPrice = tr.find('.td-price')
+                    var price = parseInt(stringFormatedNumber(tdPrice.html()))
+                    var tax = parseInt(stringFormatedNumber($(this).val()))
+                }
+                var realPrice = price + tax
+                tdRealPrice.html(numberFormat(realPrice))
+            }
+        })
+        $('body').keyup(function (e) {
+            if (e.keyCode == 27)
+                finishItemEdit()
+        })
+    }
+
+    function finishItemEdit() {
+        var _id = null
+        var date = null
+        var torihiki = null
+        var torihikiID = null
+        var kamoku = null
+        var genba = null
+        var genbaID = null;
+        var price = null
+        var tax = null
+
+        var editDate = $('.in-edit-date')
+        if (editDate.length > 0) {
+            var val = editDate.find('input').val()
+            editDate.removeClass('in-edit-date')
+            editDate.html(val)
+            date = val
+            _id = editDate.parent().attr('data-id')
+        }
+
+        var editTorihiki = $('.in-edit-torihiki')
+        if (editTorihiki.length > 0) {
+            var select = editTorihiki.find('select')
+            var val = select.val()
+            torihikiID = select.find('option:checked').attr('data-id')
+            editTorihiki.remove('select')
+            editTorihiki.remove('div')
+            editTorihiki.removeClass('in-edit-torihiki')
+            editTorihiki.html(val)
+            torihiki = val
+            _id = editTorihiki.parent().attr('data-id')
+        }
+
+        var editKamoku = $('.in-edit-kamoku')
+        if (editKamoku.length > 0) {
+            var val = editKamoku.find('select').val()
+            editKamoku.remove('select')
+            editKamoku.remove('div')
+            editKamoku.removeClass('in-edit-kamoku')
+            editKamoku.html(val)
+            kamoku = val
+            _id = editKamoku.parent().attr('data-id')
+        }
+
+        var editGenba = $('.in-edit-genba')
+        if (editGenba.length > 0) {
+            var select = editGenba.find('select')
+            var val = select.val()
+            genbaID = select.find('option:checked').attr('data-id')
+            editGenba.remove('div')
+            editGenba.removeClass('in-edit-genba')
+            editGenba.html(val)
+            genba = val
+            _id = editGenba.parent().attr('data-id')
+        }
+
+        var editPrice = $('.in-edit-price')
+        if (editPrice.length > 0) {
+            var val = stringFormatedNumber(editPrice.find('input').val())
+            editPrice.removeClass('in-edit-price')
+            if (isNaN(val)) {
+                editPrice.html(0)
+                val = 0
+            } else {
+                editPrice.html(numberFormat(val))
+            }
+            price = val
+            _id = editPrice.parent().attr('data-id')
+        }
+
+        var editTax = $('.in-edit-tax')
+        if (editTax.length > 0) {
+            var val = stringFormatedNumber(editTax.find('input').val())
+            editTax.removeClass('in-edit-tax')
+            if (isNaN(val)) {
+                editTax.html(0)
+                val = 0
+            } else {
+                editTax.html(numberFormat(val))
+            }
+            tax = val
+            _id = editTax.parent().attr('data-id')
+        }
+
+        var query = {}
+        if (_id) {
+            query['_id'] = _id
+            if (torihiki) {
+                query['取引先'] = torihiki
+                query['torihiki_id'] = torihikiID
+            }
+            if (kamoku)
+                query['勘定科目'] = kamoku
+            if (genba) {
+                query['現場名'] = genba
+                query['genba_id'] = genbaID
+            }
+            if (price)
+                query['査定金額'] = price
+            if (tax)
+                query['消費税'] = tax
+            if (date)
+                query['日付'] = date
+
+            if (Object.keys(query).length > 0) {
+                console.log(query)
+                $('#saving-progress').fadeIn(500)
+                $.post('/api/update/inoutcome/element/', query, function (data) {
+                    console.log(data)
+                    setTimeout(() => {
+                        $('#saving-progress').fadeOut(500)
+                    }, 1000);
+                })
+            }
+        }
     }
 
     function clearFilterDate() {
@@ -778,16 +1148,24 @@ $(document).ready(async function () {
         $('#filter-outcome-tab').removeClass('active')
     }
 
-    function updateSubTotal(inputSateiprice, selectZeiritu, labelSubTotal, elements) {
+    function updateSubTotal(inputSateiprice, selectZeiritu, inputTax, labelSubTotal, elements) {
         /////
         // calculate price with tax (tax-rate: zeiritu, raw-price: sateiprice)
         let taxRate = parseInt(selectZeiritu.val())
-        if (isNaN(taxRate))
-            taxRate = 0
-        let price = parseInt(inputSateiprice.val())
+        let tax = parseInt(stringFormatedNumber(inputTax.val()))
+        let price = parseInt(stringFormatedNumber(inputSateiprice.val()))
         if (isNaN(price))
             price = 0
-        let priceWithTax = price + price * taxRate / 100
+
+        let priceWithTax = 0
+        if (price > 0) {
+            if (!isNaN(taxRate))
+                priceWithTax = price + price * taxRate / 100
+            else if (!isNaN(tax))
+                priceWithTax = price + tax
+            else
+                priceWithTax = 0
+        }
 
         // update sub total price label
         labelSubTotal.attr('data-value', priceWithTax) // for calculating total sum
@@ -874,6 +1252,13 @@ $(document).ready(async function () {
                     }
                 }
             })
+
+            group.find('[data-toggle="input-mask"]').each(function(a, e) {
+                var t = $(e).data("maskFormat"), n = $(e).data("reverse");
+                null != n ? $(e).mask(t, {
+                    reverse: n
+                }) : $(e).mask(t)
+            })
         }
     }
 
@@ -925,9 +1310,11 @@ $(document).ready(async function () {
 
     function updateTableOnResponse(data, append = false) {
         let tbody = $('#inoutcome-filtered-tbody')
-
         var html = ''
         data.forEach(function(item) {
+            var id = item._id;
+            var genbaID = item.genba_id;
+            var torihikiID = item.torihiki_id;
             var type = item.type
             var kanjoukamoku = item.勘定科目
             var date = item.日付
@@ -937,16 +1324,20 @@ $(document).ready(async function () {
             var bikou = item.備考
             var price = item.査定金額
             var zeiritu = item.税率
-            var tax = parseInt((price * zeiritu / 100).toFixed())
+            var tax;
+            if (zeiritu != undefined)
+                tax = parseInt((price * zeiritu / 100).toFixed())
+            else
+                tax = item.消費税
             var priceWithTax = price + tax
             if (!tax) tax = 0
             if (!priceWithTax) priceWithTax = 0
 
-            html += '<tr class="list-item"><td class="text-left"><label class="mb-0 pl-2 py-2 d-flex" style="color:' + (type == '収入' ? '#00b0f0' : '#ea4335') + ';cursor:pointer"><input type="checkbox" style="cursor:pointer;margin-top:3px" class="item-check" data-value="' + item._id + '"><span class="pl-2">' + type + '</span></label>' +
-                    '</td><td class="pr-1">' + date + '</td><td class="pr-1">' + torihiki +
-                    '</td><td class="pr-1">' + kanjoukamoku + '</td><td class="pr-1">' + genba +
-                    '</td><td class="pr-1">' + bikou + '</td><td class="pr-1">' + numberFormat(price) +
-                    '</td><td class="pr-1">' + numberFormat(tax) + '</td><td class="pr-1">' + numberFormat(priceWithTax) +
+            html += '<tr class="list-item" data-id="' + id + '" data-genba-id="' + genbaID + '" data-torihiki-id="' + torihikiID + '"><td class="text-left"><label class="mb-0 pl-2 py-2 d-flex" style="color:' + (type == '収入' ? '#00b0f0' : '#ea4335') + ';cursor:pointer"><input type="checkbox" style="cursor:pointer;margin-top:3px" class="item-check" data-value="' + item._id + '"><span class="pl-2">' + type + '</span></label>' +
+                    '</td><td class="pr-1 td-date">' + date + '</td><td class="pr-1 td-torihiki ' + (type == '収入' ? 'td-income' : 'td-outcome') + '">' + torihiki +
+                    '</td><td class="pr-1 td-kamoku ' + (type == '収入' ? 'td-income' : 'td-outcome') + '">' + kanjoukamoku + '</td><td class="pr-1 td-genba">' + genba +
+                    '</td><td class="pr-1">' + bikou + '</td><td class="pr-1 td-price">' + numberFormat(price) +
+                    '</td><td class="pr-1 td-tax">' + numberFormat(tax) + '</td><td class="pr-1 td-real-price">' + numberFormat(priceWithTax) +
                     '</td></tr>'
         })
         if (append) {
@@ -1005,6 +1396,7 @@ $(document).ready(async function () {
                 let selectGenba = element.find('.input-genba-daityou')
                 let inputBikou = element.find('.input-bikou')
                 let inputSateiprice = element.find('.input-sateiprice')
+                let inputTax = element.find('.input-tax')
                 let selectZeiritu = element.find('.input-zeiritu')
                 var isMinus = element.attr('minus') == '1' ? true : false
 
@@ -1012,10 +1404,11 @@ $(document).ready(async function () {
                 let genba = selectGenba.val()
                 let genbaID = selectGenba.find('option:checked').attr('data-id')
                 let bikou = inputBikou.val()
-                let sateiprice = parseInt(inputSateiprice.val())
+                let sateiprice = parseInt(stringFormatedNumber(inputSateiprice.val()))
+                let tax = parseInt(stringFormatedNumber(inputTax.val()))
                 let zeiritu = selectZeiritu.val()
 
-                if (kanjoukamoku && genba && zeiritu && !isNaN(sateiprice)) {
+                if (kanjoukamoku && genba && (zeiritu || (!isNaN(tax) && tax > 0)) && !isNaN(sateiprice)) {
                     let data = {
                         type: type,
                         勘定科目: kanjoukamoku,
@@ -1023,8 +1416,11 @@ $(document).ready(async function () {
                         現場名: genba,
                         備考: bikou,
                         査定金額: isMinus ? -sateiprice : sateiprice,
-                        税率: zeiritu
                     }
+                    if (!isNaN(tax) && tax > 0)
+                        data.消費税 = tax
+                    else
+                        data.税率 = zeiritu
                     items.push(data)
                 }
             }
@@ -1083,4 +1479,11 @@ function paddingNumber(number, padding) {
 
 function formatedDateString(date) {
     return date.getFullYear() + '/' + paddingNumber(date.getMonth() + 1, 2) + '/' + paddingNumber(date.getDate(), 2)   
+}
+
+function stringFormatedNumber(numberStr) {
+    if (numberStr) {
+        return numberStr.replace(/,/g, '')
+    }
+    return '0'
 }

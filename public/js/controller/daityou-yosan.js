@@ -36,6 +36,19 @@ $(document).ready(async function () {
         if (document.querySelector('.input-koushu-yosan')) {
             initSelectKoushu($('.input-koushu-yosan'))
         }
+
+        if (document.querySelector('.input-subtotal')) {
+            initInputMask();
+        }
+    }
+
+    function initInputMask() {
+        $('[data-toggle="input-mask"]').each(function(a, e) {
+            var t = $(e).data("maskFormat"), n = $(e).data("reverse");
+            null != n ? $(e).mask(t, {
+                reverse: n
+            }) : $(e).mask(t)
+        })
     }
 
     function tableInit() {
@@ -423,7 +436,7 @@ $(document).ready(async function () {
             var element = $(this)
             if (element.hasClass('element')) {
                 var inputSubTotal = element.find('.input-subtotal')
-                var price = parseInt(inputSubTotal.val())
+                var price = parseInt(stringFormatedNumber(inputSubTotal.val()))
                 if (!isNaN(price)) {
                     totalPrice += price
                 }
