@@ -383,8 +383,14 @@ $(document).ready(async function () {
             }
         }
 
-        var yearMin = Math.min(yearMinCost, yearMinSale), monthMin = Math.min(monthMinCost, monthMinSale)
-        var yearMax = Math.max(yearMaxCost, yearMaxSale), monthMax = Math.max(monthMaxCost, monthMaxSale)
+        var fromCost = yearMinCost + ('' + monthMinCost).padStart(2, '0', monthMinCost)
+        var toCost = yearMaxCost + ('' + monthMaxCost).padStart(2, '0', monthMaxCost)
+        var fromSale = yearMinSale + ('' + monthMinSale).padStart(2, '0', monthMinSale)
+        var toSale = yearMaxSale + ('' + monthMaxSale).padStart(2, '0', monthMaxSale)
+        var from = Math.min(parseInt(fromCost), parseInt(fromSale))
+        var to = Math.max(parseInt(toCost), parseInt(toSale))
+        var yearMin = Math.floor(from/100), monthMin = from - yearMin * 100
+        var yearMax = Math.floor(to/100), monthMax = to - yearMax * 100
 
         var datesHeader = periodHeaderDates(yearMin, monthMin, yearMax, monthMax)
         var dates = periodDates(yearMin, monthMin, yearMax, monthMax)
@@ -497,7 +503,7 @@ function periodDates(yearMin, monthMin, yearMax, monthMax) {
         }
         for (var i = yearMin + 1; i < yearMax; i++) {
             for (var j = 1; j <= 12 ;j++) {
-                dates.push(i + ('' + i).padStart(2, '0', i))
+                dates.push(i + ('' + j).padStart(2, '0', j))
             }
         }
         for (var i = 1; i <= monthMax; i++) {
@@ -564,10 +570,10 @@ function paddingRouhis(dates, rouhis) {
         return {}
     }
 
-    var keys = Object.keys(rouhis)
-    if (keys.length == 0) {
-        return {}
-    }
+    // var keys = Object.keys(rouhis)
+    // if (keys.length == 0) {
+    //     return {}
+    // }
     
     var rouhisFull = {}
     for (var i = 0; i < dates.length; i++) {
