@@ -119,10 +119,10 @@ async function nipposhukei(db){
                 name:element['工事名']
             }
         });
-        //Company Shukei 2 periods
+        //Company Shukei 3 periods
         let period_start = []
         let period_end = []
-        for(let i=0;i<=1;i++){
+        for(let i=0;i<=2;i++){
             period_start.push(globalsetting.preiodList[i].start)
             period_end.push(globalsetting.preiodList[i].end)
         }

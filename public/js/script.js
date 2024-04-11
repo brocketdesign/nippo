@@ -2710,7 +2710,7 @@ function displayShukeiPeriodList() {
     }
     $.get('/api/globalsetting', function (data) {
         let globalsetting = data[0]
-        for (let i = 0; i <= 1; i++) {
+        for (let i = 0; i <= 2; i++) {
             let period_start = new Date(globalsetting.preiodList[i].start).toLocaleDateString('ja-JP', options)
             let period_end = new Date(globalsetting.preiodList[i].end).toLocaleDateString('ja-JP', options)
             $('.periodList.globalselector').prepend('<option value="' + i + '">' + period_start + ' - ' + period_end + '</option>')
