@@ -319,15 +319,7 @@ $(document).ready(async function () {
                     }
                 })
             }
-            // zeirituSelect.on('change', function () {
-            //     $(this).parent().parent().find('.input-tax').val('')
-            // })
         })
-        // $('.input-tax').on('keypress', function () {
-        //     var zeirituSelect = $(this).parent().parent().find('.input-zeiritu')
-        //     zeirituSelect.val('')
-        //     zeirituSelect.niceSelect('update')
-        // })
     }
 
     function initKanjoukamokuFilter() {
@@ -510,6 +502,7 @@ $(document).ready(async function () {
                 let firstElement
 
                 let formID = '.form-container.' + formSelect
+                onFileItemRemove($('.act-remove'))
                 let elements = $('body').find(formID + ' .elements')
                 $.each(elements.children(), function() {
                     let element = $(this)
@@ -907,6 +900,19 @@ $(document).ready(async function () {
             $(this).append(selectGenba)
         })
 
+        $('body').on('click', '.td-bikou', function () {
+            if ($(this).hasClass('in-edit-bikou')) {
+                return    
+            }
+
+            finishItemEdit()
+            $(this).addClass('in-edit-bikou')
+
+            var currBikou = $(this).html()
+            $(this).html('<input class="border-0 form-control text-right pr-1 m-1 w-100" style="font-size:0.8rem;max-height:27px" name="item-bikou" value="' + currBikou + '">')
+            $('.in-edit-bikou input').focus()
+        })
+
         $('body').on('click', '.td-price', function () {
             if ($(this).hasClass('in-edit-price')) {
                 return    
@@ -947,7 +953,7 @@ $(document).ready(async function () {
             })
         })
 
-        $('body').on('blur', '.in-edit-price, .in-edit-tax', function () {
+        $('body').on('blur', '.in-edit-price, .in-edit-tax, .in-edit-bikou', function () {
             finishItemEdit()
         })
 
@@ -960,14 +966,30 @@ $(document).ready(async function () {
             }
         }, '.form-row')
 
+        $('body').on('click', '#attachment', function () {
+            $('#upload').trigger("click")
+        })
+
+        $('input:file').on('change', function (e) {
+            updateFile($(this), e.target)
+        })
+
         setItemEditFinishEvent()
+    }
+
+    function onFileItemRemove(thiz) {
+        if (thiz != undefined) {
+            var fileItem = thiz.parent().parent()
+            fileItem.find('.filename').remove()
+            fileItem.find('input:file').val('')
+        }
     }
 
     function setItemEditFinishEvent() {
         $('body').on('change', 'select[name="item-torihiki"],select[name="item-kamoku"],select[name="item-genba"]', function () {
             finishItemEdit()
         })
-        $('body').on('keyup', 'input[name="item-price"],input[name="item-tax"]', function (e) {
+        $('body').on('keyup', 'input[name="item-price"],input[name="item-tax"],input[name="item-bikou"]', function (e) {
             if (e.which == 13)
                 finishItemEdit()
             else {
@@ -979,10 +1001,12 @@ $(document).ready(async function () {
                     var tdTax = tr.find('.td-tax')
                     var tax = parseInt(stringFormatedNumber(tdTax.html()))
                     var price = parseInt(stringFormatedNumber($(this).val()))
-                } else {
+                } else if ($(this).attr('name') == 'item-tax') {
                     var tdPrice = tr.find('.td-price')
                     var price = parseInt(stringFormatedNumber(tdPrice.html()))
                     var tax = parseInt(stringFormatedNumber($(this).val()))
+                } else {
+                    return
                 }
                 var realPrice = price + tax
                 tdRealPrice.html(numberFormat(realPrice))
@@ -1001,7 +1025,8 @@ $(document).ready(async function () {
         var torihikiID = null
         var kamoku = null
         var genba = null
-        var genbaID = null;
+        var genbaID = null
+        var bikou = null
         var price = null
         var tax = null
 
@@ -1050,6 +1075,14 @@ $(document).ready(async function () {
             _id = editGenba.parent().attr('data-id')
         }
 
+        var editBikou = $('.in-edit-bikou')
+        if (editBikou.length > 0) {
+            bikou = editBikou.find('input').val()
+            editBikou.removeClass('in-edit-bikou')
+            editBikou.html(bikou)
+            _id = editBikou.parent().attr('data-id')
+        }
+
         var editPrice = $('.in-edit-price')
         if (editPrice.length > 0) {
             var val = stringFormatedNumber(editPrice.find('input').val())
@@ -1091,6 +1124,8 @@ $(document).ready(async function () {
                 query['現場名'] = genba
                 query['genba_id'] = genbaID
             }
+            if (bikou)
+                query['備考'] = bikou
             if (price)
                 query['査定金額'] = price
             if (tax)
@@ -1324,6 +1359,7 @@ $(document).ready(async function () {
             var bikou = item.備考
             var price = item.査定金額
             var zeiritu = item.税率
+            var file = item.file
             var tax;
             if (zeiritu != undefined)
                 tax = parseInt((price * zeiritu / 100).toFixed())
@@ -1336,8 +1372,10 @@ $(document).ready(async function () {
             html += '<tr class="list-item" data-id="' + id + '" data-genba-id="' + genbaID + '" data-torihiki-id="' + torihikiID + '"><td class="text-left"><label class="mb-0 pl-2 py-2 d-flex" style="color:' + (type == '収入' ? '#00b0f0' : '#ea4335') + ';cursor:pointer"><input type="checkbox" style="cursor:pointer;margin-top:3px" class="item-check" data-value="' + item._id + '"><span class="pl-2">' + type + '</span></label>' +
                     '</td><td class="pr-1 td-date">' + date + '</td><td class="pr-1 td-torihiki ' + (type == '収入' ? 'td-income' : 'td-outcome') + '">' + torihiki +
                     '</td><td class="pr-1 td-kamoku ' + (type == '収入' ? 'td-income' : 'td-outcome') + '">' + kanjoukamoku + '</td><td class="pr-1 td-genba">' + genba +
-                    '</td><td class="pr-1">' + bikou + '</td><td class="pr-1 td-price">' + numberFormat(price) +
+                    '</td><td class="pr-1 td-bikou">' + bikou + '</td><td class="pr-1 td-price">' + numberFormat(price) +
                     '</td><td class="pr-1 td-tax">' + numberFormat(tax) + '</td><td class="pr-1 td-real-price">' + numberFormat(priceWithTax) +
+                    '</td><td class="td-file text-center" data-file="' + file + '">' + 
+                    (file === undefined ? '' : '<span class="pb-1" style="height: 20px;color:gray;" data-feather="paperclip"></span>') + 
                     '</td></tr>'
         })
         if (append) {
@@ -1345,17 +1383,37 @@ $(document).ready(async function () {
         } else {
             tbody.html(html)
         }
+
+        $('.td-file').on('click', function() {
+            var file = $(this).attr('data-file')
+            let win = window.open(`/api/download/${file}`)
+        })
     }
 
     function request2GetFilteredData(query, append = false) {
         $('#searching-progress').fadeIn(500)
         $.post('/api/inoutcome/', query, function (data) {
-            // console.log(data)
+            console.log(data)
             updateTableOnResponse(data, append)
             setTimeout(() => {
                 $('#searching-progress').fadeOut(500)
             }, 1000);
         })
+    }
+
+    function updateFile(thiz, file) {
+        if (file.files.length > 0) {
+            $('.filename').remove()
+            var fileItem = thiz.parent()
+            var fileName = file.files[0].name
+            var appendix = '<div class="filename d-inline-block mt-2 ml-2" style="cursor:pointer">' + fileName +
+            '<a href="javascript:void(0)" class="remove act-remove" tabindex="-1" title="Remove">×</a></div>'
+            fileItem.append(appendix)
+
+            $('.act-remove').on('click', function () {
+                onFileItemRemove($(this))
+            })
+        }
     }
 
     function saveToDB(formSelect, callback) {
@@ -1370,14 +1428,14 @@ $(document).ready(async function () {
         let torihiki = selectTorihiki.val()
         let date = selectDate.attr('data-date')
 
-        let result = {}
+        let formData = new FormData()
 
         // if (kouza && torihiki && date) {
         if (torihiki && date) {
-            // result.口座 = kouza
-            result.torihiki_id = torihikiID
-            result.取引先 = torihiki
-            result.日付 = date
+            // formData.口座 = kouza
+            formData.append('torihiki_id', torihikiID)
+            formData.append('取引先', torihiki)
+            formData.append('日付', date)
         } else {
             if (callback) {
                 callback({message:"empty setting"})
@@ -1433,17 +1491,35 @@ $(document).ready(async function () {
             return
         }
 
-        result.data = items
+        formData.append('data', JSON.stringify(items))
+        formData.append('files', $('input[type=file]')[0].files[0])
 
         // console.log(result)
         $('#saving-progress').fadeIn(500)
-        $.post('/api/update/inoutcome/', result, function (data) {
-            // console.log(data)
-            setTimeout(() => {
-                $('#saving-progress').fadeOut(500)
-                if (callback) { callback() }
-            }, 1000);
-        })
+        // $.post('/api/update/inoutcome/', result, function (data) {
+        //     // console.log(data)
+        //     setTimeout(() => {
+        //         $('#saving-progress').fadeOut(500)
+        //         if (callback) { callback() }
+        //     }, 1000);
+        // })
+        $.ajax({
+            url: '/api/update/inoutcome/',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (result) {
+                setTimeout(() => {
+                    $('#saving-progress').fadeOut(500)
+                    if (callback) { callback() }
+                }, 1000);
+            },
+            error: function (error) {
+                // Handle errors
+                console.log("ajax", error);
+            }
+        });
     }
 
     function deleteCheckedList() {

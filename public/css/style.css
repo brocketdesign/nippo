@@ -1220,3 +1220,7 @@ input:disabled {
     width: 80px;
   }
 }
+
+.td-file {
+  cursor: pointer;
+}

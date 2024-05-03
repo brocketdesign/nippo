@@ -1126,8 +1126,21 @@ router.post('/update/inoutcome', urlencodedParser, async (req, res) => {
     let torihikiID = new ObjectId(req.body.torihiki_id)
     let torihiki = req.body.取引先
     let date = req.body.日付
-    let items = req.body.data
+    let items_ = req.body.data
+    let items = JSON.parse(items_)
+
     date = date
+
+    let files = req.files
+    let fileName = null
+    if (files && files.length > 0) {
+      let file = files[0]
+      let path = file.path
+      fileName = file.originalname
+      fs.rename(path, './uploads/' + fileName, function (err) {
+        if (err) throw err;
+      })
+    }
     
     items.forEach(item => {
       item.genba_id = new ObjectId(item.genba_id)
@@ -1141,9 +1154,13 @@ router.post('/update/inoutcome', urlencodedParser, async (req, res) => {
       else
         item.税率 = parseInt(item.税率)
 
+      if (fileName != null)
+        item.file = fileName
+
+
       db.collection('inoutcomeDaityou').insert(item)
     })
-    // res.send(JSON.stringify(items))
+
     res.sendStatus(200)
     
   } else {
@@ -1154,27 +1171,28 @@ router.post('/update/inoutcome', urlencodedParser, async (req, res) => {
 router.post('/update/inoutcome/element', urlencodedParser, async (req, res) => {
   const db = req.app.locals.db; let dbData = await initData(req)
   if (dbData.isLogin) {
-
-    console.log(req.body)
     // let items = req.body.data
+    console.log(req.body);
     let _id = new ObjectId(req.body._id)
     var _set = {}
     if (req.body.取引先)
-        _set['取引先'] = req.body.取引先
+      _set['取引先'] = req.body.取引先
     if (req.body.torihiki_id)
-        _set['torihiki_id'] = req.body.torihiki_id
+      _set['torihiki_id'] = req.body.torihiki_id
     if (req.body.勘定科目)
-        _set['勘定科目'] = req.body.勘定科目
+      _set['勘定科目'] = req.body.勘定科目
     if (req.body.現場名)
-        _set['現場名'] = req.body.現場名
+      _set['現場名'] = req.body.現場名
     if (req.body.genba_id)
-        _set['genba_id'] = req.body.genba_id
+      _set['genba_id'] = req.body.genba_id
+    if (req.body.備考)
+      _set['備考'] = req.body.備考
     if (req.body.査定金額)
-        _set['査定金額'] = parseInt(req.body.査定金額)
+      _set['査定金額'] = parseInt(req.body.査定金額)
     if (req.body.消費税)
-        _set['消費税'] = parseInt(req.body.消費税)
+      _set['消費税'] = parseInt(req.body.消費税)
     if (req.body.日付)
-        _set['日付'] = req.body.日付
+      _set['日付'] = req.body.日付
 
     if (Object.keys(_set).length > 0) {
 
@@ -2328,6 +2346,18 @@ router.get('/csv/:typeCSV', urlencodedParser, async (req, res) => {
     res.sendStatus(403);
   }
 });
+
+router.get('/download/:fileName', urlencodedParser, async (req, res) => {
+  const db = req.app.locals.db; let dbData = await initData(req)
+  if (dbData.isLogin) {
+    let fileName = req.params.fileName
+    console.log(fileName)
+    res.sendfile('./uploads/' + fileName)
+  } else {
+    res.sendStatus(403)
+  }
+})
+
 //ADD DATA TO DB FRON JSON
 router.get('/', urlencodedParser, (req, res) => {
   res.send('API V1.0.0');

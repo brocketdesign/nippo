@@ -76,12 +76,18 @@ block content
 
                             .form-row.ml-2.mt-4.pt-2
                                 .col-12.col-sm-8.pb-3
+                                    input#upload.d-none(type="file")
                                     span.addGroup.mt-1(style="cursor:pointer" data-name="outcome")
                                         span.text-white.bg-secondary.rounded-circle(data-feather='plus-circle')
-                                    span.addGroupMinus.ml-4.pb-3(style="cursor:pointer" data-name="outcome")
+                                    span.addGroupMinus.ml-4.mr-2.pb-3(style="cursor:pointer" data-name="outcome")
                                         .btn.btn-outline-secondary.rounded
                                             span.pb-1(data-feather='plus-circle')
                                             span.pl-2 控除・マイナス行を追加
+                                    span#attachment.mt-1(style="cursor:pointer" data-name="outcome")
+                                        .btn.btn-outline-secondary.rounded
+                                            span.pb-1(data-feather='paperclip')
+                                            span.pl-2 請求書
+                                            
                                 .col-12.col-sm-4.text-right
                                     button.saveBtn.btn.btn-success.rounded(data-name="outcome") 支出を登録する
 
@@ -146,12 +152,18 @@ block content
 
                             .form-row.ml-2.mt-4.pt-2
                                 .col-12.col-sm-8.pb-3
+                                    input#upload.d-none(type="file")
                                     span.addGroup.mt-1(style="cursor:pointer" data-name="income")
                                         span.text-white.bg-secondary.rounded-circle(data-feather='plus-circle')
-                                    span.addGroupMinus.ml-4.pb-3(style="cursor:pointer" data-name="income")
+                                    span.addGroupMinus.ml-4.mr-2.pb-3(style="cursor:pointer" data-name="income")
                                         .btn.btn-outline-secondary.rounded
                                             span.pb-1(data-feather='plus-circle')
                                             span.pl-2 控除・マイナス行を追加
+                                    span#attachment.mt-1(style="cursor:pointer" data-name="income")
+                                        .btn.btn-outline-secondary.rounded
+                                            span.pb-1(data-feather='paperclip')
+                                            span.pl-2 請求書
+
                                 .col-12.col-sm-4.text-right
                                     button.saveBtn.btn.btn-success.rounded(data-name="income") 収入を登録する
                 
@@ -297,13 +309,14 @@ block content
                                     th(style="width:5%").text-center
                                         input#batch-check(type="checkbox" style="cursor:pointer;margin-top:3px;width:18px;height:18px")
                                     th(style="width:8%").py-2 日付
-                                    th(style="width:17%") 業社名
-                                    th(style="width:8%") 勘定科目
+                                    th(style="width:16%") 業社名
+                                    th(style="width:7%") 勘定科目
                                     th(style="width:17%") 現場名
-                                    th(style="width:17%") 備考
+                                    th(style="width:15%") 備考
                                     th(style="width:10%") 金額 (税抜)
                                     th(style="width:8%") 消費税
                                     th(style="width:10%") 合計
+                                    th(style="width:4%") ファイル
                             tbody#inoutcome-filtered-tbody.text-right
                                 //- tr(style="cursor:pointer" data-value="")
                                 //-     td.py-2.pl-2.text-left
