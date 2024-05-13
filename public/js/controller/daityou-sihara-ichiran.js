@@ -266,7 +266,7 @@ $(document).ready(async function () {
                     var dateArry = files.map(o => o.date)
                     var fileNames = nameArry.join("\\")
                     var fileDates = dateArry.join("\\")
-                    htmlBody += `<td class="pr-1 cell-file" style="position:relative;cursor:pointer" data-files=${fileNames} data-dates=${fileDates}><span class="badge badge-primary" style="position:absolute;top:0;left:0;border-radius:0">${files.length}</span><span style="padding-left:15px">${numberFormat(cost)}</span></td>`
+                    htmlBody += `<td class="pr-1 cell-file" style="position:relative;cursor:pointer" data-files="${fileNames}" data-dates=${fileDates}><span class="badge badge-primary" style="position:absolute;top:0;left:0;border-radius:0">${files.length}</span><span style="padding-left:15px">${numberFormat(cost)}</span></td>`
                 }
                 else {
                     htmlBody += `<td class="pr-1">${numberFormat(cost)}</td>`

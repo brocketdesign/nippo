@@ -1197,13 +1197,13 @@ router.post('/update/inoutcome/element', urlencodedParser, async (req, res) => {
       if (req.body.取引先 !== undefined)
         _set['取引先'] = req.body.取引先
       if (req.body.torihiki_id !== undefined)
-        _set['torihiki_id'] = req.body.torihiki_id
+        _set['torihiki_id'] = new ObjectId(req.body.torihiki_id)
       if (req.body.勘定科目 !== undefined)
         _set['勘定科目'] = req.body.勘定科目
       if (req.body.現場名 !== undefined)
         _set['現場名'] = req.body.現場名
       if (req.body.genba_id !== undefined)
-        _set['genba_id'] = req.body.genba_id
+        _set['genba_id'] = new ObjectId(req.body.genba_id)
       if (req.body.備考 !== undefined)
         _set['備考'] = req.body.備考
       if (req.body.査定金額 !== undefined)
