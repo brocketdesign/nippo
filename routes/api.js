@@ -1175,24 +1175,44 @@ router.post('/update/inoutcome/element', urlencodedParser, async (req, res) => {
     console.log(req.body);
     let _id = new ObjectId(req.body._id)
     var _set = {}
-    if (req.body.取引先)
-      _set['取引先'] = req.body.取引先
-    if (req.body.torihiki_id)
-      _set['torihiki_id'] = req.body.torihiki_id
-    if (req.body.勘定科目)
-      _set['勘定科目'] = req.body.勘定科目
-    if (req.body.現場名)
-      _set['現場名'] = req.body.現場名
-    if (req.body.genba_id)
-      _set['genba_id'] = req.body.genba_id
-    if (req.body.備考)
-      _set['備考'] = req.body.備考
-    if (req.body.査定金額)
-      _set['査定金額'] = parseInt(req.body.査定金額)
-    if (req.body.消費税)
-      _set['消費税'] = parseInt(req.body.消費税)
-    if (req.body.日付)
-      _set['日付'] = req.body.日付
+
+
+    let files = req.files
+    let fileName = null
+    if (files && files.length > 0) {
+      let file = files[0]
+      let path = file.path
+      fileName = file.originalname
+      await new Promise((resolve, reject) => {
+        fs.rename(path, './uploads/' + fileName, function (err) {
+          if (err) reject()
+          else resolve()
+        })
+      })
+      _set['file'] = fileName
+
+    } else {
+      
+      // let items = req.body.data
+      if (req.body.取引先 !== undefined)
+        _set['取引先'] = req.body.取引先
+      if (req.body.torihiki_id !== undefined)
+        _set['torihiki_id'] = req.body.torihiki_id
+      if (req.body.勘定科目 !== undefined)
+        _set['勘定科目'] = req.body.勘定科目
+      if (req.body.現場名 !== undefined)
+        _set['現場名'] = req.body.現場名
+      if (req.body.genba_id !== undefined)
+        _set['genba_id'] = req.body.genba_id
+      if (req.body.備考 !== undefined)
+        _set['備考'] = req.body.備考
+      if (req.body.査定金額 !== undefined)
+        _set['査定金額'] = parseInt(req.body.査定金額)
+      if (req.body.消費税 !== undefined)
+        _set['消費税'] = parseInt(req.body.消費税)
+      if (req.body.日付 !== undefined)
+        _set['日付'] = req.body.日付
+    }
 
     if (Object.keys(_set).length > 0) {
 

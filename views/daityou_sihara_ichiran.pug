@@ -46,3 +46,16 @@ block content
                         table.scrollable-table.w-100.small.table-bordered(style="table-layout:fixed")
                             thead#sihara-ichiran-theader.bg-secondary.text-center.text-white
                             tbody#sihara-ichiran-tbody.text-right
+
+    .modal.fade#file-modal
+        .modal-dialog.modal-dialog-scrollable(role="document")
+            .modal-content
+                .modal-header
+                    ht.modal-title 請求書
+                    button.close(data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                .modal-body
+                    table.w-100
+                        tbody#file-content
+                .modal-footer
+                    button.btn.btn-outline-secondary(data-dismiss="modal") キャンセル

@@ -75,7 +75,7 @@ block content
                                     //-             span.ml-2.mr-2(data-feather='trash' style="width: 15px;height: 15px;")
 
                             .form-row.ml-2.mt-4.pt-2
-                                .col-12.col-sm-8.pb-3
+                                .col-12.col-lg-9.col-sm-8.pb-3
                                     input#upload.d-none(type="file")
                                     span.addGroup.mt-1(style="cursor:pointer" data-name="outcome")
                                         span.text-white.bg-secondary.rounded-circle(data-feather='plus-circle')
@@ -88,7 +88,7 @@ block content
                                             span.pb-1(data-feather='paperclip')
                                             span.pl-2 請求書
                                             
-                                .col-12.col-sm-4.text-right
+                                .col-12.col-lg-3.col-sm-4.text-right
                                     button.saveBtn.btn.btn-success.rounded(data-name="outcome") 支出を登録する
 
             div(class="tab-pane fade" id="nav-income" role="tabpanel" aria-labelledby="nav-income-tab")
@@ -374,3 +374,23 @@ block content
 
             .col.text-center.mb-4
                 #showMoreBtn.btn.btn-outline-primary.text-center 次の30件を表示する
+
+    .modal.fade#file-modal
+        .modal-dialog.modal-dialog-scrollable(role="document")
+            .modal-content
+                .modal-header
+                    ht.modal-title 請求書の追加
+                    .col.text-right(id="saving-progress-modal" role="status" style="display:none")
+                        .spinner-border.spinner-border-sm.mr-1
+                        span.mx-1 保存しています...
+                    button.close(data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                .modal-body
+                    input#upload-modal.d-none(type="file")
+                    span#attachment-modal.mt-1(style="cursor:pointer")
+                                        .btn.btn-outline-secondary.rounded
+                                            span.pb-1(data-feather='paperclip')
+                                            span.pl-2 ファイルを選択
+                .modal-footer
+                    button.btn.btn-outline-secondary(data-dismiss="modal") キャンセル
+                    button#btn-upload-modal.btn.btn-primary(disabled) アップロード

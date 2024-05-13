@@ -258,9 +258,19 @@ $(document).ready(async function () {
 
             htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">' + item.company_el + '</td>'
             for (var i = 0; i < nRange; i++) {
-                var cost = costsFull[i]
+                var cost = costsFull[i].cost
                 costSum += cost
-                htmlBody += '<td class="pr-1">' + numberFormat(cost) + '</td>'
+                var files = costsFull[i].files
+                if (files !== undefined) {
+                    var nameArry = files.map(o => o.file)
+                    var dateArry = files.map(o => o.date)
+                    var fileNames = nameArry.join("\\")
+                    var fileDates = dateArry.join("\\")
+                    htmlBody += `<td class="pr-1 cell-file" style="position:relative;cursor:pointer" data-files=${fileNames} data-dates=${fileDates}><span class="badge badge-primary" style="position:absolute;top:0;left:0;border-radius:0">${files.length}</span><span style="padding-left:15px">${numberFormat(cost)}</span></td>`
+                }
+                else {
+                    htmlBody += `<td class="pr-1">${numberFormat(cost)}</td>`
+                }
             }
             htmlBody += '<td class="pr-1 bg-light">' + numberFormat(costSum) + '</td>'
             htmlBody += '<td class="pr-1 bg-light">' + numberFormat(item.budget) + '</td>'
@@ -270,14 +280,35 @@ $(document).ready(async function () {
                 htmlBody += '<td class="pr-1 bg-light">' + numberFormat(parseFloat((costSum * 100 / item.budget).toFixed(2))) + '%</td>'
             }
             htmlBody += '</tr>'
-
-            // <tr><td class="py-2 pl-1 bg-light text-left">㈱グッドバレーカンパニー</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">0</td><td class="pr-1">550</td><td class="pr-1">0</td><td class="pr-1 bg-light">550</td><td class="pr-1 bg-light">0</td><td class="pr-1 bg-light">ー</td></tr>
-            // <td class="py-2 pl-1 bg-light text-left">㈱グッドバレーカンパニー</td>
-            // htmlBody +=
         })
 
         theader.html(htmlHeader)
         tbody.html(htmlBody)
+
+        $(".cell-file").on("click", function () {
+            var fileNames = $(this).attr('data-files').split("\\")
+            var fileDates = $(this).attr('data-dates').split("\\")
+            // let win = window.open(`/api/download/${files[0]}`)
+            let html = ''
+            fileNames.forEach(function (fileName, i) {
+                var fileDate = fileDates[i]
+                html += `<tr>
+                    <td class="td-file py-2 px-2 align-middle" data-file="${fileName}"><i class="fa fa-file-text px-2 align-middle" style="font-size:1.5rem;color:gray;"></i>
+                        <span class="text-dark">${fileName}</span>
+                    </td>
+                    <td class="text-right pr-2" style="font-size:13px">
+                        ${fileDate}
+                    </td>
+                </tr>`
+            })
+            $('#file-content').html(html)
+            $('#file-modal').modal('show')
+
+            $(".td-file").on("click", function () {
+                let fileName = $(this).attr('data-file')
+                let win = window.open(`/api/download/${fileName}`)
+            })
+        })
 
         let query = {
             genbaID: genbaID,
@@ -426,7 +457,7 @@ $(document).ready(async function () {
                 htmlBody += '<tr><td class="py-2 pl-1 bg-light text-left">原価合計</td>'
                 for (var i = 0; i < nRange; i++) {
                     // var cost = costsFull[i]
-                    var cost = costsFull[i] + rouhisFull[i]
+                    var cost = costsFull[i].cost + rouhisFull[i]
                     costSum += cost
                     htmlBody += '<td class="pr-1">' + numberFormat(cost) + '</td>'
                 }
@@ -526,14 +557,24 @@ function paddingCosts(dates, costs) {
         var cost = element.cost
         var date = element._id.year + ('' + element._id.month).padStart(2, '0', element._id.month)
         while (dates[idxE] != date) idxE ++
-        for (var j = idxS; j < idxE; j++) costsFull.push(0)
+        for (var j = idxS; j < idxE; j++) costsFull.push({cost: 0})
         idxE ++
         idxS = idxE
         if (!cost) cost = 0
-        costsFull.push(cost)
+        var files_ = element.files
+        var files = []
+        files_.forEach(function (file) {
+            if (file.file !== undefined) {
+                files.push(file)
+            }
+        })
+        if (files.length > 0)
+            costsFull.push({cost: cost, files: files})
+        else
+            costsFull.push({cost: cost})
     }
     for (var i = idxS; i < dates.length; i++) {
-        costsFull.push(0)
+        costsFull.push({cost: 0})
     }
 
     return costsFull

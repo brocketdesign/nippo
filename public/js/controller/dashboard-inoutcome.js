@@ -966,23 +966,23 @@ $(document).ready(async function () {
             }
         }, '.form-row')
 
-        $('body').on('click', '#attachment', function () {
+        $('#attachment').on('click', function () {
             $('#upload').trigger("click")
         })
 
-        $('input:file').on('change', function (e) {
+        $('#upload').on('change', function (e) {
             updateFile($(this), e.target)
         })
 
-        setItemEditFinishEvent()
-    }
+        $('#attachment-modal').on('click', function () {
+            $('#upload-modal').trigger("click")
+        })
 
-    function onFileItemRemove(thiz) {
-        if (thiz != undefined) {
-            var fileItem = thiz.parent().parent()
-            fileItem.find('.filename').remove()
-            fileItem.find('input:file').val('')
-        }
+        $('#upload-modal').on('change', function (e) {
+            updateFileModal($(this), e.target)
+        })
+
+        setItemEditFinishEvent()
     }
 
     function setItemEditFinishEvent() {
@@ -1019,37 +1019,28 @@ $(document).ready(async function () {
     }
 
     function finishItemEdit() {
-        var _id = null
-        var date = null
-        var torihiki = null
-        var torihikiID = null
-        var kamoku = null
-        var genba = null
-        var genbaID = null
-        var bikou = null
-        var price = null
-        var tax = null
+        var query = {}
 
         var editDate = $('.in-edit-date')
         if (editDate.length > 0) {
             var val = editDate.find('input').val()
             editDate.removeClass('in-edit-date')
             editDate.html(val)
-            date = val
-            _id = editDate.parent().attr('data-id')
+            var _id = editDate.parent().attr('data-id')
+            query = {'_id': _id, '日付': val}
         }
 
         var editTorihiki = $('.in-edit-torihiki')
         if (editTorihiki.length > 0) {
             var select = editTorihiki.find('select')
             var val = select.val()
-            torihikiID = select.find('option:checked').attr('data-id')
+            var torihikiID = select.find('option:checked').attr('data-id')
             editTorihiki.remove('select')
             editTorihiki.remove('div')
             editTorihiki.removeClass('in-edit-torihiki')
             editTorihiki.html(val)
-            torihiki = val
-            _id = editTorihiki.parent().attr('data-id')
+            var _id = editTorihiki.parent().attr('data-id')
+            query = {'_id': _id, '取引先': val, 'torihiki_id': torihikiID}
         }
 
         var editKamoku = $('.in-edit-kamoku')
@@ -1059,28 +1050,29 @@ $(document).ready(async function () {
             editKamoku.remove('div')
             editKamoku.removeClass('in-edit-kamoku')
             editKamoku.html(val)
-            kamoku = val
-            _id = editKamoku.parent().attr('data-id')
+            var _id = editKamoku.parent().attr('data-id')
+            query = {'_id': _id, '勘定科目': val}
         }
 
         var editGenba = $('.in-edit-genba')
         if (editGenba.length > 0) {
             var select = editGenba.find('select')
             var val = select.val()
-            genbaID = select.find('option:checked').attr('data-id')
+            var genbaID = select.find('option:checked').attr('data-id')
             editGenba.remove('div')
             editGenba.removeClass('in-edit-genba')
             editGenba.html(val)
-            genba = val
-            _id = editGenba.parent().attr('data-id')
+            var _id = editGenba.parent().attr('data-id')
+            query = {'_id': _id, '現場名': val, 'genba_id': genbaID}
         }
 
         var editBikou = $('.in-edit-bikou')
         if (editBikou.length > 0) {
-            bikou = editBikou.find('input').val()
+            var val = editBikou.find('input').val()
             editBikou.removeClass('in-edit-bikou')
-            editBikou.html(bikou)
-            _id = editBikou.parent().attr('data-id')
+            editBikou.html(val)
+            var _id = editBikou.parent().attr('data-id')
+            query = {'_id': _id, '備考': val}
         }
 
         var editPrice = $('.in-edit-price')
@@ -1093,8 +1085,8 @@ $(document).ready(async function () {
             } else {
                 editPrice.html(numberFormat(val))
             }
-            price = val
-            _id = editPrice.parent().attr('data-id')
+            var _id = editPrice.parent().attr('data-id')
+            query = {'_id': _id, '査定金額': val}
         }
 
         var editTax = $('.in-edit-tax')
@@ -1107,42 +1099,19 @@ $(document).ready(async function () {
             } else {
                 editTax.html(numberFormat(val))
             }
-            tax = val
-            _id = editTax.parent().attr('data-id')
+            var _id = editTax.parent().attr('data-id')
+            query = {'_id': _id, '消費税': val}
         }
 
-        var query = {}
-        if (_id) {
-            query['_id'] = _id
-            if (torihiki) {
-                query['取引先'] = torihiki
-                query['torihiki_id'] = torihikiID
-            }
-            if (kamoku)
-                query['勘定科目'] = kamoku
-            if (genba) {
-                query['現場名'] = genba
-                query['genba_id'] = genbaID
-            }
-            if (bikou)
-                query['備考'] = bikou
-            if (price)
-                query['査定金額'] = price
-            if (tax)
-                query['消費税'] = tax
-            if (date)
-                query['日付'] = date
-
-            if (Object.keys(query).length > 0) {
-                console.log(query)
-                $('#saving-progress').fadeIn(500)
-                $.post('/api/update/inoutcome/element/', query, function (data) {
-                    console.log(data)
-                    setTimeout(() => {
-                        $('#saving-progress').fadeOut(500)
-                    }, 1000);
-                })
-            }
+        if (Object.keys(query).length > 0) {
+            console.log(query)
+            $('#saving-progress').fadeIn(500)
+            $.post('/api/update/inoutcome/element/', query, function (data) {
+                console.log(data)
+                setTimeout(() => {
+                    $('#saving-progress').fadeOut(500)
+                }, 1000);
+            })
         }
     }
 
@@ -1374,8 +1343,8 @@ $(document).ready(async function () {
                     '</td><td class="pr-1 td-kamoku ' + (type == '収入' ? 'td-income' : 'td-outcome') + '">' + kanjoukamoku + '</td><td class="pr-1 td-genba">' + genba +
                     '</td><td class="pr-1 td-bikou">' + bikou + '</td><td class="pr-1 td-price">' + numberFormat(price) +
                     '</td><td class="pr-1 td-tax">' + numberFormat(tax) + '</td><td class="pr-1 td-real-price">' + numberFormat(priceWithTax) +
-                    '</td><td class="td-file text-center" data-file="' + file + '">' + 
-                    (file === undefined ? '' : '<span class="pb-1" style="height: 20px;color:gray;" data-feather="paperclip"></span>') + 
+                    '</td><td class="td-file text-center"' + ((file === undefined) ? '>' : ' data-file="' + file + '">') + 
+                    (file === undefined ? '' : '<i class="fa fa-file-text pb-1" style="height: 20px;color:gray;"></i>') + 
                     '</td></tr>'
         })
         if (append) {
@@ -1386,7 +1355,44 @@ $(document).ready(async function () {
 
         $('.td-file').on('click', function() {
             var file = $(this).attr('data-file')
-            let win = window.open(`/api/download/${file}`)
+            if (file !== undefined) {
+                let win = window.open(`/api/download/${file}`)
+            } else {
+                let id = $(this).parent().data('id')
+                // modal to attach file
+                $('#file-modal').modal('show')
+                $('#btn-upload-modal').on('click', function () {
+                    // TODO
+                    let formData = new FormData()
+                    let file = $('#upload-modal')[0].files[0]
+                    formData.append('_id', id)
+                    formData.append('files', file)
+                    $('#saving-progress-modal').fadeIn(500)
+                    $.ajax({
+                        url: '/api/update/inoutcome/element',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (result) {
+                            setTimeout(() => {
+                                $('#saving-progress-modal').fadeOut(500)
+                                $('#file-modal').modal('hide')
+                                $('.act-remove-modal').trigger('click')
+                                var $tr = $(`tr[data-id=${id}] td.td-file`)
+                                $tr.attr('data-file', file.name)
+                                $tr.html('<i class="fa fa-file-text pb-1" style="height: 20px;color:gray;"></i>')
+                            }, 1000);
+                        },
+                        error: function (error) {
+                            // Handle errors
+                            console.log("ajax", error);
+                            $('#file-modal').modal('hide')
+                            $('.act-remove-modal').trigger('click')
+                        }
+                    });
+                })
+            }
         })
     }
 
@@ -1407,12 +1413,46 @@ $(document).ready(async function () {
             var fileItem = thiz.parent()
             var fileName = file.files[0].name
             var appendix = '<div class="filename d-inline-block mt-2 ml-2" style="cursor:pointer">' + fileName +
-            '<a href="javascript:void(0)" class="remove act-remove" tabindex="-1" title="Remove">×</a></div>'
+            '<a href="javascript:void(0)" class="remove act-remove pl-1" tabindex="-1" title="Remove" style="text-decoration:none;font-size:1.5rem">×</a></div>'
             fileItem.append(appendix)
 
             $('.act-remove').on('click', function () {
                 onFileItemRemove($(this))
             })
+        }
+    }
+
+    function updateFileModal(thiz, file) {
+        if (file.files.length > 0) {
+            $('#btn-upload-modal').attr('disabled', false)
+            $('.filename-modal').remove()
+            var fileItem = thiz.parent()
+            var fileName = file.files[0].name
+            var appendix = '<div class="filename-modal d-inline-block mt-2 ml-2" style="cursor:pointer">' + fileName +
+            '<a href="javascript:void(0)" class="remove act-remove-modal pl-1" tabindex="-1" title="Remove" style="text-decoration:none;font-size:1.5rem">×</a></div>'
+            fileItem.append(appendix)
+
+            $('.act-remove-modal').on('click', function () {
+                onFileItemRemoveModal($(this))
+            })
+        } else {
+            $('#btn-upload-modal').removeAttr('disabled')
+        }
+    }
+
+    function onFileItemRemove(thiz) {
+        if (thiz != undefined) {
+            var fileItem = thiz.parent().parent()
+            fileItem.find('.filename').remove()
+            fileItem.find('#upload').val('')
+        }
+    }
+
+    function onFileItemRemoveModal(thiz) {
+        if (thiz != undefined) {
+            var fileItem = thiz.parent().parent()
+            fileItem.find('.filename-modal').remove()
+            fileItem.find('#upload-modal').val('')
         }
     }
 
@@ -1492,9 +1532,34 @@ $(document).ready(async function () {
         }
 
         formData.append('data', JSON.stringify(items))
-        formData.append('files', $('input[type=file]')[0].files[0])
+        formData.append('files', $('#upload')[0].files[0])
 
-        // console.log(result)
+        // $('#uploadForm').submit(function(e) {
+        //     e.preventDefault()
+        //     var $form = $(this)
+        //     var url = $form.attr( "action" )
+            
+        //     var formData = new FormData()
+        //     formData.append('files', $('input[type=file]')[0].files[0])
+
+        //     $.ajax({
+        //         url: url,
+        //         type: 'POST',
+        //         data: formData,
+        //         processData: false,
+        //         contentType: false,
+        //         success: function (result) {
+        //             // Handle the success response
+        //             console.log("ok");
+        //         },
+        //         error: function (error) {
+        //             // Handle errors
+        //             console.log("ajax", error);
+        //         }
+        //     });
+        // })
+
+        // $('#uploadForm').submit()
         $('#saving-progress').fadeIn(500)
         // $.post('/api/update/inoutcome/', result, function (data) {
         //     // console.log(data)

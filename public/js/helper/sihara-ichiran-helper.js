@@ -53,9 +53,22 @@ var siharaCostsOfPeriod = function (db, params, callback) {
           }
         } }
       },
-      cost: groupCostField
-    }
-  }}
+      // TODO
+      cost: groupCostField,
+      files: {
+        $push: {
+          $cond: {
+            // if: { $ne: ['$file', null] },
+            // then: {file: '$file', date: '$日付'},
+            // else: {}
+            if: { $ne: ['$file', null] },
+            then: {file: '$file', date: '$日付'},
+            else: {}
+          }
+        }
+      }
+    }}
+  }
 
   var resultMatch
   if (yearFrom) {
