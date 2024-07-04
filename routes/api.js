@@ -18,6 +18,7 @@ const {rouhiOfPeriod} = require('../public/js/helper/sihara-ichiran-rouhi-helper
 const { yosanKeiyakukingaku, yosanYosanTable, yosanYosan, yosanUriage, yosanGenka } = require('../public/js/helper/yosan-helper')
 const readline = require("readline");
 const { resolve } = require('path');
+const {uploadFileToS3} = require('../modules/aws')
 
 require('dotenv').config({ path: './.env' });
 router.use(cookieParser('horiken'));
@@ -1120,117 +1121,127 @@ router.post('/delete/inoutcome', urlencodedParser, async (req, res) => {
 
 // Save inoutcome
 router.post('/update/inoutcome', urlencodedParser, async (req, res) => {
-  const db = req.app.locals.db; let dbData = await initData(req)
-  if (dbData.isLogin) {
-    // let kouza = req.body.口座
-    let torihikiID = new ObjectId(req.body.torihiki_id)
-    let torihiki = req.body.取引先
-    let date = req.body.日付
-    let items_ = req.body.data
-    let items = JSON.parse(items_)
-
-    date = date
-
-    let files = req.files
-    let fileName = null
-    if (files && files.length > 0) {
-      let file = files[0]
-      let path = file.path
-      fileName = file.originalname
-      fs.rename(path, './uploads/' + fileName, function (err) {
-        if (err) throw err;
-      })
-    }
-    
-    items.forEach(item => {
-      item.genba_id = new ObjectId(item.genba_id)
-      // item.口座 = kouza
-      item.torihiki_id = torihikiID
-      item.取引先 = torihiki
-      item.日付 = date
-      item.査定金額 = parseInt(item.査定金額)
-      if (item.消費税)
-        item.消費税 = parseInt(item.消費税)
-      else
-        item.税率 = parseInt(item.税率)
-
-      if (fileName != null)
-        item.file = fileName
-
-
-      db.collection('inoutcomeDaityou').insert(item)
-    })
-
-    res.sendStatus(200)
-    
-  } else {
+  const db = req.app.locals.db;
+  let dbData = await initData(req);
+  
+  if (!dbData.isLogin) {
     res.sendStatus(403);
+    return;
+  }
+
+  let torihikiID = new ObjectId(req.body.torihiki_id);
+  let torihiki = req.body.取引先;
+  let date = req.body.日付;
+  let items = JSON.parse(req.body.data);
+  let fileUploadedData = null;
+
+  // Handle file upload
+  if (req.files && req.files.length > 0) {
+    const file = req.files[0];
+    try {
+      const fileContent = fs.readFileSync(file.path);
+      fileUploadedData = await uploadFileToS3(fileContent, file.originalname);
+      fs.unlinkSync(file.path); // Optionally remove the file after upload
+    } catch (error) {
+      console.error('File upload failed:', error);
+      res.sendStatus(500);
+      return;
+    }
+  }
+
+  try {
+    // Process each item and insert into the database
+    items.forEach(async item => {
+      item.genba_id = new ObjectId(item.genba_id);
+      item.torihiki_id = torihikiID;
+      item.取引先 = torihiki;
+      item.日付 = date;
+      item.査定金額 = parseInt(item.査定金額, 10);
+
+      if (item.消費税) {
+        item.消費税 = parseInt(item.消費税, 10);
+      } else {
+        item.税率 = parseInt(item.税率, 10);
+      }
+
+      if (fileUploadedData) {
+        item.fileUrl = fileUploadedData.url; // Use the S3 URL
+        item.fileName = fileUploadedData.originalname; // Store the original file name if needed
+      }
+
+      await db.collection('inoutcomeDaityou').insertOne(item);
+    });
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.error('Database operation failed:', error);
+    res.sendStatus(500);
   }
 });
+
 
 router.post('/update/inoutcome/element', urlencodedParser, async (req, res) => {
-  const db = req.app.locals.db; let dbData = await initData(req)
-  if (dbData.isLogin) {
-    // let items = req.body.data
-    console.log(req.body);
-    let _id = new ObjectId(req.body._id)
-    var _set = {}
+  const db = req.app.locals.db;
+  let dbData = await initData(req);
 
+  if (!dbData.isLogin) {
+    res.sendStatus(403);
+    return;
+  }
 
-    let files = req.files
-    let fileName = null
-    if (files && files.length > 0) {
-      let file = files[0]
-      let path = file.path
-      fileName = file.originalname
-      await new Promise((resolve, reject) => {
-        fs.rename(path, './uploads/' + fileName, function (err) {
-          if (err) reject()
-          else resolve()
-        })
-      })
-      _set['file'] = fileName
+  console.log(req.body)
 
-    } else {
-      
-      // let items = req.body.data
-      if (req.body.取引先 !== undefined)
-        _set['取引先'] = req.body.取引先
-      if (req.body.torihiki_id !== undefined)
-        _set['torihiki_id'] = new ObjectId(req.body.torihiki_id)
-      if (req.body.勘定科目 !== undefined)
-        _set['勘定科目'] = req.body.勘定科目
-      if (req.body.現場名 !== undefined)
-        _set['現場名'] = req.body.現場名
-      if (req.body.genba_id !== undefined)
-        _set['genba_id'] = new ObjectId(req.body.genba_id)
-      if (req.body.備考 !== undefined)
-        _set['備考'] = req.body.備考
-      if (req.body.査定金額 !== undefined)
-        _set['査定金額'] = parseInt(req.body.査定金額)
-      if (req.body.消費税 !== undefined)
-        _set['消費税'] = parseInt(req.body.消費税)
-      if (req.body.日付 !== undefined)
-        _set['日付'] = req.body.日付
+  const _id = new ObjectId(req.body._id);
+  const _set = {};
+
+  if (req.files && req.files.length > 0) {
+    const file = req.files[0];
+    try {
+      const fileContent = fs.readFileSync(file.path);
+      const uploadResult = await uploadFileToS3(fileContent, file.originalname);
+
+      _set['fileUrl'] = uploadResult.url; // Storing the URL of the file in S3
+      _set['fileId'] = new ObjectId(); // Generate a new ObjectId for this file
+      fs.unlinkSync(file.path); // Optionally delete the file locally after upload
+
+      // Save the file reference in the database
+      await db.collection('files').insertOne({
+        _id: _set['fileId'],
+        url: uploadResult.url,
+        fileName: file.originalname
+      });
+    } catch (error) {
+      console.error('File upload failed:', error);
+      res.sendStatus(500);
+      return;
     }
+  }
 
-    if (Object.keys(_set).length > 0) {
-
-      await new Promise((resolve, reject) => {
-        db.collection('inoutcomeDaityou').updateOne({ '_id': _id }, { $set: _set }, (err, result) => {
-          resolve()
-        });
-      })
-      res.sendStatus(200)
-
-    } else {
-      res.sendStatus(300)
+  const fieldsToUpdate = ['取引先', 'torihiki_id', '勘定科目', '現場名', 'genba_id', '備考', '査定金額', '消費税', '日付'];
+  fieldsToUpdate.forEach(field => {
+    if (req.body[field] !== undefined) {
+      _set[field] = field === 'torihiki_id' || field === 'genba_id' ? new ObjectId(req.body[field]) : req.body[field];
+      if (field === '査定金額' || field === '消費税') {
+        _set[field] = parseInt(req.body[field], 10);
+      }
     }
+  });
 
+  if (Object.keys(_set).length > 0) {
+    try {
+      await db.collection('inoutcomeDaityou').updateOne({ '_id': _id }, { $set: _set });
+      res.status(200).json({
+        fileUrl: _set['fileUrl']
+      });      
+    } catch (error) {
+      console.error('Database update failed:', error);
+      res.sendStatus(500);
+    }
   } else {
-    res.sendStatus(403)
+    res.sendStatus(300);
   }
 });
+
 
 // import csv
 router.post('/import-csv/inoutcome', urlencodedParser, async (req, res) => {
@@ -2377,6 +2388,23 @@ router.get('/download/:fileName', urlencodedParser, async (req, res) => {
     res.sendStatus(403)
   }
 })
+
+router.get('/file/:fileId', async (req, res) => {
+  const db = req.app.locals.db;
+  try {
+    const fileId = new ObjectId(req.params.fileId);
+    const fileData = await db.collection('files').findOne({ _id: fileId });
+
+    if (fileData) {
+      res.redirect(fileData.url); // Redirect to the URL of the file, or send the URL to the client
+    } else {
+      res.status(404).send('File not found');
+    }
+  } catch (error) {
+    console.error('Failed to retrieve file:', error);
+    res.sendStatus(500);
+  }
+});
 
 //ADD DATA TO DB FRON JSON
 router.get('/', urlencodedParser, (req, res) => {

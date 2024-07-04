@@ -1328,7 +1328,7 @@ $(document).ready(async function () {
             var bikou = item.備考
             var price = item.査定金額
             var zeiritu = item.税率
-            var file = item.file
+            var fileUrl = item.fileUrl
             var tax;
             if (zeiritu != undefined)
                 tax = parseInt((price * zeiritu / 100).toFixed())
@@ -1343,8 +1343,8 @@ $(document).ready(async function () {
                     '</td><td class="pr-1 td-kamoku ' + (type == '収入' ? 'td-income' : 'td-outcome') + '">' + kanjoukamoku + '</td><td class="pr-1 td-genba">' + genba +
                     '</td><td class="pr-1 td-bikou">' + bikou + '</td><td class="pr-1 td-price">' + numberFormat(price) +
                     '</td><td class="pr-1 td-tax">' + numberFormat(tax) + '</td><td class="pr-1 td-real-price">' + numberFormat(priceWithTax) +
-                    '</td><td class="td-file text-center"' + ((file === undefined) ? '>' : ' data-file="' + file + '">') + 
-                    (file === undefined ? '' : '<i class="fa fa-file-text pb-1" style="height: 20px;color:gray;"></i>') + 
+                    '</td><td class="td-file text-center"' + ((fileUrl === undefined) ? '>' : ' data-file="' + fileUrl + '">') + 
+                    (fileUrl === undefined ? '' : '<i class="fa fa-file-text pb-1" style="height: 20px;color:gray;"></i>') + 
                     '</td></tr>'
         })
         if (append) {
@@ -1356,7 +1356,7 @@ $(document).ready(async function () {
         $('.td-file').on('click', function() {
             var file = $(this).attr('data-file')
             if (file !== undefined) {
-                let win = window.open(`/api/download/${file}`)
+                let win = window.open(file)
             } else {
                 let id = $(this).parent().data('id')
                 // modal to attach file
@@ -1375,14 +1375,15 @@ $(document).ready(async function () {
                         processData: false,
                         contentType: false,
                         success: function (result) {
+                            console.log(result)
                             setTimeout(() => {
                                 $('#saving-progress-modal').fadeOut(500)
                                 $('#file-modal').modal('hide')
                                 $('.act-remove-modal').trigger('click')
                                 var $tr = $(`tr[data-id=${id}] td.td-file`)
-                                $tr.attr('data-file', file.name)
+                                $tr.attr('data-file', result.fileUrl)
                                 $tr.html('<i class="fa fa-file-text pb-1" style="height: 20px;color:gray;"></i>')
-                            }, 1000);
+                            }, 0);
                         },
                         error: function (error) {
                             // Handle errors
