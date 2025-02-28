@@ -1,7 +1,12 @@
 extends new_dashboard
 block content
     #new_dashoboard_content_admin.container.col-md-12.ml-sm-auto.col-lg-12.pt-3.pl-2.pr-3
-        h3.d-block.title #{title}
+        .row
+            .col-6
+                h3.d-block.title #{title}
+            .col-6.text-end.d-flex.justify-content-end.align-items-center
+                a.mx-1(href="#", onclick="deleteLocalStorage()", style="cursor: pointer;")
+                    i.fa.fa-refresh
         .row 
             .col-sm-12.col-lg-12.col-md-12
                 .card.border-secondary.mb-3#new_dashboard_charts_group1(style="width:100%")
@@ -15,7 +20,11 @@ block content
                                 input.chart-date.start.text-center(type="text" chart-no="1" name="startDate" data-name="nippo" style="background-color:#00bbff5e;height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;")
                                 span.px-2(style="padding-top:2px;padding-bottom:2px;") ~
                                 input.chart-date.end.text-center(type="text" name="endDate" chart-no="1" data-name="nippo" style="background-color:#00bbff5e;height:fit-content;width: 82px;padding-top:2px;padding-bottom:2px;border: gray solid 1px;border-radius:2px;")
-                        canvas#chart_group_item_1
+                        canvas#chart_group_item_1(style="display:none;")
+                        .chart-loader.d-flex.justify-content-center(style="align-items:center;height:300px;")
+                            .spinner-border(role="status")
+                                .sr-only ローディング...
+
             .col-sm-12.col-lg-12.col-md-12
                 .card.border-secondary.mb-3(style="width:100%")
                     .card-body.px-0.py-0

@@ -122,7 +122,7 @@ router.get('/userStatistic', urlencodedParser, async (req, res) => {
     let end_period = req.query.end;
     let userCollection = db.collection(dbName);
     let result = [];
-    let users = await userCollection.find().sort({ '_id': 1 }).toArray();
+    let users = await userCollection.find({ status: { $ne: "0" } }).sort({ '_id': 1 }).toArray();
     if (users.length) {
       for (let i = 0; i < users.length; i++) {
         let userID = users[i]._id;

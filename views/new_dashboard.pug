@@ -94,74 +94,88 @@ html
                   span.d-sm-inline-block.d-none ログアウト
                   span.ml-1.ico-sm(data-feather="log-out")
       div.d-lg-flex.d-block
-        .collapse.navbar-collapse.d-lg-block.col-12.col-lg-3.col-xl-2.sticky-top.bg-success.p-0.pt-4#sidebarSupportedContent
-            
-            a.new_dashboard-nav-link.mb-1(href="/dashboard/" data-value="nippo")
-              span.link-title
-                i.fa.fa-tachometer.mr-2 
-                | ダッシュボード 
-            a.new_dashboard-nav-link.mb-1(href="/dashboard/input_nippo/" data-value="nippo")
-              span.link-title
-                i.fa.fa-pencil.mr-2 
-                | 日報入力画面
+        .collapse.navbar-collapse.d-lg-block.col-12.col-lg-3.col-xl-2.sticky-top.p-0#sidebarSupportedContent
+          
+          // Accordion for ダッシュボードメニュー
+          div.menu-group
+            .accordion#menuAccordionDashboard
+              .card
+                .card-header(id="headingDashboard")
+                  h5.mb-0
+                  button.btn.btn-link.collapsed(type="button", data-toggle="collapse", data-target="#collapseDashboard", aria-expanded="false", aria-controls="collapseDashboard")
+                    i.fa.fa-tachometer.mr-2
+                    | ダッシュボードメニュー
+                #collapseDashboard.collapse(aria-labelledby="headingDashboard" data-parent="#menuAccordionDashboard")
+                  .card-body
+                    a.list-group-item(href="/dashboard/")
+                      i.fa.fa-tachometer.mr-2
+                      | ダッシュボード
+                    a.list-group-item(href="/dashboard/input_nippo/")
+                      i.fa.fa-pencil.mr-2
+                      | 日報入力画面
+                    a.list-group-item(href="/dashboard/daityou/")
+                      i.fa.fa-wrench.mr-2
+                      | 工事台帳
+                    a.list-group-item.adminOnly(href="/dashboard/inoutcome/", style="display:none")
+                      i.fa.fa-money.mr-2
+                      | 入出金管理
 
-              //- new[monkey]
-            a.new_dashboard-nav-link.mb-1(href="/dashboard/daityou/" data-value="nippo")
-              span.link-title
-                i.fa.fa-tachometer.mr-2 
-                | 工事台帳
-              //- new[monkey]
-            a.new_dashboard-nav-link.mb-1.adminOnly(style="display:none" href="/dashboard/inoutcome/" data-value="nippo")
-              span.link-title
-                i.fa.fa-tachometer.mr-2 
-                | 入出金管理
+          // Accordion for 日報一覧メニュー
+          div.menu-group
+            .accordion#menuAccordionReports
+              .card
+                .card-header(id="headingReports")
+                  h5.mb-0
+                  button.btn.btn-link.collapsed(type="button", data-toggle="collapse", data-target="#collapseReports", aria-expanded="false", aria-controls="collapseReports")
+                    i.fa.fa-list-alt.mr-2
+                    | 日報一覧メニュー
+                #collapseReports.collapse(aria-labelledby="headingReports" data-parent="#menuAccordionReports")
+                  .card-body
+                    a.list-group-item(href="/dashboard/ichiran?type=nippo")
+                      i.fa.fa-list-alt.mr-2
+                      | 業務日報一覧
+                    a.list-group-item(href="/dashboard/ichiran?type=genbanippo")
+                      i.fa.fa-list-ul.mr-2
+                      | 現場日報一覧
+                    a.list-group-item.adminOnly(href="/dashboard/nippoichiranevery", style="display:none")
+                      i.fa.fa-file-excel-o.mr-2
+                      | CSV作成
+                    a.list-group-item.adminOnly(href="/dashboard/nipposhukei", style="display:none")
+                      i.fa.fa-bar-chart.mr-2
+                      | 日報集計
 
-            a.new_dashboard-nav-link.mb-1(href="/dashboard/ichiran?type=nippo" data-value="nippo")
-              span.link-title
-                i.fa.fa-list.mr-2   
-                | 業務日報一覧 
-            a.new_dashboard-nav-link.mb-1(href="/dashboard/ichiran?type=genbanippo" data-value="nippo")
-              span.link-title
-                i.fa.fa-list.mr-2  
-                | 現場日報一覧 
-            a.new_dashboard-nav-link.mb-1.adminOnly(href="/dashboard/nippoichiranevery" data-value="nippo" style="display:none")
-              span.link-title
-                i.fa.fa-table.mr-2   
-                | CSV作成
-            a.new_dashboard-nav-link.mb-1.adminOnly(href="/dashboard/nipposhukei" data-value="nippo" style="display:none")
-              span.link-title
-                i.fa.fa-calculator.mr-2   
-                | 日報集計 
-            a.new_dashboard-nav-link.mb-1(href='/dashboard/settings/genba' data-value="nippo" )
-              span.link-title
-                i.fa.fa-edit.mr-2  
-                | 現場情報編集 
-            a.new_dashboard-nav-link.mb-1(href=`/dashboard/settings/company` data-value='receip')
-              span.link-title
-                i.fa.fa-building.mr-2   
-                | 業者情報編集 
-
-            
-            a.new_dashboard-nav-link.mb-1.adminOnly(style="display:none" href="/dashboard/settings/users" data-value='receip')
-              span.link-title
-                i.fa.fa-users.mr-2
-                | ユーザ管理
-            a.new_dashboard-nav-link.mb-1.adminOnly(style="display:none" href="/dashboard/settings/nippo" data-value='receip')
-              span.link-title 
-                i.fa.fa-clipboard.mr-2
-                | 日報設定
-            a.new_dashboard-nav-link.mb-1.adminOnly(style="display:none" href="/dashboard/settings/genbastructure" data-value="nippo")
-              span.link-title
-                i.fa.fa-cogs.mr-2
-                | 現場設定
-            a.new_dashboard-nav-link.mb-1.adminOnly(style="display:none" href="/dashboard/settings/global" data-value='receip')
-              span.link-title
-                i.fa.fa-globe.mr-2
-                | 基本設定
-            a.new_dashboard-nav-link.mb-1.adminOnly(style="display:none" href="/dashboard/settings/holiday" data-value='receip')
-              span.link-title
-                i.fa.fa-calendar.mr-2
-                | カレンダー設定
+          // Accordion for 設定メニュー
+          div.menu-group
+            .accordion#menuAccordionSettings
+              .card
+                .card-header(id="headingSettings")
+                  h5.mb-0
+                  button.btn.btn-link.collapsed(type="button", data-toggle="collapse", data-target="#collapseSettings", aria-expanded="false", aria-controls="collapseSettings")
+                    i.fa.fa-cog.mr-2
+                    | 設定メニュー
+                #collapseSettings.collapse(aria-labelledby="headingSettings" data-parent="#menuAccordionSettings")
+                  .card-body
+                    a.list-group-item(href="/dashboard/settings/genba")
+                      i.fa.fa-pencil-square-o.mr-2
+                      | 現場情報編集
+                    a.list-group-item(href="/dashboard/settings/company")
+                      i.fa.fa-industry.mr-2
+                      | 業者情報編集
+                    a.list-group-item.adminOnly(href="/dashboard/settings/users", style="display:none")
+                      i.fa.fa-users.mr-2
+                      | ユーザ管理
+                    a.list-group-item.adminOnly(href="/dashboard/settings/nippo", style="display:none")
+                      i.fa.fa-clipboard.mr-2
+                      | 日報設定
+                    a.list-group-item.adminOnly(href="/dashboard/settings/genbastructure", style="display:none")
+                      i.fa.fa-cogs.mr-2
+                      | 現場設定
+                    a.list-group-item.adminOnly(href="/dashboard/settings/global", style="display:none")
+                      i.fa.fa-globe.mr-2
+                      | 基本設定
+                    a.list-group-item.adminOnly(href="/dashboard/settings/holiday", style="display:none")
+                      i.fa.fa-calendar.mr-2
+                      | カレンダー設定
                 
         #preloader.position-fixed.bg-white.col-12.col-lg-9.col-xl(style="top: 0;bottom: 0;left: auto;right: 0;z-index: 999;padding-top:45vh;")
             .d-flex.justify-content-center

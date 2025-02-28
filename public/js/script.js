@@ -290,7 +290,17 @@ $(document).ready(async function () {
                 }
             }
         }
-        const genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + start + '&end=' + today + '&userID=' + userID);
+        const cacheKey = 'genbaStatistic_' + today + '_' + start + '_' + today + '_' + userID;
+        const cached = localStorage.getItem(cacheKey);
+        const cachedTimestamp = localStorage.getItem(cacheKey + '_timestamp');
+        let genbaList;
+        if (cached && cachedTimestamp && (Date.now() - parseInt(cachedTimestamp, 10) < 23 * 60 * 60 * 1000)) {
+            genbaList = JSON.parse(cached);
+        } else {
+            genbaList = await $.get('/api/genbaStatistic?today=' + today + '&start=' + start + '&end=' + today + '&userID=' + userID);
+            localStorage.setItem(cacheKey, JSON.stringify(genbaList));
+            localStorage.setItem(cacheKey + '_timestamp', Date.now().toString());
+        }
         let allPeopleNum=0;
         for (let i = 0; i < genbaList.length; i++) {
             const res = await processingDataForNewDashboardAdmin(genbaList[i], Before10, today, i);
@@ -314,13 +324,11 @@ $(document).ready(async function () {
             const startDate = $(startSelector).attr('data-date');
             const endDate = $(endSelector).attr('data-date');
             const genbaList = await $.get(`/api/genbaStatistic?today=${today}&start=${startDate}&end=${endDate}&userID=${userID}`);
-            console.log(genbaList)
             const changeDataSet = [];
             let allPeopleNum = 0;
             
             for (let i = 0; i < genbaList.length; i++) {
                 const res = await processingDataForNewDashboardAdmin(genbaList[i], startDate, endDate, i);
-                console.log({res})
                 changeDataSet.push(res.dataset);
                 labels = res.labels;
                 allPeopleNum += res.allPeopleNum;
@@ -385,14 +393,18 @@ $(document).ready(async function () {
                 $(".changePeriod.prev").prop("disabled", false)
             }
             $(".calendar-table").html(`<tbody> <tr><td><div class="d-flex justify-content-center" style="align-items:center;height:300px;"><div class="spinner-border" role="status"><div class="sr-only">ローディング...</div></div></div></td></tr></tbody>`);
-
-            if (new Date(postEnd) >= new Date(today)) {
-                const usersData = await $.get('/api/userStatistic?today=' + today + '&start=' + postStart + '&end=' + today);
-                await drawCalendarTableForNewAdminDashboard(usersData, postStart, today)
+            
+            const cacheEnd = (new Date(postEnd) >= new Date(today)) ? today : postEnd;
+            const cacheKey = 'userStatistic_' + postStart + '_' + cacheEnd;
+            let usersData, cachedTimestamp = localStorage.getItem(cacheKey + '_timestamp');
+            if (localStorage.getItem(cacheKey) && cachedTimestamp && (new Date().getTime() - parseInt(cachedTimestamp, 10) < 23 * 60 * 60 * 1000)) {
+                usersData = JSON.parse(localStorage.getItem(cacheKey));
             } else {
-                const usersData = await $.get('/api/userStatistic?today=' + today + '&start=' + postStart + '&end=' + postEnd);
-                await drawCalendarTableForNewAdminDashboard(usersData, postStart, postEnd)
+                usersData = await $.get('/api/userStatistic?today=' + today + '&start=' + postStart + '&end=' + cacheEnd);
+                localStorage.setItem(cacheKey, JSON.stringify(usersData));
+                localStorage.setItem(cacheKey + '_timestamp', new Date().getTime());
             }
+            await drawCalendarTableForNewAdminDashboard(usersData, postStart, cacheEnd);
 
 
         })
@@ -3013,6 +3025,8 @@ function SettingsUsersInit() {
             $('#userActivity .loading').show()
             let userID = $(this).attr('data-value')
             $.get('/api/users?elID=' + userID, function (result) {
+                // Set default status
+                result['status'] = result['status'] || '1'
                 $('#editUsers form').attr('action', '/users/edit?userID=' + userID)
                 $('#editUsers form input').each(function () {
                     if (result[$(this).attr('name')]) {
@@ -5616,5 +5630,46 @@ function drawChartForNewAdminDashboard(labels, cData, allPeopleNum) {
         existingChart.destroy();
     }
     new Chart(ctx, config);
+    ctx.style.display = "block";
+    $(".chart-loader").hide().removeClass("d-flex").addClass("d-none");
 }
+
+// Delete local storage for variables genbaStatistic_ & userStatistic_
+function deleteLocalStorage() {
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+        if (key.includes("genbaStatistic_") || key.includes("userStatistic_")) {
+            localStorage.removeItem(key);
+        }
+    });
+    // Reload page
+    location.reload();
+}
+// Save dashboard navbar state
+$(document).ready(function () {
+    // Restore accordion state from local storage
+    const accordionState = JSON.parse(localStorage.getItem('accordionState')) || {};
+
+    // Apply the saved state to each accordion
+    Object.keys(accordionState).forEach(id => {
+        const isOpen = accordionState[id];
+        const $accordion = $(`#${id}`);
+        if (isOpen) {
+            $accordion.addClass('show');
+            $accordion.prev().find('button').attr('aria-expanded', 'true');
+        } else {
+            $accordion.removeClass('show');
+            $accordion.prev().find('button').attr('aria-expanded', 'false');
+        }
+    });
+
+    // Save accordion state on toggle
+    $('.accordion').on('shown.bs.collapse hidden.bs.collapse', function (e) {
+        const $accordion = $(e.target);
+        const id = $accordion.attr('id');
+        const isOpen = $accordion.hasClass('show');
+        accordionState[id] = isOpen;
+        localStorage.setItem('accordionState', JSON.stringify(accordionState));
+    });
+});
 //  End New Dashboard For Admin Page Init

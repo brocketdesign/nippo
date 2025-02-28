@@ -19,7 +19,7 @@ block content
                                         .avatar(style="flex:0.2")
                                             img.border.rounded-circle(src="/image/avatar.png" width="25" height="25")
                                         .profil.ml-4.position-relative(style="flex:0.8")
-                                            span.text-dark.font-weight-bold(style="width: 75%;display: inline-block;") #{user.lname} #{user.fname}
+                                            span.text-dark(style="width: 75%;display: inline-block;") #{user.lname} #{user.fname}
                                             if user.level == 1
                                                 span.badge.badge-primary 管理者
                                             span.mt-1 #{user.email}
@@ -42,27 +42,33 @@ block content
                                 form(method="POST")
                                     .form-group.row
                                         .col-12.col-lg-6
-                                            label.control-label.col-12.font-weight-bold(for="lname") 名前（姓）
+                                            label.control-label.col-12(for="lname") 名前（姓）
                                             input.form-control.col-12( type="text" name="lname" )
                                         .col-12.col-lg-6
-                                            label.control-label.col-12.font-weight-bold(for="fname")  名前（名）
+                                            label.control-label.col-12(for="fname")  名前（名）
                                             input.form-control.col-12( type="text" name="fname")
                                     .form-group.row
                                         .col-12.col-lg-6
-                                            label.control-label.col-12.font-weight-bold(for="email") メールアドレス
+                                            label.control-label.col-12(for="email") メールアドレス
                                             input.form-control.col-12( type="email" name="email")
                                         .col-12.col-lg-6
-                                            label.control-label.col-12.font-weight-bold(for="password") パスワード
+                                            label.control-label.col-12(for="password") パスワード
                                             input.form-control.col-12( type="password" name="password")
                                     .form-group.row.adminOnly(style="display:none")
-                                        label.control-label.col-sm-2.font-weight-bold(for="level") レベル
-                                        select.form-control.col-sm-10(name="level")
-                                            option(value="1") 管理者
-                                            option(value="2") レベル２
-                                            option(value="3") レベル３
+                                        .col-12.col-lg-6
+                                            label.control-label.col-12(for="level") レベル
+                                            select.form-control.col-12(name="level")
+                                                option(value="1") 管理者
+                                                option(value="2") レベル２
+                                                option(value="3") レベル３
+                                        .col-12.col-lg-6
+                                            label.control-label.col-12(for="status") ステータス
+                                            select.form-control.col-12(value="1" name="status")
+                                                option(value="1") 有効
+                                                option(value="0") 無効
                                     .row.border-bottom.border-secondary
                                         .col-6
-                                            .my-2.font-weight-bold.pb-2 現場状況
+                                            .my-2.pb-2 現場状況
                                         .col-6.p-2
                                             a.float-right.badge.badge-primary.p-2.rounded(href='/dashboard/settings/genba') 現場を追加する
                                     #genbaCheckList.form-group.row.p-3
